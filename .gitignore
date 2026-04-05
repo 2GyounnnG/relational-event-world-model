@@ -39,3 +39,10 @@ data/*.npz
 # Temporary local debug scripts
 inspect_dataset.py
 test_dataset.py
+
+
+__pycache__/
+*.pyc
+.DS_Store
+checkpoints/
+data/*.pkl
