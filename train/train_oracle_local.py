@@ -208,6 +208,7 @@ def run_epoch(
     edge_loss_weight: float,
     type_loss_weight: float,
     state_loss_weight: float,
+    type_flip_weight: float,
     optimizer: Optional[torch.optim.Optimizer] = None,
     grad_clip: Optional[float] = None,
 ) -> Dict[str, float]:
@@ -252,6 +253,7 @@ def run_epoch(
 
             local_loss_dict = oracle_local_rewrite_loss(
                 outputs=outputs,
+                current_node_feats=batch["node_feats"],
                 target_node_feats=batch["next_node_feats"],
                 target_adj=batch["next_adj"],
                 node_mask=batch["node_mask"],
@@ -260,6 +262,7 @@ def run_epoch(
                 edge_loss_weight=edge_loss_weight,
                 type_loss_weight=type_loss_weight,
                 state_loss_weight=state_loss_weight,
+                type_flip_weight=type_flip_weight,
             )
 
             full_loss_dict = oracle_full_prediction_loss(
@@ -315,6 +318,7 @@ def main() -> None:
     parser.add_argument("--copy_logit_value", type=float, default=10.0)
     parser.add_argument("--edge_loss_weight", type=float, default=1.0)
     parser.add_argument("--type_loss_weight", type=float, default=1.0)
+    parser.add_argument("--type_flip_weight", type=float, default=1.0)
     parser.add_argument("--state_loss_weight", type=float, default=1.0)
     parser.add_argument("--grad_clip", type=float, default=1.0)
     parser.add_argument("--num_workers", type=int, default=0)
@@ -388,6 +392,7 @@ def main() -> None:
             edge_loss_weight=args.edge_loss_weight,
             type_loss_weight=args.type_loss_weight,
             state_loss_weight=args.state_loss_weight,
+            type_flip_weight=args.type_flip_weight,
             optimizer=optimizer,
             grad_clip=args.grad_clip,
         )
@@ -399,6 +404,7 @@ def main() -> None:
             edge_loss_weight=args.edge_loss_weight,
             type_loss_weight=args.type_loss_weight,
             state_loss_weight=args.state_loss_weight,
+            type_flip_weight=args.type_flip_weight,
             optimizer=None,
             grad_clip=None,
         )

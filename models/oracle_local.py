@@ -51,6 +51,7 @@ def masked_type_ce_loss(
     type_logits: torch.Tensor,
     target_type: torch.Tensor,
     mask: torch.Tensor,
+    weights: torch.Tensor | None = None,
     eps: float = 1e-8,
 ) -> torch.Tensor:
     """
@@ -64,8 +65,14 @@ def masked_type_ce_loss(
         target_type.reshape(bsz * num_nodes),
         reduction="none",
     ).reshape(bsz, num_nodes)
+    if weights is not None:
+        ce = ce * weights
     ce = ce * mask
-    return ce.sum() / (mask.sum() + eps)
+    if weights is not None:
+        denom = (weights * mask).sum()
+    else:
+        denom = mask.sum()
+    return ce.sum() / (denom + eps)
 
 
 def masked_edge_bce_loss_from_pair_mask(
@@ -285,6 +292,7 @@ class OracleLocalRewriteModel(nn.Module):
 
 def oracle_local_rewrite_loss(
     outputs: Dict[str, torch.Tensor],
+    current_node_feats: torch.Tensor,
     target_node_feats: torch.Tensor,
     target_adj: torch.Tensor,
     node_mask: torch.Tensor,
@@ -293,20 +301,25 @@ def oracle_local_rewrite_loss(
     edge_loss_weight: float = 1.0,
     type_loss_weight: float = 1.0,
     state_loss_weight: float = 1.0,
+    type_flip_weight: float = 1.0,
 ) -> Dict[str, torch.Tensor]:
     """
     Scope-only training loss.
     """
+    current_type = current_node_feats[:, :, 0].long()
     target_type = target_node_feats[:, :, 0].long()
     target_state = target_node_feats[:, :, 1:]
 
     scoped_node_mask = node_mask * scope_node_mask
     scoped_edge_mask = build_valid_edge_mask(node_mask) * scope_edge_mask
+    flip_target_mask = (current_type != target_type).to(outputs["type_logits_local"].dtype)
+    type_weights = 1.0 + (type_flip_weight - 1.0) * flip_target_mask
 
     type_loss = masked_type_ce_loss(
         outputs["type_logits_local"],
         target_type,
         scoped_node_mask,
+        weights=type_weights,
     )
     state_loss = masked_mse_loss(
         outputs["state_pred_local"],

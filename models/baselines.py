@@ -316,6 +316,7 @@ def masked_type_ce_loss(
     type_logits: torch.Tensor,
     target_type: torch.Tensor,
     node_mask: torch.Tensor,
+    weights: torch.Tensor | None = None,
     eps: float = 1e-8,
 ) -> torch.Tensor:
     """
@@ -331,18 +332,26 @@ def masked_type_ce_loss(
         reduction="none",
     ).reshape(B, N)
 
+    if weights is not None:
+        ce = ce * weights
     ce = ce * node_mask
-    return ce.sum() / (node_mask.sum() + eps)
+    if weights is not None:
+        denom = (weights * node_mask).sum()
+    else:
+        denom = node_mask.sum()
+    return ce.sum() / (denom + eps)
 
 
 def global_baseline_loss(
     outputs: Dict[str, torch.Tensor],
+    current_node_feats: torch.Tensor,
     target_node_feats: torch.Tensor,
     target_adj: torch.Tensor,
     node_mask: torch.Tensor,
     edge_loss_weight: float = 1.0,
     type_loss_weight: float = 1.0,
     state_loss_weight: float = 1.0,
+    type_flip_weight: float = 1.0,
 ) -> Dict[str, torch.Tensor]:
     """
     target_node_feats layout:
@@ -353,10 +362,13 @@ def global_baseline_loss(
     state_pred = outputs["state_pred"]     # [B, N, 4]
     edge_logits = outputs["edge_logits"]   # [B, N, N]
 
+    current_type = current_node_feats[:, :, 0].long()
     target_type = target_node_feats[:, :, 0].long()
     target_state = target_node_feats[:, :, 1:]
+    flip_target_mask = (current_type != target_type).to(type_logits.dtype)
+    type_weights = 1.0 + (type_flip_weight - 1.0) * flip_target_mask
 
-    type_loss = masked_type_ce_loss(type_logits, target_type, node_mask)
+    type_loss = masked_type_ce_loss(type_logits, target_type, node_mask, weights=type_weights)
     state_loss = masked_mse_loss(state_pred, target_state, node_mask)
     edge_loss = masked_edge_bce_loss(edge_logits, target_adj, node_mask)
 

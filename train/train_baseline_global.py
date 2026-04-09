@@ -149,6 +149,7 @@ def train_one_epoch(
     edge_loss_weight: float,
     type_loss_weight: float,
     state_loss_weight: float,
+    type_flip_weight: float,
     grad_clip: float | None,
 ) -> Dict[str, float]:
     model.train()
@@ -169,12 +170,14 @@ def train_one_epoch(
 
         loss_dict = global_baseline_loss(
             outputs=outputs,
+            current_node_feats=batch["node_feats"],
             target_node_feats=batch["next_node_feats"],
             target_adj=batch["next_adj"],
             node_mask=batch["node_mask"],
             edge_loss_weight=edge_loss_weight,
             type_loss_weight=type_loss_weight,
             state_loss_weight=state_loss_weight,
+            type_flip_weight=type_flip_weight,
         )
 
         loss = loss_dict["total_loss"]
@@ -228,6 +231,7 @@ def evaluate(
     edge_loss_weight: float,
     type_loss_weight: float,
     state_loss_weight: float,
+    type_flip_weight: float,
 ) -> Dict[str, float]:
     model.eval()
 
@@ -247,12 +251,14 @@ def evaluate(
 
         loss_dict = global_baseline_loss(
             outputs=outputs,
+            current_node_feats=batch["node_feats"],
             target_node_feats=batch["next_node_feats"],
             target_adj=batch["next_adj"],
             node_mask=batch["node_mask"],
             edge_loss_weight=edge_loss_weight,
             type_loss_weight=type_loss_weight,
             state_loss_weight=state_loss_weight,
+            type_flip_weight=type_flip_weight,
         )
 
         total_loss_sum += loss_dict["total_loss"].item()
@@ -305,6 +311,7 @@ def main():
     parser.add_argument("--num_node_types", type=int, default=3)
     parser.add_argument("--edge_loss_weight", type=float, default=1.0)
     parser.add_argument("--type_loss_weight", type=float, default=1.0)
+    parser.add_argument("--type_flip_weight", type=float, default=1.0)
     parser.add_argument("--state_loss_weight", type=float, default=1.0)
     parser.add_argument("--grad_clip", type=float, default=1.0)
     parser.add_argument("--num_workers", type=int, default=0)
@@ -369,6 +376,7 @@ def main():
             edge_loss_weight=args.edge_loss_weight,
             type_loss_weight=args.type_loss_weight,
             state_loss_weight=args.state_loss_weight,
+            type_flip_weight=args.type_flip_weight,
             grad_clip=args.grad_clip,
         )
 
@@ -379,6 +387,7 @@ def main():
             edge_loss_weight=args.edge_loss_weight,
             type_loss_weight=args.type_loss_weight,
             state_loss_weight=args.state_loss_weight,
+            type_flip_weight=args.type_flip_weight,
         )
 
         print(
