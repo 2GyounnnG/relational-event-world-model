@@ -385,11 +385,20 @@ def save_json(path: Path, payload: Dict) -> None:
         json.dump(payload, f, indent=2, ensure_ascii=False)
 
 
-def compute_selection_score(val_metrics: Dict[str, float], add_weight: float, delete_weight: float) -> float:
-    denom = add_weight + delete_weight
+def compute_selection_score(
+    val_metrics: Dict[str, float],
+    keep_weight: float,
+    add_weight: float,
+    delete_weight: float,
+) -> float:
+    denom = keep_weight + add_weight + delete_weight
     if denom <= 0:
         raise ValueError("selection weights must sum to a positive value")
-    return (add_weight * val_metrics["scope_add_acc"] + delete_weight * val_metrics["scope_delete_acc"]) / denom
+    return (
+        keep_weight * val_metrics["scope_keep_acc"]
+        + add_weight * val_metrics["scope_add_acc"]
+        + delete_weight * val_metrics["scope_delete_acc"]
+    ) / denom
 
 
 def main() -> None:
@@ -407,6 +416,7 @@ def main() -> None:
     parser.add_argument("--node_mlp_layers", type=int, default=2)
     parser.add_argument("--edge_mlp_layers", type=int, default=2)
     parser.add_argument("--dropout", type=float, default=0.0)
+    parser.add_argument("--edge_dropout", type=float, default=0.0)
     parser.add_argument("--num_node_types", type=int, default=3)
     parser.add_argument("--copy_logit_value", type=float, default=10.0)
     parser.add_argument("--edge_loss_weight", type=float, default=1.0)
@@ -415,6 +425,7 @@ def main() -> None:
     parser.add_argument("--delta_keep_weight", type=float, default=1.0)
     parser.add_argument("--delta_add_weight", type=float, default=1.0)
     parser.add_argument("--delta_delete_weight", type=float, default=3.0)
+    parser.add_argument("--selection_keep_weight", type=float, default=0.5)
     parser.add_argument("--selection_add_weight", type=float, default=0.5)
     parser.add_argument("--selection_delete_weight", type=float, default=0.5)
     parser.add_argument("--grad_clip", type=float, default=1.0)
@@ -458,6 +469,7 @@ def main() -> None:
         node_mlp_layers=args.node_mlp_layers,
         edge_mlp_layers=args.edge_mlp_layers,
         dropout=args.dropout,
+        edge_dropout=args.edge_dropout,
         copy_logit_value=args.copy_logit_value,
     )
     model = OracleLocalDeltaRewriteModel(model_config).to(device)
@@ -477,7 +489,11 @@ def main() -> None:
     print(f"val size: {len(val_dataset)}")
     print(f"node_feat_dim: {node_feat_dim}")
     print(f"state_dim: {state_dim}")
-    print(f"selection metric: {args.selection_add_weight:.3f} * val_scope_add_acc + {args.selection_delete_weight:.3f} * val_scope_delete_acc")
+    print(
+        f"selection metric: {args.selection_keep_weight:.3f} * val_scope_keep_acc + "
+        f"{args.selection_add_weight:.3f} * val_scope_add_acc + "
+        f"{args.selection_delete_weight:.3f} * val_scope_delete_acc"
+    )
     print(f"early stopping patience: {args.patience}")
     print(model)
 
@@ -512,6 +528,7 @@ def main() -> None:
 
         selection_score = compute_selection_score(
             val_metrics,
+            keep_weight=args.selection_keep_weight,
             add_weight=args.selection_add_weight,
             delete_weight=args.selection_delete_weight,
         )
@@ -548,9 +565,10 @@ def main() -> None:
             "args": vars(args),
             "train_metrics": train_metrics,
             "val_metrics": val_metrics,
-            "selection_metric": "balanced_scope_add_delete_acc",
+            "selection_metric": "balanced_scope_keep_add_delete_acc",
             "selection_score": selection_score,
             "selection_formula": {
+                "scope_keep_acc_weight": args.selection_keep_weight,
                 "scope_add_acc_weight": args.selection_add_weight,
                 "scope_delete_acc_weight": args.selection_delete_weight,
             },
@@ -570,8 +588,9 @@ def main() -> None:
                 {
                     "epoch": epoch,
                     "best_selection_score": best_score,
-                    "selection_metric": "balanced_scope_add_delete_acc",
+                    "selection_metric": "balanced_scope_keep_add_delete_acc",
                     "selection_formula": {
+                        "scope_keep_acc_weight": args.selection_keep_weight,
                         "scope_add_acc_weight": args.selection_add_weight,
                         "scope_delete_acc_weight": args.selection_delete_weight,
                     },

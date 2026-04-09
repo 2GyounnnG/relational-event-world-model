@@ -26,6 +26,7 @@ class OracleLocalDeltaRewriteConfig:
     node_mlp_layers: int = 2
     edge_mlp_layers: int = 2
     dropout: float = 0.0
+    edge_dropout: float = 0.0
     copy_logit_value: float = 10.0
 
 
@@ -179,6 +180,7 @@ class OracleLocalDeltaRewriteModel(nn.Module):
         )
 
         edge_in_dim = config.hidden_dim * 4
+        self.edge_input_dropout = nn.Dropout(config.edge_dropout)
         self.edge_delta_head = build_mlp(
             in_dim=edge_in_dim,
             hidden_dim=config.hidden_dim,
@@ -246,6 +248,7 @@ class OracleLocalDeltaRewriteModel(nn.Module):
             dim=-1,
         )
 
+        pair_feat = self.edge_input_dropout(pair_feat)
         edge_delta_logits = self.edge_delta_head(pair_feat)
         edge_delta_logits = 0.5 * (
             edge_delta_logits + edge_delta_logits.transpose(1, 2)
