@@ -22,6 +22,7 @@ from data.collate import graph_event_collate_fn
 from data.dataset import GraphEventDataset
 from models.baselines import GlobalBaselineConfig, GlobalTransitionBaseline
 from models.oracle_local import OracleLocalRewriteConfig, OracleLocalRewriteModel
+from models.oracle_local_delta import OracleLocalDeltaRewriteConfig, OracleLocalDeltaRewriteModel
 
 
 def resolve_path(path_str: str) -> Path:
@@ -203,6 +204,8 @@ def get_type_outputs(
         return outputs["type_logits"], None
     if model_kind == "oracle_local_typed":
         return outputs["type_logits_full"], outputs["type_logits_local"]
+    if model_kind == "oracle_local_delta":
+        return outputs["type_logits_full"], outputs["type_logits_local"]
     raise ValueError(f"Unsupported model_kind: {model_kind}")
 
 
@@ -213,7 +216,7 @@ def run_model(
 ) -> Dict[str, torch.Tensor]:
     if model_kind == "global_typed":
         return model(batch["node_feats"], batch["adj"])
-    if model_kind == "oracle_local_typed":
+    if model_kind in {"oracle_local_typed", "oracle_local_delta"}:
         return model(
             node_feats=batch["node_feats"],
             adj=batch["adj"],
@@ -271,7 +274,7 @@ def build_sample_stats(
         }
     )
 
-    if model_kind == "oracle_local_typed":
+    if model_kind in {"oracle_local_typed", "oracle_local_delta"}:
         scope_node_mask = (batch["event_scope_union_nodes"][sample_idx] > 0.5) & node_mask
         pred_scope_type = scope_logits[sample_idx].argmax(dim=-1)
         scope_type_correct, scope_type_total = mask_correct_and_total(pred_scope_type, target_type, scope_node_mask)
@@ -360,7 +363,7 @@ def evaluate_breakdown(
     model_kind: str,
 ) -> tuple[Dict[str, Dict[str, Dict[str, Any]]], Dict[str, Dict[str, int]]]:
     model.eval()
-    include_scope = model_kind == "oracle_local_typed"
+    include_scope = model_kind in {"oracle_local_typed", "oracle_local_delta"}
 
     sections_raw: Dict[str, Dict[str, Dict[str, float]]] = {
         "overall": {},
@@ -511,6 +514,9 @@ def load_model(checkpoint: Dict[str, Any], model_kind: str, device: torch.device
     elif model_kind == "oracle_local_typed":
         model_config = OracleLocalRewriteConfig(**checkpoint["model_config"])
         model = OracleLocalRewriteModel(model_config).to(device)
+    elif model_kind == "oracle_local_delta":
+        model_config = OracleLocalDeltaRewriteConfig(**checkpoint["model_config"])
+        model = OracleLocalDeltaRewriteModel(model_config).to(device)
     else:
         raise ValueError(f"Unsupported model_kind: {model_kind}")
 
@@ -521,7 +527,12 @@ def load_model(checkpoint: Dict[str, Any], model_kind: str, device: torch.device
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_kind", type=str, required=True, choices=["global_typed", "oracle_local_typed"])
+    parser.add_argument(
+        "--model_kind",
+        type=str,
+        required=True,
+        choices=["global_typed", "oracle_local_typed", "oracle_local_delta"],
+    )
     parser.add_argument("--checkpoint_path", type=str, required=True)
     parser.add_argument("--data_path", type=str, required=True)
     parser.add_argument("--split_name", type=str, required=True)
@@ -579,27 +590,28 @@ def main() -> None:
     print(f"checkpoint epoch: {checkpoint.get('epoch')}")
     print(f"saved json: {save_json_path}")
 
-    print_section("overall", sections["overall"], include_scope=args.model_kind == "oracle_local_typed")
-    print_section("by_num_events", sections["by_num_events"], include_scope=args.model_kind == "oracle_local_typed")
+    include_scope = args.model_kind in {"oracle_local_typed", "oracle_local_delta"}
+    print_section("overall", sections["overall"], include_scope=include_scope)
+    print_section("by_num_events", sections["by_num_events"], include_scope=include_scope)
     print_section(
         "by_single_event_type",
         sections["by_single_event_type"],
-        include_scope=args.model_kind == "oracle_local_typed",
+        include_scope=include_scope,
     )
     print_section(
         "by_contains_event_type",
         sections["by_contains_event_type"],
-        include_scope=args.model_kind == "oracle_local_typed",
+        include_scope=include_scope,
     )
     print_section(
         "by_event_signature",
         sections["by_event_signature"],
-        include_scope=args.model_kind == "oracle_local_typed",
+        include_scope=include_scope,
     )
     print_section(
         "by_two_event_independence",
         sections["by_two_event_independence"],
-        include_scope=args.model_kind == "oracle_local_typed",
+        include_scope=include_scope,
     )
     print_flip_confusion_summary(flip_confusions)
 

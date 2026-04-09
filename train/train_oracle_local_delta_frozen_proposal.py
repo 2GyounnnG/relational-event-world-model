@@ -13,14 +13,14 @@ from torch.utils.data import DataLoader
 
 # ---------------------------------------------------------------------
 # Make project root importable when running:
-#   python train/train_oracle_local_delta.py
+#   python train/train_oracle_local_delta_frozen_proposal.py
 # ---------------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from data.dataset import GraphEventDataset
 from data.collate import graph_event_collate_fn
+from data.dataset import GraphEventDataset
 from models.oracle_local_delta import (
     EDGE_DELTA_ADD,
     EDGE_DELTA_DELETE,
@@ -32,6 +32,14 @@ from models.oracle_local_delta import (
     oracle_full_prediction_loss,
     oracle_local_delta_rewrite_loss,
 )
+from models.proposal import ScopeProposalConfig, ScopeProposalModel
+
+
+def resolve_path(path_str: str) -> Path:
+    path = Path(path_str)
+    if path.is_absolute():
+        return path
+    return PROJECT_ROOT / path
 
 
 def set_seed(seed: int) -> None:
@@ -162,16 +170,6 @@ def safe_div(num: float, den: float) -> float:
     return num / den
 
 
-def require_oracle_scope(batch: Dict) -> None:
-    required_keys = ["event_scope_union_nodes", "event_scope_union_edges"]
-    missing = [k for k in required_keys if k not in batch]
-    if missing:
-        raise KeyError(
-            "Oracle local rewrite training requires scope annotations in the batch. "
-            f"Missing keys: {missing}"
-        )
-
-
 def init_metric_accumulator() -> Dict[str, float]:
     return {
         "local_total_loss_sum": 0.0,
@@ -240,13 +238,13 @@ def update_metric_accumulator(
     acc: Dict[str, float],
     outputs: Dict[str, torch.Tensor],
     batch: Dict[str, torch.Tensor],
+    scope_node_mask: torch.Tensor,
+    scope_edge_mask: torch.Tensor,
     local_loss_dict: Dict[str, torch.Tensor],
     full_loss_dict: Dict[str, torch.Tensor],
 ) -> None:
     node_mask = batch["node_mask"]
     valid_edge_mask = build_valid_edge_mask(node_mask)
-    scope_node_mask = batch["event_scope_union_nodes"] * node_mask
-    scope_edge_mask = batch["event_scope_union_edges"] * valid_edge_mask
 
     acc["local_total_loss_sum"] += local_loss_dict["total_loss"].item()
     acc["local_type_loss_sum"] += local_loss_dict["type_loss"].item()
@@ -312,8 +310,31 @@ def update_metric_accumulator(
     acc["total_edges"] += valid_edge_mask.sum().item()
 
 
+@torch.no_grad()
+def predict_scope_masks(
+    proposal_model: ScopeProposalModel,
+    batch: Dict[str, torch.Tensor],
+    node_threshold: float,
+    edge_threshold: float,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    proposal_outputs = proposal_model(
+        node_feats=batch["node_feats"],
+        adj=batch["adj"],
+    )
+
+    node_mask = batch["node_mask"].bool()
+    valid_edge_mask = build_valid_edge_mask(batch["node_mask"]).bool()
+    scope_node_mask = (torch.sigmoid(proposal_outputs["scope_logits"]) >= node_threshold) & node_mask
+    if "edge_scope_logits" in proposal_outputs:
+        scope_edge_mask = (torch.sigmoid(proposal_outputs["edge_scope_logits"]) >= edge_threshold) & valid_edge_mask
+    else:
+        scope_edge_mask = scope_node_mask.unsqueeze(2) & scope_node_mask.unsqueeze(1) & valid_edge_mask
+    return scope_node_mask.float(), scope_edge_mask.float()
+
+
 def run_epoch(
     model: OracleLocalDeltaRewriteModel,
+    proposal_model: ScopeProposalModel,
     loader: DataLoader,
     device: torch.device,
     edge_loss_weight: float,
@@ -323,24 +344,32 @@ def run_epoch(
     delta_keep_weight: float,
     delta_add_weight: float,
     delta_delete_weight: float,
+    node_threshold: float,
+    edge_threshold: float,
     optimizer: Optional[torch.optim.Optimizer] = None,
     grad_clip: Optional[float] = None,
 ) -> Dict[str, float]:
     is_train = optimizer is not None
     model.train() if is_train else model.eval()
+    proposal_model.eval()
 
     acc = init_metric_accumulator()
     context = torch.enable_grad() if is_train else torch.no_grad()
     with context:
         for batch in loader:
-            require_oracle_scope(batch)
             batch = move_batch_to_device(batch, device)
+            scope_node_mask, scope_edge_mask = predict_scope_masks(
+                proposal_model=proposal_model,
+                batch=batch,
+                node_threshold=node_threshold,
+                edge_threshold=edge_threshold,
+            )
 
             outputs = model(
                 node_feats=batch["node_feats"],
                 adj=batch["adj"],
-                scope_node_mask=batch["event_scope_union_nodes"],
-                scope_edge_mask=batch["event_scope_union_edges"],
+                scope_node_mask=scope_node_mask,
+                scope_edge_mask=scope_edge_mask,
             )
 
             local_loss_dict = oracle_local_delta_rewrite_loss(
@@ -350,8 +379,8 @@ def run_epoch(
                 target_node_feats=batch["next_node_feats"],
                 target_adj=batch["next_adj"],
                 node_mask=batch["node_mask"],
-                scope_node_mask=batch["event_scope_union_nodes"],
-                scope_edge_mask=batch["event_scope_union_edges"],
+                scope_node_mask=scope_node_mask,
+                scope_edge_mask=scope_edge_mask,
                 edge_loss_weight=edge_loss_weight,
                 type_loss_weight=type_loss_weight,
                 state_loss_weight=state_loss_weight,
@@ -378,7 +407,15 @@ def run_epoch(
                     torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
                 optimizer.step()
 
-            update_metric_accumulator(acc, outputs, batch, local_loss_dict, full_loss_dict)
+            update_metric_accumulator(
+                acc,
+                outputs,
+                batch,
+                scope_node_mask,
+                scope_edge_mask,
+                local_loss_dict,
+                full_loss_dict,
+            )
 
     return finalize_metric_accumulator(acc)
 
@@ -404,11 +441,24 @@ def compute_selection_score(
     ) / denom
 
 
+def load_frozen_proposal(proposal_checkpoint_path: Path, device: torch.device) -> ScopeProposalModel:
+    checkpoint = torch.load(proposal_checkpoint_path, map_location="cpu")
+    model = ScopeProposalModel(ScopeProposalConfig(**checkpoint["model_config"])).to(device)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    model.eval()
+    for param in model.parameters():
+        param.requires_grad_(False)
+    return model
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--train_path", type=str, default="data/graph_event_train.pkl")
     parser.add_argument("--val_path", type=str, default="data/graph_event_val.pkl")
-    parser.add_argument("--save_dir", type=str, default="checkpoints/oracle_local_rewrite_delta")
+    parser.add_argument("--proposal_checkpoint", type=str, required=True)
+    parser.add_argument("--node_threshold", type=float, default=0.20)
+    parser.add_argument("--edge_threshold", type=float, default=0.15)
+    parser.add_argument("--save_dir", type=str, default="checkpoints/oracle_local_rewrite_delta_frozen_proposal")
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--patience", type=int, default=2)
@@ -442,6 +492,7 @@ def main() -> None:
     device = get_device(args.device)
     pin_memory = device.type == "cuda"
 
+    proposal_checkpoint_path = resolve_path(args.proposal_checkpoint)
     save_dir = PROJECT_ROOT / args.save_dir
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -454,12 +505,6 @@ def main() -> None:
     )
 
     sample = train_dataset[0]
-    if "event_scope_union_nodes" not in sample or "event_scope_union_edges" not in sample:
-        raise KeyError(
-            "Oracle local rewrite training requires event_scope_union_nodes and "
-            "event_scope_union_edges in each dataset sample."
-        )
-
     node_feat_dim = sample["node_feats"].shape[-1]
     state_dim = node_feat_dim - 1
 
@@ -477,6 +522,7 @@ def main() -> None:
         copy_logit_value=args.copy_logit_value,
     )
     model = OracleLocalDeltaRewriteModel(model_config).to(device)
+    proposal_model = load_frozen_proposal(proposal_checkpoint_path, device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
@@ -491,6 +537,9 @@ def main() -> None:
     print(f"device: {device}")
     print(f"train size: {len(train_dataset)}")
     print(f"val size: {len(val_dataset)}")
+    print(f"proposal checkpoint: {proposal_checkpoint_path}")
+    print(f"node threshold: {args.node_threshold}")
+    print(f"edge threshold: {args.edge_threshold}")
     print(f"node_feat_dim: {node_feat_dim}")
     print(f"state_dim: {state_dim}")
     print(
@@ -504,6 +553,7 @@ def main() -> None:
     for epoch in range(1, args.epochs + 1):
         train_metrics = run_epoch(
             model=model,
+            proposal_model=proposal_model,
             loader=train_loader,
             device=device,
             edge_loss_weight=args.edge_loss_weight,
@@ -513,12 +563,15 @@ def main() -> None:
             delta_keep_weight=args.delta_keep_weight,
             delta_add_weight=args.delta_add_weight,
             delta_delete_weight=args.delta_delete_weight,
+            node_threshold=args.node_threshold,
+            edge_threshold=args.edge_threshold,
             optimizer=optimizer,
             grad_clip=args.grad_clip,
         )
 
         val_metrics = run_epoch(
             model=model,
+            proposal_model=proposal_model,
             loader=val_loader,
             device=device,
             edge_loss_weight=args.edge_loss_weight,
@@ -528,6 +581,8 @@ def main() -> None:
             delta_keep_weight=args.delta_keep_weight,
             delta_add_weight=args.delta_add_weight,
             delta_delete_weight=args.delta_delete_weight,
+            node_threshold=args.node_threshold,
+            edge_threshold=args.edge_threshold,
             optimizer=None,
             grad_clip=None,
         )
@@ -580,6 +635,10 @@ def main() -> None:
             },
             "edge_prediction_mode": "delta_3class",
             "edge_delta_label_map": {"0": "keep", "1": "add", "2": "delete"},
+            "scope_source": "frozen_proposal",
+            "proposal_checkpoint": str(proposal_checkpoint_path),
+            "proposal_node_threshold": args.node_threshold,
+            "proposal_edge_threshold": args.edge_threshold,
         }
 
         torch.save(ckpt, last_ckpt_path)
@@ -606,6 +665,10 @@ def main() -> None:
                     "args": vars(args),
                     "edge_prediction_mode": "delta_3class",
                     "edge_delta_label_map": {"0": "keep", "1": "add", "2": "delete"},
+                    "scope_source": "frozen_proposal",
+                    "proposal_checkpoint": str(proposal_checkpoint_path),
+                    "proposal_node_threshold": args.node_threshold,
+                    "proposal_edge_threshold": args.edge_threshold,
                 },
             )
             print(f"  saved new best checkpoint -> {best_ckpt_path}")
@@ -620,8 +683,7 @@ def main() -> None:
             )
             break
 
-    print(f"training finished. best_selection_score={best_score:.6f}")
-    print(f"best epoch: {best_epoch}")
+    print(f"training finished. best epoch={best_epoch} best selection score={best_score:.6f}")
     print(f"best checkpoint: {best_ckpt_path}")
     print(f"last checkpoint: {last_ckpt_path}")
     print(f"best metrics json: {best_metrics_path}")
