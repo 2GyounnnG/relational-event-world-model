@@ -65,6 +65,11 @@ class GraphEventDataset(Dataset):
             "next_adj": next_adj,
         }
 
+        obs_graph_t = raw.get("obs_graph_t", None)
+        if obs_graph_t is not None:
+            item["obs_node_feats"] = self._to_float_tensor(obs_graph_t["node_features"])
+            item["obs_adj"] = self._to_float_tensor(obs_graph_t["adj"])
+
         changed_nodes = raw.get("changed_nodes", None)
         if changed_nodes is not None:
             item["changed_nodes"] = self._to_float_tensor(changed_nodes).view(num_nodes)
@@ -97,6 +102,46 @@ class GraphEventDataset(Dataset):
             item["events"] = raw["events"]
         if "independent_pairs" in raw:
             item["independent_pairs"] = raw["independent_pairs"]
+        if "step3_pair_id" in raw:
+            item["step3_pair_id"] = raw["step3_pair_id"]
+        if "step3_ordered_variant" in raw:
+            item["step3_ordered_variant"] = raw["step3_ordered_variant"]
+        if "step3_ordered_signature" in raw:
+            item["step3_ordered_signature"] = raw["step3_ordered_signature"]
+        if "step3_unordered_signature" in raw:
+            item["step3_unordered_signature"] = raw["step3_unordered_signature"]
+        if "step3_base_graph_id" in raw:
+            item["step3_base_graph_id"] = raw["step3_base_graph_id"]
+        if "step3_event_specs" in raw:
+            item["step3_event_specs"] = raw["step3_event_specs"]
+        if "step3_pair_event_specs" in raw:
+            item["step3_pair_event_specs"] = raw["step3_pair_event_specs"]
+        if "step3_transition_role" in raw:
+            item["step3_transition_role"] = raw["step3_transition_role"]
+        if "step3_primary_event_index" in raw:
+            item["step3_primary_event_index"] = raw["step3_primary_event_index"]
+        if "step3_primary_event_type" in raw:
+            item["step3_primary_event_type"] = raw["step3_primary_event_type"]
+        if "step5_sample_id" in raw:
+            item["step5_sample_id"] = raw["step5_sample_id"]
+        if "step5_ordered_signature" in raw:
+            item["step5_ordered_signature"] = raw["step5_ordered_signature"]
+        if "step5_unordered_signature" in raw:
+            item["step5_unordered_signature"] = raw["step5_unordered_signature"]
+        if "step5_dependency_bucket" in raw:
+            item["step5_dependency_bucket"] = raw["step5_dependency_bucket"]
+        if "step5_dependency_reason" in raw:
+            item["step5_dependency_reason"] = raw["step5_dependency_reason"]
+        if "step5_pairwise_scope_overlaps" in raw:
+            item["step5_pairwise_scope_overlaps"] = raw["step5_pairwise_scope_overlaps"]
+        if "step5_event_valid_on_base" in raw:
+            item["step5_event_valid_on_base"] = raw["step5_event_valid_on_base"]
+        if "step6a_corruption_setting" in raw:
+            item["step6a_corruption_setting"] = raw["step6a_corruption_setting"]
+        if "step6a_corruption_config" in raw:
+            item["step6a_corruption_config"] = raw["step6a_corruption_config"]
+        if "step6a_source_sample_index" in raw:
+            item["step6a_source_sample_index"] = raw["step6a_source_sample_index"]
 
         # optional convenience metadata
         item["num_events"] = len(raw["events"]) if "events" in raw else None

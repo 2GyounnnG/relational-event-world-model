@@ -255,6 +255,12 @@ def build_sample_stats(
     return sample_stats
 
 
+def update_model_inputs_from_observation(batch: Dict[str, Any]) -> tuple[torch.Tensor, torch.Tensor]:
+    node_feats = batch.get("obs_node_feats", batch["node_feats"])
+    adj = batch.get("obs_adj", batch["adj"])
+    return node_feats, adj
+
+
 def print_section(title: str, section: Dict[str, Dict[str, Any]]) -> None:
     if not section:
         return
@@ -300,6 +306,7 @@ def evaluate_breakdown(
         "by_contains_event_type": {},
         "by_event_signature": {},
         "by_two_event_independence": {},
+        "by_step6a_corruption_setting": {},
     }
 
     for batch in loader:
@@ -320,10 +327,8 @@ def evaluate_breakdown(
         )
         batch = move_batch_to_device(batch, device)
 
-        outputs = model(
-            node_feats=batch["node_feats"],
-            adj=batch["adj"],
-        )
+        model_node_feats, model_adj = update_model_inputs_from_observation(batch)
+        outputs = model(node_feats=model_node_feats, adj=model_adj)
 
         batch_size = batch["node_feats"].shape[0]
         events_meta = batch.get("events", [None] * batch_size)
@@ -380,6 +385,14 @@ def evaluate_breakdown(
             if num_events == 2:
                 key = "two_event_independent::yes" if has_independent_pair else "two_event_independent::no"
                 update_bucket(bucket_for(sections_raw["by_two_event_independence"], key), sample_stats)
+
+            corruption_settings_meta = batch.get("step6a_corruption_setting", None)
+            if corruption_settings_meta is not None and i < len(corruption_settings_meta):
+                corruption_setting = str(corruption_settings_meta[i])
+                update_bucket(
+                    bucket_for(sections_raw["by_step6a_corruption_setting"], corruption_setting),
+                    sample_stats,
+                )
 
     sections_final: Dict[str, Dict[str, Dict[str, Any]]] = {}
     for section_name, section_buckets in sections_raw.items():
@@ -481,6 +494,7 @@ def main() -> None:
         "by_contains_event_type",
         "by_event_signature",
         "by_two_event_independence",
+        "by_step6a_corruption_setting",
     ]:
         print_section(section_name, sections.get(section_name, {}))
 

@@ -1,204 +1,87 @@
 # Relational / Event-Centric World Model
 
-Stage 1 synthetic graph-event world model project.
+A staged research project on **local event-centric world modeling** in a fully structured synthetic graph environment.
 
-## 1. Project Goal
+The core question is:
 
-This repository studies a narrow but important question:
+> If world changes are fundamentally sparse, local, and event-driven, can a model do better by first identifying the relevant event region and then rewriting only that local region, instead of predicting the whole next graph monolithically?
 
-> In a structured synthetic graph environment with local events, can local event-centric modeling outperform a plain global graph transition model?
+This repository is intentionally scoped to a clean synthetic regime first:
 
-Current work is intentionally limited to **Stage 1**:
-
-- synthetic graph environment
-- structured graph state input
+- structured graph state input only
 - no raw images
-- no LLM integration
 - no real-world data
-- no hypergraph rewrite complexity
-- no end-to-end proposal+rewrite coupling yet
+- no hypergraph formulation yet
+- no LLM integration
 
-The purpose of Stage 1 is to isolate the local-event hypothesis in the cleanest setting before adding learned proposal, causal-consistency objectives, or more realistic domains.
+The purpose is to isolate the local-event modeling hypothesis before moving to noisier observations, more complex interaction structure, and later-stage realism.
 
 ---
 
-## 2. Dataset
+## 1. Project Scope
 
-The synthetic graph-event dataset is implemented and working.
+The current repository studies a two-part local world model:
 
-### Event types
+1. **Proposal**
+   - predicts which local region of the graph is relevant to the current event(s)
+2. **Rewrite**
+   - predicts how that local region should change
+
+The project has already moved well beyond the earliest oracle-only feasibility stage. It now covers:
+
+- oracle-local rewrite feasibility
+- learned-scope bridging
+- robust rewrite under learned scope noise
+- sequential composition consistency
+- short-horizon rollout stability
+- transfer to more complex multi-event structural regimes
+- transfer to noisy structured observation regimes
+
+---
+
+## 2. Synthetic Graph-Event Environment
+
+The environment is a synthetic graph world with:
+
+- node type
+- node state features
+- adjacency structure
+
+### Event family
+
+Current event types:
+
 1. `node_state_update`
 2. `edge_add`
 3. `edge_delete`
 4. `motif_type_flip`
 
 ### Dataset properties
-- train / val / test splits
-- variable-size graphs
-- padded batching
-- `node_mask`
-- one-event and two-event transitions
-- independent two-event pairs
-- `changed_nodes`
-- `changed_edges`
-- `event_scope_union_nodes`
-- `event_scope_union_edges`
 
-A key distinction is preserved between:
+The data pipeline supports:
+
+- variable-size graphs
+- train / val / test splits
+- one-event transitions
+- two-event transitions
+- independent two-event pairs
+- changed-region annotations
+- event-scope annotations
+- matched sequential-composition data
+- rollout data
+- multi-event interaction data
+- noisy structured observation data
+
+A central distinction is preserved throughout the project:
 
 - **changed region**: nodes / edges that actually changed
 - **event scope**: the local region associated with the event, which may include extra context
 
----
-
-## 3. What Has Been Implemented
-
-### Global baselines
-- global whole-graph baseline
-- typed global baseline
-
-### Oracle-local baselines
-- oracle local typed rewrite baseline
-- oracle local delta-edge rewrite baseline
-- oracle merge-back sanity check
-
-### Delta-edge tooling
-- 3-class edge delta prediction (`keep / add / delete`)
-- breakdown evaluation by event type
-- changed-vs-context edge analysis
-- early stopping and checkpoint selection
-
-### Type-difficulty tooling
-- type breakdown evaluation
-- flip-target diagnostics for `motif_type_flip`
-
-### Proposal tooling
-- node-only scope proposal
-- explicit node+edge scope proposal
-- proposal-conditioned rewrite bridge evaluation
+That distinction became one of the defining project themes: many later bottlenecks come from the gap between predicting the correct scope and rewriting the correct changed subset inside that scope.
 
 ---
 
-## 4. Stage-1 Main Findings
-
-### 4.1 Oracle-local rewrite is learnable
-With oracle event scope provided, local rewrite dynamics are clearly learnable.
-
-### 4.2 Edge prediction is the main bottleneck
-Node type and node state are relatively stable. Edge prediction is harder, especially deletion behavior and the balance between changed-edge sensitivity and keep/context preservation.
-
-### 4.3 Delta edge modeling with delete-aware weighting is effective
-A 3-class delta edge head with delete-aware weighting substantially improved over earlier local edge behavior.
-
-### 4.4 A mild keep-aware edge loss tilt gives the best current oracle-scope edge balance
-Among the tested oracle-scope delta variants, a mild keep-aware weighting (`delta_keep_weight=1.10`, with `delta_delete_weight=3.0`) gave the best overall edge tradeoff.
-
-### 4.5 `motif_type_flip` is a real type-side failure mode
-Typed evaluation revealed that the main type difficulty is not generic node classification, but true type-flip cases. The models tend to copy the current type unless flip-target supervision is strengthened.
-
-### 4.6 Flip-aware type supervision helps much more under oracle-local modeling than under global typed modeling
-Adding flip-aware type weighting only marginally helped the global typed baseline, but gave a much larger improvement for the oracle-local typed baseline. This suggests locality matters not only for edge rewrite, but also for discrete type-transition ambiguity.
-
-### 4.7 Learned-scope proposal is viable, but node-only proposal is not enough
-A node-only proposal can recover useful node-scope signal, but edge scope derived by pairwise node logic is too crude.
-
-### 4.8 Explicit node+edge proposal closes much of the bridge gap
-An explicit node+edge proposal model, combined with rewrite-facing threshold selection, produces a learned-scope bridge that is substantially better than the earlier node-only bridge and noticeably closer to oracle-scope rewrite.
-
-### 4.9 Proposal-side flip-aware node weighting improves learned-scope type behavior
-Adding a flip-aware node proposal weight improved the learned-scope bridge without materially breaking the edge-side bridge, and is the current best learned-scope bridge candidate.
-
----
-
-## 5. Current Recommended Reference Points
-
-### 5.1 Oracle-scope edge reference
-Current oracle-scope edge lead candidate:
-
-- model: oracle-local delta rewrite
-- edge mode: delta 3-class (`keep / add / delete`)
-- `delta_keep_weight = 1.10`
-- `delta_add_weight = 1.0`
-- `delta_delete_weight = 3.0`
-- early stopping enabled
-
-### 5.2 Typed reference points
-
-| Model | Key result | Interpretation |
-|---|---:|---|
-| Global typed baseline | flip ≈ 0.000 | strong current-type copy bias |
-| Global typed + flip-aware weighting | flip ≈ 0.018 | only marginal improvement |
-| Oracle-local typed baseline | flip ≈ 0.029 | locality alone is not enough |
-| Oracle-local typed + `type_flip_weight=1.5` | flip ≈ 0.063 | best balanced typed candidate |
-| Oracle-local typed + `type_flip_weight=2.0` | flip ≈ 0.270 | aggressive proof-of-correctability variant |
-
-### 5.3 Oracle-scope delta edge comparison
-
-| Variant | scope_edge | delta_all | keep | add | delete | changed | context | Interpretation |
-|---|---:|---:|---:|---:|---:|---:|---:|---|
-| Original delta baseline | 0.7179 | 0.7039 | 0.7125 | 0.9179 | 0.4708 | 0.6826 | 0.7374 | delete-oriented reference |
-| `edge_dropout=0.10` | 0.7217 | 0.7161 | 0.7426 | 0.8900 | 0.4583 | 0.6583 | 0.7568 | mild edge regularization; not a clear new best |
-| `edge_dropout=0.05` | 0.6902 | 0.6800 | 0.6556 | 0.9150 | 0.5431 | 0.7161 | 0.6758 | too delete/changed-oriented |
-| keep/add/delete selection | 0.6668 | 0.6515 | 0.5904 | 0.9296 | 0.6028 | 0.7525 | 0.6192 | over-pushes delete/changed |
-| `delta_keep_weight=1.25` | 0.7410 | 0.7253 | 0.7639 | 0.9399 | 0.3861 | 0.6455 | 0.7940 | strongest keep/context, but delete drops too far |
-| **`delta_keep_weight=1.10`** | **0.7362** | **0.7207** | **0.7426** | **0.9370** | **0.4389** | **0.6719** | **0.7718** | **current best overall edge tradeoff** |
-
-### 5.4 Learned-scope bridge comparison
-
-| Bridge variant | scope_edge | delta_all | keep | add | delete | changed | context | Type flip | Interpretation |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
-| Node-only proposal bridge | 0.4514 | 0.3533 | 0.3476 | 0.9157 | 0.3822 | 0.6719 | 0.4479 | low | not viable |
-| Explicit node+edge proposal, unweighted, default bridge tuning | 0.6972 | 0.6655 | 0.6727 | 0.8767 | 0.4188 | 0.6719 | 0.7059 | low | first viable bridge |
-| Frozen-proposal rewrite training | 0.9596 | 0.9596 | 0.9999 | 0.0000 | 0.0000 | 0.0000 | 0.9999 | 0.0000 | collapses to copy-heavy behavior |
-| Union-scope rewrite training | 0.9236 | 0.9208 | 0.9571 | 0.2821 | 0.0306 | 0.4258 | 0.9601 | 0.0000 | more robust than predicted-only training, but still too copy-heavy |
-| **Explicit node+edge proposal + `node_flip_weight=2.0`, bridge at node=0.20 / edge=0.15** | **0.7289** | **0.7118** | **0.7238** | **0.6818** | **0.4000** | **0.6719** | **0.7416** | **0.0344** | **current best learned-scope bridge candidate** |
-
----
-
-## 6. Current Interpretation
-
-The current results do **not** yet prove that the local event-centric approach is superior to the global baseline in a fully fair end-to-end sense. Oracle-local rewrite still enjoys privileged scope information, and the learned-scope bridge is not yet an end-to-end learned local world model.
-
-What the current Stage-1 results **do** establish is:
-
-- local rewrite is learnable
-- delete-aware edge modeling matters
-- mild keep-aware weighting improves edge balance
-- true type-flip is a distinct failure mode
-- flip-aware supervision is much more effective under local modeling than under the global typed baseline
-- learned proposal is viable
-- explicit edge proposal is necessary
-- rewrite-facing threshold choice matters
-- proposal-side flip-aware node weighting improves learned-scope type behavior without materially breaking the current edge-side bridge
-
----
-
-## 7. What Is Still Not Done
-
-Not yet implemented:
-
-- end-to-end proposal+rewrite joint training that actually works
-- proposal-vs-rewrite disentangling beyond the current bridge experiments
-- causal consistency / order-invariance losses
-- long-horizon rollout studies
-- real-world data
-- raw-image input
-- hypergraph rewrite formulation
-
----
-
-## 8. Recommended Near-Term Direction
-
-The current best next direction is **not** to add more architectural complexity immediately. The more useful path is:
-
-1. keep the current oracle-scope edge lead candidate as the main rewrite reference
-2. keep the current learned-scope bridge candidate as the main learned-proposal reference
-3. treat frozen-proposal and union-scope rewrite training as negative results / cautionary evidence
-4. only move to more coupled proposal+rewrite experiments after these Stage-1 reference points are fully documented
-
----
-
-## 9. Current Repository Structure
+## 3. Repository Structure
 
 ```text
 relational-event-world-model/
@@ -208,7 +91,20 @@ relational-event-world-model/
 │   ├── collate.py
 │   ├── graph_event_train.pkl
 │   ├── graph_event_val.pkl
-│   └── graph_event_test.pkl
+│   ├── graph_event_test.pkl
+│   ├── graph_event_step3_matched_test.pkl
+│   ├── graph_event_step3_sequential_train.pkl
+│   ├── graph_event_step3_sequential_val.pkl
+│   ├── graph_event_step3_sequential_test.pkl
+│   ├── graph_event_rollout_train.pkl
+│   ├── graph_event_rollout_val.pkl
+│   ├── graph_event_rollout_test.pkl
+│   ├── graph_event_step5_train.pkl
+│   ├── graph_event_step5_val.pkl
+│   ├── graph_event_step5_test.pkl
+│   ├── graph_event_step6a_train.pkl
+│   ├── graph_event_step6a_val.pkl
+│   └── graph_event_step6a_test.pkl
 │
 ├── models/
 │   ├── baselines.py
@@ -220,18 +116,411 @@ relational-event-world-model/
 │   ├── train_baseline_global.py
 │   ├── oracle_sanity_check.py
 │   ├── train_oracle_local.py
-│   ├── eval_oracle_local_breakdown.py
 │   ├── train_oracle_local_delta.py
 │   ├── train_oracle_local_delta_earlystop.py
-│   ├── eval_oracle_local_breakdown_delta.py
-│   ├── eval_type_breakdown.py
 │   ├── train_scope_proposal.py
+│   ├── train_scope_proposal_noisy_obs.py
 │   ├── eval_scope_proposal.py
-│   ├── train_oracle_local_delta_frozen_proposal.py
-│   └── train_oracle_local_delta_union_scope.py
+│   ├── eval_proposal_conditioned_delta.py
+│   ├── eval_independent_pair_consistency.py
+│   ├── eval_sequential_composition_consistency.py
+│   ├── eval_rollout_stability.py
+│   ├── eval_step5_multievent_regime.py
+│   ├── eval_noisy_structured_observation.py
+│   ├── train_step3_sequential_consistency.py
+│   ├── train_step4_rollout_finetune.py
+│   ├── train_step5_interaction_finetune.py
+│   ├── train_step6_noisy_rewrite_finetune.py
+│   ├── train_step6_joint_noisy_finetune.py
+│   └── ...
 │
 ├── checkpoints/
-├── .gitignore
+├── docs/
 ├── README.md
 └── ...
 ```
+
+---
+
+## 4. Stage Summary
+
+The cleanest way to understand the project is by stage.
+
+### Step 1 — Oracle-local rewrite feasibility
+
+**Question:** If the correct event scope is given, can local rewrite itself be learned?
+
+**Answer:** Yes.
+
+This established the core viability of local event-centric modeling. Oracle-local rewrite is learnable, and merge-back sanity checks pass.
+
+A key early lesson was that **edge behavior** is the main bottleneck, especially:
+
+- delete accuracy
+- changed-vs-context balance
+- avoiding trivial keep/copy collapse
+
+This led to the current oracle-scope edge reference:
+
+- `delta_keep_weight = 1.10`
+- `delta_add_weight = 1.0`
+- `delta_delete_weight = 3.0`
+
+This later became the `keep110` reference.
+
+---
+
+### Step 1b — Typed failure analysis
+
+A major type-side result was that `motif_type_flip` is not just a generic hard classification case. The model has a strong **copy-current-type bias**, so true flips are the real difficulty.
+
+This established that:
+
+- locality helps
+- but flip-specific supervision still matters
+
+---
+
+### Step 1c — Learned-scope bridge
+
+**Question:** Can a learned proposal replace oracle scope well enough to support local rewrite?
+
+**Key findings:**
+
+- node-only proposal is not enough
+- explicit node+edge proposal is necessary
+- learned-scope bridge is viable
+- threshold choice matters substantially
+
+The strongest learned-scope bridge reference became:
+
+- explicit node+edge proposal
+- `node_flip_weight = 2.0`
+- `node_threshold = 0.20`
+- `edge_threshold = 0.15`
+- rewrite initialized from `keep110`
+
+This gave a meaningful learned-scope bridge, but did not yet solve robust rewrite under learned-scope noise.
+
+---
+
+### Step 2 — Robust rewrite under learned-scope noise
+
+**Question:** Once scope is learned rather than oracle-perfect, can rewrite remain reliable?
+
+This became the central bottleneck of the project.
+
+Important negative results:
+
+- predicted-only training collapses toward keep/copy
+- union-scope training remains too copy-heavy
+
+The main lesson was:
+
+> The proposal/rewrite interface is not a detail; it is the core learned-scope bottleneck.
+
+#### Current broad Step 2 default
+
+**`W012`**
+
+Interpretation:
+
+- strongest broad learned-scope rewrite compromise so far
+- best overall balance between edit sensitivity and context preservation
+- not perfect, but the most stable broad reference
+
+#### Strong alternatives worth keeping
+
+- `WG025`
+  - more edit-preserving
+  - stronger on delete / changed / flip
+  - weaker on context stability
+
+- `DR005`
+  - delete-rescue style alternative
+  - important proof that targeted delete recovery is real
+  - not the broad default
+
+**Step 2 status:** sufficiently closed for now.
+
+---
+
+### Step 3 — Sequential composition consistency
+
+**Question:** If two events are independent, does the model behave consistently when event order changes?
+
+An exact reverse-order final-state matched dataset was first constructed, but this turned out to be effectively vacuous: final targets commute by construction, so exact reverse-order gaps were zero.
+
+The real Step 3 substrate became:
+
+**sequential composition consistency**
+
+That is, comparing:
+
+- first-step quality
+- second-step quality
+- path-level sensitivity under event reordering
+
+This produced real, nontrivial consistency signals.
+
+#### Current Step 3 candidate
+
+**`C005`**
+
+Interpretation:
+
+- light consistency objective helps on the true sequential-composition substrate
+- path-gap reductions are real
+- still trades against step quality
+- useful Step 3 mode, not a universal replacement
+
+---
+
+### Step 4 — Rollout stability
+
+**Question:** Can the learned-scope local world model roll forward autoregressively without rapidly collapsing?
+
+Main result:
+
+- rollout degradation is real
+- degradation is cumulative
+- but it is not catastrophic over short horizons
+
+The characteristic failure mode is conservative drift:
+
+- changed-edge behavior remains weak
+- add behavior tends to collapse
+- context edge accuracy stays relatively strong
+
+#### Current Step 4 candidate
+
+**`R050`**
+
+Interpretation:
+
+- best rollout-aware candidate so far
+- improves rollout-specific edit behavior
+- still trades against overall stability
+
+---
+
+### Step 5 — More complex synthetic structural regime
+
+**Question:** Does the method family transfer to a more complex multi-event structural world?
+
+Step 5 introduced a harder synthetic regime with:
+
+- 3-event sequences
+- fully independent chains
+- partially dependent chains
+- strongly interacting chains
+
+Main result:
+
+- the method family does transfer
+- the main new bottleneck is **event interaction complexity**
+
+#### Current Step 5 defaults
+
+- broad default: **`W012`**
+- interaction-aware alternative: **`I1520`**
+
+Interpretation:
+
+- `W012` is the safest broad-transfer model
+- `I1520` is the stronger interaction-sensitive alternative
+- interaction-aware training helps, but gains saturate quickly
+
+---
+
+### Step 6 — Noisy structured observation
+
+**Question:** What happens when the model no longer sees a perfect graph state, but only a noisy structured observation?
+
+This became the bridge from ideal structured-world modeling toward more realistic imperfect observation.
+
+#### Step 6a — Noisy structured observation benchmark
+
+Main result:
+
+- the method family remains usable under noisy structured observations
+- the main bottleneck shifts to proposal robustness, especially on the edge side
+
+#### Step 6b — Noisy proposal training
+
+Main result:
+
+- noisy-observation proposal training helps
+- proposal-only best checkpoint becomes **`P2`**
+
+#### Step 6c — Global threshold calibration
+
+Main result:
+
+- calibration matters
+- after threshold calibration, `P2` becomes the system-level best proposal front-end
+
+Current best noisy-observation front-end:
+
+- **calibrated `P2`**
+- `node_threshold = 0.15`
+- `edge_threshold = 0.10`
+
+#### Step 6d — Regime-aware threshold calibration
+
+Main result:
+
+- no meaningful gain over global calibration
+
+Useful negative result:
+
+- remaining calibration issues are not simply per-regime threshold mismatch
+
+#### Step 6e — Temperature scaling / confidence calibration
+
+Main result:
+
+- no meaningful downstream gain over threshold calibration
+- calibration beyond thresholds did not help in the first clean pass
+
+Useful negative result:
+
+- proposal-side simple confidence calibration appears close to saturation
+
+#### Step 6f — Rewrite-only noisy adaptation
+
+Proposal frozen as calibrated `P2`, rewrite adapted under noisy structured observation.
+
+Main result:
+
+- rewrite-only noisy adaptation helps
+- gains are incremental, not transformative
+- best current candidate from this line is:
+
+### **`RFT1 + calibrated P2`**
+
+This is the current best broad noisy-observation system candidate.
+
+#### Step 6g — Light joint noisy proposal+rewrite fine-tuning
+
+A light joint noisy-observation fine-tuning pass was tested.
+
+Main result:
+
+- coupling signal is real
+- but the joint line does **not** beat `RFT1 + calibrated P2`
+- joint results are informative, but not the new default
+
+#### Current Step 6 main candidate
+
+### **`RFT1 + calibrated P2`**
+
+This is the current best noisy structured observation system stack.
+
+**Step 6 status:** sufficiently closed for now.
+
+---
+
+## 5. Current Stable Defaults
+
+At the current project checkpoint, the most useful defaults are:
+
+### Broad structured-world default
+**`W012`**
+
+### Step 3 consistency reference
+**`C005`**
+
+### Step 4 rollout-aware reference
+**`R050`**
+
+### Step 5 interaction-aware alternative
+**`I1520`**
+
+### Step 6 proposal front-end
+**calibrated `P2`**
+- `node_threshold = 0.15`
+- `edge_threshold = 0.10`
+
+### Step 6 broad noisy-observation system default
+**`RFT1 + calibrated P2`**
+
+---
+
+## 6. Strong Alternatives Worth Keeping
+
+These are not the current defaults, but remain important reference points:
+
+- `WG025`
+  - strongest edit-preserving Step 2 alternative
+
+- `DR005`
+  - strongest delete-rescue Step 2 anchor
+
+- `J05`
+  - informative joint noisy-observation result
+  - useful evidence that coupling has signal
+  - not better than `RFT1 + calibrated P2`
+
+---
+
+## 7. What Is Explicitly Not Being Reopened Right Now
+
+The following lines are considered sufficiently explored for the current phase and should **not** be reopened unless a later phase specifically demands it:
+
+- more Step 2 keep/rescue micro-tuning
+- more Step 6 threshold-only retuning
+- more Step 6 temperature-only calibration variants
+- reopening proposal-only architecture changes without a genuinely new bottleneck
+- broader local tuning loops inside Steps 2–6 without a new mechanism-level question
+
+---
+
+## 8. Current Interpretation
+
+The repository now supports a coherent view of local event-centric world modeling in a structured synthetic graph world:
+
+1. local rewrite is learnable
+2. learned-scope bridging is viable
+3. proposal/rewrite interface robustness is the central learned-scope bottleneck
+4. sequential composition consistency is a real issue
+5. rollout degradation is real but manageable
+6. the family transfers to a more complex multi-event structural regime
+7. noisy structured observation is survivable
+8. proposal-side noisy robustness can be improved substantially
+9. rewrite-side noisy adaptation provides the strongest current Step 6 system result
+10. fully joint noisy coupling has signal, but not yet a decisive net gain
+
+---
+
+## 9. Recommended Usage Notes
+
+If you are running new experiments in this repository:
+
+- use `W012` as the default broad model unless you specifically care about stronger edit preservation
+- use `I1520` when event interaction sensitivity is the main concern
+- use `RFT1 + calibrated P2` when working in noisy structured observation settings
+- compare against `WG025`, `DR005`, or `J05` only when the mechanism under study directly touches their corresponding tradeoff axes
+
+---
+
+## 10. Next-Phase Entry Point
+
+The next phase should **not** start by reopening old Step 2–6 tuning loops.
+
+Instead, it should begin from the consolidated defaults:
+
+- broad structural default: `W012`
+- consistency reference: `C005`
+- rollout reference: `R050`
+- interaction-aware alternative: `I1520`
+- noisy-observation front-end: calibrated `P2`
+- noisy-observation broad system: `RFT1 + calibrated P2`
+
+The next phase should ask a genuinely new question rather than revisiting already-saturated local tradeoff lines.
+
+---
+
+## 11. Summary in One Sentence
+
+This repository now supports a staged, mechanistically interpretable local event-centric world model pipeline in a structured synthetic graph world, with stable defaults for learned-scope rewrite, sequential consistency, rollout stability, interaction complexity, and noisy structured observation.

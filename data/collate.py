@@ -57,6 +57,14 @@ def graph_event_collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
     out["next_adj"] = torch.stack(
         [pad_adj(b["next_adj"], max_nodes) for b in batch], dim=0
     )
+    if all("obs_node_feats" in b for b in batch):
+        out["obs_node_feats"] = torch.stack(
+            [pad_node_features(b["obs_node_feats"], max_nodes) for b in batch], dim=0
+        )
+    if all("obs_adj" in b for b in batch):
+        out["obs_adj"] = torch.stack(
+            [pad_adj(b["obs_adj"], max_nodes) for b in batch], dim=0
+        )
 
     # node mask: 1 for real nodes, 0 for padded nodes
     node_mask = torch.zeros((batch_size, max_nodes), dtype=torch.float32)
@@ -91,6 +99,26 @@ def graph_event_collate_fn(batch: List[Dict[str, Any]]) -> Dict[str, Any]:
         "events",
         "num_events",
         "independent_pairs",
+        "step3_pair_id",
+        "step3_ordered_variant",
+        "step3_ordered_signature",
+        "step3_unordered_signature",
+        "step3_base_graph_id",
+        "step3_event_specs",
+        "step3_pair_event_specs",
+        "step3_transition_role",
+        "step3_primary_event_index",
+        "step3_primary_event_type",
+        "step5_sample_id",
+        "step5_ordered_signature",
+        "step5_unordered_signature",
+        "step5_dependency_bucket",
+        "step5_dependency_reason",
+        "step5_pairwise_scope_overlaps",
+        "step5_event_valid_on_base",
+        "step6a_corruption_setting",
+        "step6a_corruption_config",
+        "step6a_source_sample_index",
     ]
     for key in meta_keys:
         if all(key in b for b in batch):

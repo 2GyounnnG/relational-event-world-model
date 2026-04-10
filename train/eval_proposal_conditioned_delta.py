@@ -172,6 +172,7 @@ def evaluate(
     device: torch.device,
     node_threshold: float,
     edge_threshold: float,
+    use_proposal_conditioning: bool,
 ) -> Dict[str, Any]:
     proposal_model.eval()
     rewrite_model.eval()
@@ -256,7 +257,9 @@ def evaluate(
 
         node_mask = batch["node_mask"].bool()
         valid_edge_mask = build_valid_edge_mask(batch["node_mask"]).bool()
-        pred_scope_mask = (torch.sigmoid(proposal_outputs["scope_logits"]) >= node_threshold) & node_mask
+        node_scope_logits = proposal_outputs.get("node_scope_logits", proposal_outputs["scope_logits"])
+        proposal_node_probs = torch.sigmoid(node_scope_logits) * node_mask.float()
+        pred_scope_mask = (proposal_node_probs >= node_threshold) & node_mask
         oracle_scope_mask = (batch["event_scope_union_nodes"] > 0.5) & node_mask
         oracle_edge_scope_mask = (batch["event_scope_union_edges"] > 0.5) & valid_edge_mask
         changed_node_mask = (batch["changed_nodes"] > 0.5) & node_mask
@@ -266,10 +269,12 @@ def evaluate(
         flip_target_mask = (current_type != target_type) & node_mask
         nonflip_changed_mask = changed_node_mask & (~flip_target_mask)
         if "edge_scope_logits" in proposal_outputs:
-            pred_edge_scope_mask = (
-                (torch.sigmoid(proposal_outputs["edge_scope_logits"]) >= edge_threshold) & valid_edge_mask
-            )
+            proposal_edge_probs = torch.sigmoid(proposal_outputs["edge_scope_logits"]) * valid_edge_mask.float()
+            pred_edge_scope_mask = (proposal_edge_probs >= edge_threshold) & valid_edge_mask
         else:
+            proposal_edge_probs = (
+                proposal_node_probs.unsqueeze(2) * proposal_node_probs.unsqueeze(1) * valid_edge_mask.float()
+            )
             pred_edge_scope_mask = pred_scope_mask.unsqueeze(2) & pred_scope_mask.unsqueeze(1) & valid_edge_mask
         context_edge_mask = pred_edge_scope_mask & (~changed_edge_mask)
 
@@ -278,6 +283,8 @@ def evaluate(
             adj=batch["adj"],
             scope_node_mask=pred_scope_mask.float(),
             scope_edge_mask=pred_edge_scope_mask.float(),
+            proposal_node_probs=proposal_node_probs if use_proposal_conditioning else None,
+            proposal_edge_probs=proposal_edge_probs if use_proposal_conditioning else None,
         )
         pred_full_type = rewrite_outputs["type_logits_full"].argmax(dim=-1)
         pred_scope_type = rewrite_outputs["type_logits_local"].argmax(dim=-1)
@@ -530,6 +537,9 @@ def main() -> None:
     ).to(device)
     rewrite_model.load_state_dict(rewrite_checkpoint["model_state_dict"])
     rewrite_model.eval()
+    use_proposal_conditioning = bool(
+        rewrite_checkpoint.get("model_config", {}).get("use_proposal_conditioning", False)
+    )
 
     dataset, loader = build_loader(
         data_path=str(data_path),
@@ -545,6 +555,7 @@ def main() -> None:
         device=device,
         node_threshold=args.node_threshold,
         edge_threshold=args.edge_threshold,
+        use_proposal_conditioning=use_proposal_conditioning,
     )
 
     out_path = rewrite_checkpoint_path.parent / f"{args.split_name}_proposal_conditioned_delta.json"
@@ -558,6 +569,7 @@ def main() -> None:
             "node_threshold": args.node_threshold,
             "edge_threshold": args.edge_threshold,
             "dataset_size": len(dataset),
+            "rewrite_uses_proposal_conditioning": use_proposal_conditioning,
             "results": results,
         },
     )
@@ -569,6 +581,7 @@ def main() -> None:
     print(f"dataset size: {len(dataset)}")
     print(f"node threshold: {args.node_threshold}")
     print(f"edge threshold: {args.edge_threshold}")
+    print(f"rewrite uses proposal conditioning: {use_proposal_conditioning}")
     print(f"saved json: {out_path}")
     print(json.dumps(results, indent=2, ensure_ascii=False))
 

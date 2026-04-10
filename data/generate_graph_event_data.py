@@ -1,5 +1,8 @@
 # data/generate_graph_event_data.py
 
+import argparse
+import hashlib
+import json
 import os
 import copy
 import pickle
@@ -28,6 +31,55 @@ DEFAULT_CONFIG = {
     "train_file": "graph_event_train.pkl",
     "val_file": "graph_event_val.pkl",
     "test_file": "graph_event_test.pkl",
+    "step3_matched_test_pairs": 1000,
+    "step3_matched_test_file": "graph_event_step3_matched_test.pkl",
+    "step3_sequential_test_pairs": 500,
+    "step3_sequential_test_file": "graph_event_step3_sequential_test.pkl",
+    "rollout_test_file": "graph_event_rollout_test.pkl",
+    "rollout_num_samples_per_horizon": {
+        2: 200,
+        3: 200,
+        5: 200,
+    },
+    "step5_test_file": "graph_event_step5_test.pkl",
+    "step5_val_file": "graph_event_step5_val.pkl",
+    "step5_train_file": "graph_event_step5_train.pkl",
+    "step5_sequence_length": 3,
+    "step5_train_num_samples_per_bucket": {
+        "fully_independent": 300,
+        "partially_dependent": 300,
+        "strongly_interacting": 300,
+    },
+    "step5_test_num_samples_per_bucket": {
+        "fully_independent": 200,
+        "partially_dependent": 200,
+        "strongly_interacting": 200,
+    },
+    "step5_val_num_samples_per_bucket": {
+        "fully_independent": 100,
+        "partially_dependent": 100,
+        "strongly_interacting": 100,
+    },
+    "step6a_test_file": "graph_event_step6a_test.pkl",
+    "step6a_val_file": "graph_event_step6a_val.pkl",
+    "step6a_train_file": "graph_event_step6a_train.pkl",
+    "step6a_corruption_settings": {
+        "N1": {
+            "node_state_noise_std": 0.05,
+            "edge_dropout_prob": 0.05,
+            "edge_false_positive_prob": 0.02,
+        },
+        "N2": {
+            "node_state_noise_std": 0.10,
+            "edge_dropout_prob": 0.10,
+            "edge_false_positive_prob": 0.05,
+        },
+        "N3": {
+            "node_state_noise_std": 0.20,
+            "edge_dropout_prob": 0.15,
+            "edge_false_positive_prob": 0.08,
+        },
+    },
 }
 
 
@@ -83,6 +135,25 @@ def graph_to_edge_index(adj: np.ndarray) -> np.ndarray:
     if len(src) == 0:
         return np.zeros((2, 0), dtype=np.int64)
     return np.array([src, dst], dtype=np.int64)
+
+
+def graph_state_hash(graph: Dict[str, Any]) -> str:
+    h = hashlib.sha1()
+    h.update(np.asarray(graph["node_features"]).tobytes())
+    h.update(np.asarray(graph["adj"]).tobytes())
+    return h.hexdigest()
+
+
+def event_type_list(events: List[Dict[str, Any]]) -> List[str]:
+    return [str(e["event_type"]) for e in events]
+
+
+def ordered_signature(events: List[Dict[str, Any]]) -> str:
+    return "->".join(event_type_list(events))
+
+
+def unordered_signature(events: List[Dict[str, Any]]) -> str:
+    return "+".join(sorted(event_type_list(events)))
 
 
 def two_hop_reachable(adj: np.ndarray, i: int, j: int) -> bool:
@@ -418,6 +489,66 @@ def apply_events(
     return graph_next
 
 
+def event_is_valid_for_graph(
+    graph: Dict[str, Any],
+    event: Dict[str, Any],
+    num_types: int,
+) -> bool:
+    adj = graph["adj"]
+    node_features = graph["node_features"]
+    n = node_features.shape[0]
+    node_scope = list(event.get("node_scope", []))
+    event_type = str(event["event_type"])
+
+    if event_type == "node_state_update":
+        if len(node_scope) < 2:
+            return False
+        center = int(node_scope[0])
+        if center < 0 or center >= n:
+            return False
+        neighbors = get_neighbors(adj, center)
+        return len(neighbors) > 0 and sorted(node_scope[1:]) == sorted(neighbors)
+
+    if event_type == "edge_add":
+        if len(node_scope) != 2:
+            return False
+        i, j = int(node_scope[0]), int(node_scope[1])
+        if i == j or min(i, j) < 0 or max(i, j) >= n:
+            return False
+        if adj[i, j] != 0:
+            return False
+        if not two_hop_reachable(adj, i, j):
+            return False
+        dist = np.linalg.norm(node_features[i, 1:] - node_features[j, 1:])
+        return bool(dist < 2.5)
+
+    if event_type == "edge_delete":
+        if len(node_scope) != 2:
+            return False
+        i, j = int(node_scope[0]), int(node_scope[1])
+        if i == j or min(i, j) < 0 or max(i, j) >= n:
+            return False
+        if adj[i, j] != 1:
+            return False
+        dist = np.linalg.norm(node_features[i, 1:] - node_features[j, 1:])
+        return bool(dist > 2.0)
+
+    if event_type == "motif_type_flip":
+        if len(node_scope) != 3:
+            return False
+        i, j, k = [int(x) for x in node_scope]
+        if min(i, j, k) < 0 or max(i, j, k) >= n or len({i, j, k}) < 3:
+            return False
+        if not (adj[i, j] == 1 and adj[i, k] == 1):
+            return False
+        type_i = int(node_features[i, 0])
+        type_j = int(node_features[j, 0])
+        type_k = int(node_features[k, 0])
+        return type_j == type_k and type_i != type_j
+
+    raise ValueError(f"Unknown event_type for validity check: {event_type}")
+
+
 # =========================================================
 # Change masks / independence / event scope unions
 # =========================================================
@@ -471,6 +602,7 @@ def make_sample(
     graph_t: Dict[str, Any],
     graph_t1: Dict[str, Any],
     events: List[Dict[str, Any]],
+    extra_metadata: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     changed_nodes = compute_changed_nodes(graph_t, graph_t1)
     changed_edges = compute_changed_edges(graph_t, graph_t1)
@@ -479,7 +611,7 @@ def make_sample(
     event_scope_union_nodes = compute_event_scope_union_nodes(events)
     event_scope_union_edges = compute_event_scope_union_edges(events)
 
-    return {
+    sample = {
         "graph_t": {
             "node_features": graph_t["node_features"].copy(),
             "adj": graph_t["adj"].copy(),
@@ -497,6 +629,9 @@ def make_sample(
         "event_scope_union_nodes": event_scope_union_nodes,
         "event_scope_union_edges": event_scope_union_edges,
     }
+    if extra_metadata:
+        sample.update(copy.deepcopy(extra_metadata))
+    return sample
 
 
 # =========================================================
@@ -551,6 +686,499 @@ def generate_dataset(num_samples: int, config: Dict[str, Any]) -> List[Dict[str,
 
         if (idx + 1) % 500 == 0:
             print(f"Generated {idx + 1}/{num_samples} samples")
+    return dataset
+
+
+def generate_one_independent_two_event_base(config: Dict[str, Any]) -> tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    while True:
+        graph_t = generate_initial_graph(
+            num_nodes_range=config["num_nodes_range"],
+            edge_prob=config["edge_prob"],
+            state_dim=config["state_dim"],
+            num_types=config["num_types"],
+        )
+        events = sample_events(
+            graph=graph_t,
+            max_events=2,
+            prob_two_events=1.0,
+            num_types=config["num_types"],
+        )
+        if len(events) != 2:
+            continue
+        if (0, 1) not in find_independent_pairs(events):
+            continue
+        return graph_t, events
+
+
+def make_step3_matched_pair_samples(
+    graph_t: Dict[str, Any],
+    events: List[Dict[str, Any]],
+    pair_idx: int,
+    num_types: int,
+    pair_id_prefix: str = "step3_pair",
+) -> List[Dict[str, Any]]:
+    if len(events) != 2:
+        raise ValueError("Matched Step 3 pair generation requires exactly two events")
+    if (0, 1) not in find_independent_pairs(events):
+        raise ValueError("Matched Step 3 pair generation requires an independent two-event pair")
+
+    base_graph_id = graph_state_hash(graph_t)
+    pair_id = f"{pair_id_prefix}_{pair_idx:06d}"
+    event_specs = copy.deepcopy(events)
+    variants = [
+        ("A_then_B", copy.deepcopy(events)),
+        ("B_then_A", copy.deepcopy(list(reversed(events)))),
+    ]
+
+    samples: List[Dict[str, Any]] = []
+    for ordered_variant, ordered_events in variants:
+        graph_t1 = apply_events(
+            graph=graph_t,
+            events=ordered_events,
+            num_types=num_types,
+        )
+        samples.append(
+            make_sample(
+                graph_t=graph_t,
+                graph_t1=graph_t1,
+                events=ordered_events,
+                extra_metadata={
+                    "step3_pair_id": pair_id,
+                    "step3_ordered_variant": ordered_variant,
+                    "step3_ordered_signature": ordered_signature(ordered_events),
+                    "step3_unordered_signature": unordered_signature(ordered_events),
+                    "step3_base_graph_id": base_graph_id,
+                    "step3_event_specs": event_specs,
+                },
+            )
+        )
+    return samples
+
+
+def generate_step3_matched_dataset(num_pairs: int, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    dataset: List[Dict[str, Any]] = []
+    for pair_idx in range(num_pairs):
+        graph_t, events = generate_one_independent_two_event_base(config)
+        dataset.extend(
+            make_step3_matched_pair_samples(
+                graph_t,
+                events,
+                pair_idx=pair_idx,
+                num_types=config["num_types"],
+            )
+        )
+        if (pair_idx + 1) % 100 == 0:
+            print(f"Generated {pair_idx + 1}/{num_pairs} exact matched Step 3 pairs")
+    return dataset
+
+
+def generate_step3_sequential_dataset(num_pairs: int, config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    dataset: List[Dict[str, Any]] = []
+    for pair_idx in range(num_pairs):
+        graph_t, events = generate_one_independent_two_event_base(config)
+        event_a = copy.deepcopy(events[0])
+        event_b = copy.deepcopy(events[1])
+
+        graph_a = apply_events(graph=graph_t, events=[copy.deepcopy(event_a)], num_types=config["num_types"])
+        graph_b = apply_events(graph=graph_t, events=[copy.deepcopy(event_b)], num_types=config["num_types"])
+        graph_ab = apply_events(
+            graph=graph_t,
+            events=[copy.deepcopy(event_a), copy.deepcopy(event_b)],
+            num_types=config["num_types"],
+        )
+        graph_ba = apply_events(
+            graph=graph_t,
+            events=[copy.deepcopy(event_b), copy.deepcopy(event_a)],
+            num_types=config["num_types"],
+        )
+
+        if not np.array_equal(graph_ab["adj"], graph_ba["adj"]):
+            raise ValueError("Independent two-event sequential dataset expected commutative final adjacency")
+        if not np.allclose(graph_ab["node_features"], graph_ba["node_features"]):
+            raise ValueError("Independent two-event sequential dataset expected commutative final node features")
+
+        pair_id = f"step3_seq_pair_{pair_idx:06d}"
+        base_graph_id = graph_state_hash(graph_t)
+        pair_event_specs = [copy.deepcopy(event_a), copy.deepcopy(event_b)]
+        shared_meta = {
+            "step3_pair_id": pair_id,
+            "step3_base_graph_id": base_graph_id,
+            "step3_unordered_signature": unordered_signature(pair_event_specs),
+            "step3_pair_event_specs": copy.deepcopy(pair_event_specs),
+        }
+
+        transitions = [
+            (
+                "base_to_A",
+                graph_t,
+                graph_a,
+                [copy.deepcopy(event_a)],
+                {"step3_primary_event_index": 0, "step3_primary_event_type": event_a["event_type"]},
+            ),
+            (
+                "base_to_B",
+                graph_t,
+                graph_b,
+                [copy.deepcopy(event_b)],
+                {"step3_primary_event_index": 1, "step3_primary_event_type": event_b["event_type"]},
+            ),
+            (
+                "A_to_AB",
+                graph_a,
+                graph_ab,
+                [copy.deepcopy(event_b)],
+                {"step3_primary_event_index": 1, "step3_primary_event_type": event_b["event_type"]},
+            ),
+            (
+                "B_to_AB",
+                graph_b,
+                graph_ab,
+                [copy.deepcopy(event_a)],
+                {"step3_primary_event_index": 0, "step3_primary_event_type": event_a["event_type"]},
+            ),
+        ]
+
+        for role, graph_src, graph_dst, transition_events, role_meta in transitions:
+            dataset.append(
+                make_sample(
+                    graph_t=graph_src,
+                    graph_t1=graph_dst,
+                    events=transition_events,
+                    extra_metadata={
+                        **shared_meta,
+                        **role_meta,
+                        "step3_transition_role": role,
+                    },
+                )
+            )
+
+        if (pair_idx + 1) % 100 == 0:
+            print(f"Generated {pair_idx + 1}/{num_pairs} sequential Step 3 pairs")
+
+    return dataset
+
+
+def generate_one_rollout_sample(horizon: int, config: Dict[str, Any], rollout_idx: int) -> Dict[str, Any]:
+    while True:
+        graph_0 = generate_initial_graph(
+            num_nodes_range=config["num_nodes_range"],
+            edge_prob=config["edge_prob"],
+            state_dim=config["state_dim"],
+            num_types=config["num_types"],
+        )
+
+        graph_cur = copy.deepcopy(graph_0)
+        events: List[Dict[str, Any]] = []
+        graph_steps: List[Dict[str, Any]] = []
+        transition_samples: List[Dict[str, Any]] = []
+        generation_ok = True
+
+        for _ in range(horizon):
+            sampled = sample_events(
+                graph=graph_cur,
+                max_events=1,
+                prob_two_events=0.0,
+                num_types=config["num_types"],
+            )
+            if len(sampled) != 1:
+                generation_ok = False
+                break
+
+            event = copy.deepcopy(sampled[0])
+            graph_next = apply_events(
+                graph=graph_cur,
+                events=[event],
+                num_types=config["num_types"],
+            )
+            events.append(copy.deepcopy(event))
+            graph_steps.append(
+                {
+                    "node_features": graph_next["node_features"].copy(),
+                    "adj": graph_next["adj"].copy(),
+                    "edge_index": graph_to_edge_index(graph_next["adj"]),
+                }
+            )
+            transition_samples.append(
+                make_sample(
+                    graph_t=graph_cur,
+                    graph_t1=graph_next,
+                    events=[copy.deepcopy(event)],
+                )
+            )
+            graph_cur = graph_next
+
+        if not generation_ok:
+            continue
+
+        return {
+            "rollout_id": f"rollout_{rollout_idx:06d}",
+            "horizon": horizon,
+            "graph_0": {
+                "node_features": graph_0["node_features"].copy(),
+                "adj": graph_0["adj"].copy(),
+                "edge_index": graph_to_edge_index(graph_0["adj"]),
+            },
+            "graph_steps": graph_steps,
+            "transition_samples": transition_samples,
+            "events": copy.deepcopy(events),
+            "event_type_sequence": event_type_list(events),
+            "rollout_base_graph_id": graph_state_hash(graph_0),
+        }
+
+
+def generate_rollout_dataset(config: Dict[str, Any]) -> List[Dict[str, Any]]:
+    dataset: List[Dict[str, Any]] = []
+    rollout_idx = 0
+    rollout_counts = config["rollout_num_samples_per_horizon"]
+    for horizon in sorted(rollout_counts.keys()):
+        num_samples = int(rollout_counts[horizon])
+        for sample_idx in range(num_samples):
+            dataset.append(generate_one_rollout_sample(horizon, config, rollout_idx))
+            rollout_idx += 1
+            if (sample_idx + 1) % 100 == 0:
+                print(
+                    f"Generated {sample_idx + 1}/{num_samples} rollout samples for horizon {horizon}"
+                )
+    return dataset
+
+
+def sample_single_event(graph: Dict[str, Any], num_types: int) -> Optional[Dict[str, Any]]:
+    events = sample_events(
+        graph=graph,
+        max_events=1,
+        prob_two_events=0.0,
+        num_types=num_types,
+    )
+    if len(events) != 1:
+        return None
+    return copy.deepcopy(events[0])
+
+
+def sample_non_overlapping_event(
+    graph: Dict[str, Any],
+    existing_events: List[Dict[str, Any]],
+    num_types: int,
+    max_tries: int = 64,
+) -> Optional[Dict[str, Any]]:
+    for _ in range(max_tries):
+        candidate = sample_single_event(graph, num_types)
+        if candidate is None:
+            continue
+        if all(not scopes_overlap(candidate, existing) for existing in existing_events):
+            return candidate
+    return None
+
+
+def sample_event_matching(
+    graph: Dict[str, Any],
+    num_types: int,
+    predicate,
+    max_tries: int = 128,
+) -> Optional[Dict[str, Any]]:
+    for _ in range(max_tries):
+        candidate = sample_single_event(graph, num_types)
+        if candidate is None:
+            continue
+        if predicate(candidate):
+            return candidate
+    return None
+
+
+def scope_overlap_pairs(events: List[Dict[str, Any]]) -> List[Tuple[int, int]]:
+    pairs: List[Tuple[int, int]] = []
+    for i in range(len(events)):
+        for j in range(i + 1, len(events)):
+            if scopes_overlap(events[i], events[j]):
+                pairs.append((i, j))
+    return pairs
+
+
+def build_step5_sample(
+    graph_0: Dict[str, Any],
+    events: List[Dict[str, Any]],
+    dependency_bucket: str,
+    dependency_reason: str,
+    num_types: int,
+    sample_idx: int,
+) -> Dict[str, Any]:
+    graph_steps: List[Dict[str, Any]] = []
+    transition_samples: List[Dict[str, Any]] = []
+    current_graph = copy.deepcopy(graph_0)
+
+    for event in events:
+        next_graph = apply_events(
+            graph=current_graph,
+            events=[copy.deepcopy(event)],
+            num_types=num_types,
+        )
+        graph_steps.append(
+            {
+                "node_features": next_graph["node_features"].copy(),
+                "adj": next_graph["adj"].copy(),
+                "edge_index": graph_to_edge_index(next_graph["adj"]),
+            }
+        )
+        transition_samples.append(
+            make_sample(
+                graph_t=current_graph,
+                graph_t1=next_graph,
+                events=[copy.deepcopy(event)],
+            )
+        )
+        current_graph = next_graph
+
+    valid_on_base = [event_is_valid_for_graph(graph_0, event, num_types) for event in events]
+    overlap_pairs = scope_overlap_pairs(events)
+    return {
+        "step5_sample_id": f"step5_{sample_idx:06d}",
+        "horizon": len(events),
+        "graph_0": {
+            "node_features": graph_0["node_features"].copy(),
+            "adj": graph_0["adj"].copy(),
+            "edge_index": graph_to_edge_index(graph_0["adj"]),
+        },
+        "graph_steps": graph_steps,
+        "transition_samples": transition_samples,
+        "events": copy.deepcopy(events),
+        "event_type_sequence": event_type_list(events),
+        "rollout_base_graph_id": graph_state_hash(graph_0),
+        "step5_ordered_signature": ordered_signature(events),
+        "step5_unordered_signature": unordered_signature(events),
+        "step5_dependency_bucket": dependency_bucket,
+        "step5_dependency_reason": dependency_reason,
+        "step5_pairwise_scope_overlaps": overlap_pairs,
+        "step5_event_valid_on_base": valid_on_base,
+    }
+
+
+def generate_step5_fully_independent_sequence(config: Dict[str, Any], sample_idx: int) -> Dict[str, Any]:
+    while True:
+        graph_0 = generate_initial_graph(
+            num_nodes_range=config["num_nodes_range"],
+            edge_prob=config["edge_prob"],
+            state_dim=config["state_dim"],
+            num_types=config["num_types"],
+        )
+        event_a = sample_single_event(graph_0, config["num_types"])
+        if event_a is None:
+            continue
+        event_b = sample_non_overlapping_event(graph_0, [event_a], config["num_types"])
+        if event_b is None:
+            continue
+        event_c = sample_non_overlapping_event(graph_0, [event_a, event_b], config["num_types"])
+        if event_c is None:
+            continue
+        events = [event_a, event_b, event_c]
+        return build_step5_sample(
+            graph_0=graph_0,
+            events=events,
+            dependency_bucket="fully_independent",
+            dependency_reason="all_three_events_sampled_from_base_with_pairwise_disjoint_scopes",
+            num_types=config["num_types"],
+            sample_idx=sample_idx,
+        )
+
+
+def generate_step5_partially_dependent_sequence(config: Dict[str, Any], sample_idx: int) -> Dict[str, Any]:
+    while True:
+        graph_0 = generate_initial_graph(
+            num_nodes_range=config["num_nodes_range"],
+            edge_prob=config["edge_prob"],
+            state_dim=config["state_dim"],
+            num_types=config["num_types"],
+        )
+        event_a = sample_single_event(graph_0, config["num_types"])
+        if event_a is None:
+            continue
+        event_b = sample_non_overlapping_event(graph_0, [event_a], config["num_types"])
+        if event_b is None:
+            continue
+        graph_after_a = apply_events(graph_0, [copy.deepcopy(event_a)], config["num_types"])
+        if not event_is_valid_for_graph(graph_after_a, event_b, config["num_types"]):
+            continue
+
+        def partial_predicate(event_c: Dict[str, Any]) -> bool:
+            overlaps_a = scopes_overlap(event_c, event_a)
+            overlaps_b = scopes_overlap(event_c, event_b)
+            valid_on_base = event_is_valid_for_graph(graph_0, event_c, config["num_types"])
+            return (overlaps_a ^ overlaps_b) or ((overlaps_a or overlaps_b) and not valid_on_base)
+
+        event_c = sample_event_matching(graph_after_a, config["num_types"], partial_predicate)
+        if event_c is None:
+            continue
+        graph_after_ab = apply_events(graph_after_a, [copy.deepcopy(event_b)], config["num_types"])
+        if not event_is_valid_for_graph(graph_after_ab, event_c, config["num_types"]):
+            continue
+        events = [event_a, event_b, event_c]
+        return build_step5_sample(
+            graph_0=graph_0,
+            events=events,
+            dependency_bucket="partially_dependent",
+            dependency_reason="third_event_sampled_after_first_event_and coupled_to_one prior event",
+            num_types=config["num_types"],
+            sample_idx=sample_idx,
+        )
+
+
+def generate_step5_strongly_interacting_sequence(config: Dict[str, Any], sample_idx: int) -> Dict[str, Any]:
+    while True:
+        graph_0 = generate_initial_graph(
+            num_nodes_range=config["num_nodes_range"],
+            edge_prob=config["edge_prob"],
+            state_dim=config["state_dim"],
+            num_types=config["num_types"],
+        )
+        event_a = sample_single_event(graph_0, config["num_types"])
+        if event_a is None:
+            continue
+        graph_after_a = apply_events(graph_0, [copy.deepcopy(event_a)], config["num_types"])
+
+        def strong_second_predicate(event_b: Dict[str, Any]) -> bool:
+            return scopes_overlap(event_b, event_a) or (not event_is_valid_for_graph(graph_0, event_b, config["num_types"]))
+
+        event_b = sample_event_matching(graph_after_a, config["num_types"], strong_second_predicate)
+        if event_b is None:
+            continue
+        graph_after_ab = apply_events(graph_after_a, [copy.deepcopy(event_b)], config["num_types"])
+
+        def strong_third_predicate(event_c: Dict[str, Any]) -> bool:
+            overlap_count = int(scopes_overlap(event_c, event_a)) + int(scopes_overlap(event_c, event_b))
+            invalid_on_base = not event_is_valid_for_graph(graph_0, event_c, config["num_types"])
+            return overlap_count >= 1 and invalid_on_base
+
+        event_c = sample_event_matching(graph_after_ab, config["num_types"], strong_third_predicate)
+        if event_c is None:
+            continue
+        events = [event_a, event_b, event_c]
+        return build_step5_sample(
+            graph_0=graph_0,
+            events=events,
+            dependency_bucket="strongly_interacting",
+            dependency_reason="later_events depend on evolving graph and are not valid on base state",
+            num_types=config["num_types"],
+            sample_idx=sample_idx,
+        )
+
+
+def generate_step5_dataset(
+    num_samples_per_bucket: Dict[str, int],
+    config: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    generators = {
+        "fully_independent": generate_step5_fully_independent_sequence,
+        "partially_dependent": generate_step5_partially_dependent_sequence,
+        "strongly_interacting": generate_step5_strongly_interacting_sequence,
+    }
+    dataset: List[Dict[str, Any]] = []
+    sample_idx = 0
+    for bucket_name in ["fully_independent", "partially_dependent", "strongly_interacting"]:
+        num_samples = int(num_samples_per_bucket[bucket_name])
+        generator_fn = generators[bucket_name]
+        for bucket_idx in range(num_samples):
+            dataset.append(generator_fn(config, sample_idx))
+            sample_idx += 1
+            if (bucket_idx + 1) % 50 == 0:
+                print(f"Generated {bucket_idx + 1}/{num_samples} Step 5 samples for bucket {bucket_name}")
     return dataset
 
 
@@ -611,6 +1239,161 @@ def inspect_sample(sample: Dict[str, Any], idx: int = 0) -> None:
     print("===============================\n")
 
 
+def summarize_rollout_dataset(dataset: List[Dict[str, Any]], split_name: str) -> None:
+    horizon_counts: Dict[int, int] = {}
+    for sample in dataset:
+        horizon = int(sample["horizon"])
+        horizon_counts[horizon] = horizon_counts.get(horizon, 0) + 1
+
+    print("=" * 60)
+    print(f"Summary for {split_name}")
+    print(f"Num rollout samples: {len(dataset)}")
+    print("Horizon distribution:")
+    for horizon in sorted(horizon_counts.keys()):
+        print(f"  T={horizon}: {horizon_counts[horizon]}")
+    print("=" * 60)
+
+
+def inspect_rollout_sample(sample: Dict[str, Any], idx: int = 0) -> None:
+    print(f"\n===== Inspect Rollout Sample {idx} =====")
+    print("rollout_id:", sample["rollout_id"])
+    print("horizon:", sample["horizon"])
+    print("graph_0 node_features shape:", sample["graph_0"]["node_features"].shape)
+    print("graph_0 adj shape:", sample["graph_0"]["adj"].shape)
+    print("event_type_sequence:", sample.get("event_type_sequence"))
+    print("events:")
+    for i, event in enumerate(sample["events"]):
+        print(f"  Step {i + 1}: {event}")
+    print("num graph_steps:", len(sample["graph_steps"]))
+    print("rollout_base_graph_id:", sample.get("rollout_base_graph_id"))
+    print("===============================\n")
+
+
+def summarize_step5_dataset(dataset: List[Dict[str, Any]], split_name: str) -> None:
+    bucket_counts: Dict[str, int] = {}
+    for sample in dataset:
+        bucket = str(sample["step5_dependency_bucket"])
+        bucket_counts[bucket] = bucket_counts.get(bucket, 0) + 1
+
+    print("=" * 60)
+    print(f"Summary for {split_name}")
+    print(f"Num Step 5 samples: {len(dataset)}")
+    print(f"Sequence length: {dataset[0]['horizon'] if dataset else 'NA'}")
+    print("Dependency bucket counts:")
+    for bucket in ["fully_independent", "partially_dependent", "strongly_interacting"]:
+        print(f"  {bucket}: {bucket_counts.get(bucket, 0)}")
+    print("=" * 60)
+
+
+def inspect_step5_sample(sample: Dict[str, Any], idx: int = 0) -> None:
+    print(f"\n===== Inspect Step5 Sample {idx} =====")
+    print("step5_sample_id:", sample["step5_sample_id"])
+    print("horizon:", sample["horizon"])
+    print("ordered signature:", sample["step5_ordered_signature"])
+    print("unordered signature:", sample["step5_unordered_signature"])
+    print("dependency bucket:", sample["step5_dependency_bucket"])
+    print("dependency reason:", sample["step5_dependency_reason"])
+    print("pairwise scope overlaps:", sample["step5_pairwise_scope_overlaps"])
+    print("event valid on base:", sample["step5_event_valid_on_base"])
+    print("event_type_sequence:", sample["event_type_sequence"])
+    print("===============================\n")
+
+
+def load_dataset(path: str) -> List[Dict[str, Any]]:
+    with open(path, "rb") as f:
+        data = pickle.load(f)
+    if not isinstance(data, list) or len(data) == 0:
+        raise ValueError(f"Dataset is empty or malformed: {path}")
+    return data
+
+
+def corrupt_graph_observation(
+    graph: Dict[str, Any],
+    corruption_cfg: Dict[str, float],
+    rng: np.random.Generator,
+) -> Dict[str, Any]:
+    node_features = np.asarray(graph["node_features"], dtype=np.float32).copy()
+    adj = np.asarray(graph["adj"], dtype=np.int64).copy()
+    num_nodes = node_features.shape[0]
+
+    noise_std = float(corruption_cfg["node_state_noise_std"])
+    if node_features.shape[1] > 1 and noise_std > 0:
+        node_features[:, 1:] += rng.normal(
+            loc=0.0,
+            scale=noise_std,
+            size=node_features[:, 1:].shape,
+        ).astype(np.float32)
+
+    dropout_prob = float(corruption_cfg["edge_dropout_prob"])
+    false_positive_prob = float(corruption_cfg["edge_false_positive_prob"])
+    for i in range(num_nodes):
+        for j in range(i + 1, num_nodes):
+            if adj[i, j] == 1:
+                if rng.random() < dropout_prob:
+                    adj[i, j] = 0
+                    adj[j, i] = 0
+            else:
+                if rng.random() < false_positive_prob:
+                    adj[i, j] = 1
+                    adj[j, i] = 1
+
+    np.fill_diagonal(adj, 0)
+    return {
+        "node_features": node_features,
+        "adj": adj,
+    }
+
+
+def generate_step6a_dataset_from_clean(
+    clean_dataset: List[Dict[str, Any]],
+    corruption_settings: Dict[str, Dict[str, float]],
+    config: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    dataset: List[Dict[str, Any]] = []
+    base_seed = int(config["random_seed"])
+
+    for sample_idx, raw_sample in enumerate(clean_dataset):
+        for setting_idx, setting_name in enumerate(sorted(corruption_settings.keys())):
+            rng = np.random.default_rng(base_seed + sample_idx * 101 + setting_idx * 10007)
+            noisy_sample = copy.deepcopy(raw_sample)
+            noisy_sample["obs_graph_t"] = corrupt_graph_observation(
+                raw_sample["graph_t"],
+                corruption_settings[setting_name],
+                rng,
+            )
+            noisy_sample["step6a_corruption_setting"] = setting_name
+            noisy_sample["step6a_corruption_config"] = dict(corruption_settings[setting_name])
+            noisy_sample["step6a_source_sample_index"] = sample_idx
+            dataset.append(noisy_sample)
+
+    return dataset
+
+
+def summarize_step6a_dataset(dataset: List[Dict[str, Any]], split_name: str) -> None:
+    setting_counts: Dict[str, int] = {}
+    for sample in dataset:
+        setting_name = str(sample.get("step6a_corruption_setting", "unknown"))
+        setting_counts[setting_name] = setting_counts.get(setting_name, 0) + 1
+
+    print("=" * 60)
+    print(f"Summary for {split_name}")
+    print(f"Num Step 6a samples: {len(dataset)}")
+    print("Corruption setting counts:")
+    for setting_name in sorted(setting_counts.keys()):
+        print(f"  {setting_name}: {setting_counts[setting_name]}")
+    print("=" * 60)
+
+
+def inspect_step6a_sample(sample: Dict[str, Any], idx: int = 0) -> None:
+    print(f"\n===== Inspect Step6a Sample {idx} =====")
+    print("corruption setting:", sample.get("step6a_corruption_setting"))
+    print("corruption config:", sample.get("step6a_corruption_config"))
+    print("source sample index:", sample.get("step6a_source_sample_index"))
+    print("events:", sample.get("events"))
+    print("obs_graph_t keys:", sorted(sample.get("obs_graph_t", {}).keys()))
+    print("===============================\n")
+
+
 # =========================================================
 # Main
 # =========================================================
@@ -647,4 +1430,119 @@ def main(config: Dict[str, Any]) -> None:
 
 
 if __name__ == "__main__":
-    main(DEFAULT_CONFIG)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--generate_step3_matched_test", action="store_true")
+    parser.add_argument("--generate_step3_sequential_test", action="store_true")
+    parser.add_argument("--generate_rollout_test", action="store_true")
+    parser.add_argument("--generate_step6a_train", action="store_true")
+    parser.add_argument("--generate_step6a_test", action="store_true")
+    parser.add_argument("--generate_step6a_val", action="store_true")
+    parser.add_argument("--generate_step5_train", action="store_true")
+    parser.add_argument("--generate_step5_test", action="store_true")
+    parser.add_argument("--generate_step5_val", action="store_true")
+    parser.add_argument("--step3_pairs", type=int, default=DEFAULT_CONFIG["step3_matched_test_pairs"])
+    parser.add_argument("--output_path", type=str, default=None)
+    parser.add_argument("--random_seed", type=int, default=DEFAULT_CONFIG["random_seed"])
+    args = parser.parse_args()
+
+    config = copy.deepcopy(DEFAULT_CONFIG)
+    config["random_seed"] = args.random_seed
+
+    if args.generate_step3_matched_test:
+        os.makedirs(config["output_dir"], exist_ok=True)
+        set_seed(config["random_seed"])
+        dataset = generate_step3_matched_dataset(args.step3_pairs, config)
+        output_path = args.output_path or os.path.join(config["output_dir"], config["step3_matched_test_file"])
+        save_dataset(dataset, output_path)
+        summarize_dataset(dataset, "step3_matched_test")
+        inspect_sample(dataset[0], idx=0)
+        print(f"Saved matched Step 3 test set to: {output_path}")
+    elif args.generate_step3_sequential_test:
+        os.makedirs(config["output_dir"], exist_ok=True)
+        set_seed(config["random_seed"])
+        dataset = generate_step3_sequential_dataset(args.step3_pairs, config)
+        output_path = args.output_path or os.path.join(config["output_dir"], config["step3_sequential_test_file"])
+        save_dataset(dataset, output_path)
+        summarize_dataset(dataset, "step3_sequential_test")
+        inspect_sample(dataset[0], idx=0)
+        print(f"Saved sequential Step 3 test set to: {output_path}")
+    elif args.generate_rollout_test:
+        os.makedirs(config["output_dir"], exist_ok=True)
+        set_seed(config["random_seed"])
+        dataset = generate_rollout_dataset(config)
+        output_path = args.output_path or os.path.join(config["output_dir"], config["rollout_test_file"])
+        save_dataset(dataset, output_path)
+        summarize_rollout_dataset(dataset, "rollout_test")
+        inspect_rollout_sample(dataset[0], idx=0)
+        print(f"Saved rollout test set to: {output_path}")
+    elif args.generate_step6a_test:
+        os.makedirs(config["output_dir"], exist_ok=True)
+        clean_path = os.path.join(config["output_dir"], config["test_file"])
+        clean_dataset = load_dataset(clean_path)
+        dataset = generate_step6a_dataset_from_clean(
+            clean_dataset,
+            config["step6a_corruption_settings"],
+            config,
+        )
+        output_path = args.output_path or os.path.join(config["output_dir"], config["step6a_test_file"])
+        save_dataset(dataset, output_path)
+        summarize_step6a_dataset(dataset, "step6a_test")
+        inspect_step6a_sample(dataset[0], idx=0)
+        print(f"Saved Step 6a test set to: {output_path}")
+    elif args.generate_step6a_train:
+        os.makedirs(config["output_dir"], exist_ok=True)
+        clean_path = os.path.join(config["output_dir"], config["train_file"])
+        clean_dataset = load_dataset(clean_path)
+        dataset = generate_step6a_dataset_from_clean(
+            clean_dataset,
+            config["step6a_corruption_settings"],
+            config,
+        )
+        output_path = args.output_path or os.path.join(config["output_dir"], config["step6a_train_file"])
+        save_dataset(dataset, output_path)
+        summarize_step6a_dataset(dataset, "step6a_train")
+        inspect_step6a_sample(dataset[0], idx=0)
+        print(f"Saved Step 6a train set to: {output_path}")
+    elif args.generate_step6a_val:
+        os.makedirs(config["output_dir"], exist_ok=True)
+        clean_path = os.path.join(config["output_dir"], config["val_file"])
+        clean_dataset = load_dataset(clean_path)
+        dataset = generate_step6a_dataset_from_clean(
+            clean_dataset,
+            config["step6a_corruption_settings"],
+            config,
+        )
+        output_path = args.output_path or os.path.join(config["output_dir"], config["step6a_val_file"])
+        save_dataset(dataset, output_path)
+        summarize_step6a_dataset(dataset, "step6a_val")
+        inspect_step6a_sample(dataset[0], idx=0)
+        print(f"Saved Step 6a val set to: {output_path}")
+    elif args.generate_step5_test:
+        os.makedirs(config["output_dir"], exist_ok=True)
+        set_seed(config["random_seed"])
+        dataset = generate_step5_dataset(config["step5_test_num_samples_per_bucket"], config)
+        output_path = args.output_path or os.path.join(config["output_dir"], config["step5_test_file"])
+        save_dataset(dataset, output_path)
+        summarize_step5_dataset(dataset, "step5_test")
+        inspect_step5_sample(dataset[0], idx=0)
+        print(f"Saved Step 5 test set to: {output_path}")
+    elif args.generate_step5_train:
+        os.makedirs(config["output_dir"], exist_ok=True)
+        set_seed(config["random_seed"])
+        dataset = generate_step5_dataset(config["step5_train_num_samples_per_bucket"], config)
+        output_path = args.output_path or os.path.join(config["output_dir"], config["step5_train_file"])
+        save_dataset(dataset, output_path)
+        summarize_step5_dataset(dataset, "step5_train")
+        inspect_step5_sample(dataset[0], idx=0)
+        print(f"Saved Step 5 train set to: {output_path}")
+    elif args.generate_step5_val:
+        os.makedirs(config["output_dir"], exist_ok=True)
+        set_seed(config["random_seed"])
+        dataset = generate_step5_dataset(config["step5_val_num_samples_per_bucket"], config)
+        output_path = args.output_path or os.path.join(config["output_dir"], config["step5_val_file"])
+        save_dataset(dataset, output_path)
+        summarize_step5_dataset(dataset, "step5_val")
+        inspect_step5_sample(dataset[0], idx=0)
+        print(f"Saved Step 5 val set to: {output_path}")
+    else:
+        main(config)

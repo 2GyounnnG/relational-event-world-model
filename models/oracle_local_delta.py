@@ -28,6 +28,9 @@ class OracleLocalDeltaRewriteConfig:
     dropout: float = 0.0
     edge_dropout: float = 0.0
     copy_logit_value: float = 10.0
+    use_proposal_conditioning: bool = False
+    condition_on_node_scope_prob: bool = True
+    condition_on_edge_scope_prob: bool = True
 
 
 def build_valid_edge_mask(node_mask: torch.Tensor) -> torch.Tensor:
@@ -147,6 +150,90 @@ def masked_edge_delta_ce_loss_from_pair_mask(
     return ce.sum() / (pair_mask.sum() + eps)
 
 
+def masked_edge_keep_regularization_loss_from_pair_mask(
+    edge_delta_logits: torch.Tensor,
+    pair_mask: torch.Tensor,
+    eps: float = 1e-8,
+) -> torch.Tensor:
+    """
+    Auxiliary KEEP-only loss on a masked edge region.
+
+    edge_delta_logits: [B, N, N, 3]
+    pair_mask:         [B, N, N]
+    """
+    if pair_mask.sum().item() <= 0:
+        return edge_delta_logits.sum() * 0.0
+
+    bsz, num_nodes, _, num_classes = edge_delta_logits.shape
+    keep_targets = torch.full(
+        (bsz, num_nodes, num_nodes),
+        fill_value=EDGE_DELTA_KEEP,
+        device=edge_delta_logits.device,
+        dtype=torch.long,
+    )
+    flat_logits = edge_delta_logits.reshape(bsz * num_nodes * num_nodes, num_classes)
+    flat_targets = keep_targets.reshape(bsz * num_nodes * num_nodes)
+    ce = F.cross_entropy(flat_logits, flat_targets, reduction="none").reshape(bsz, num_nodes, num_nodes)
+    ce = ce * pair_mask
+    return ce.sum() / (pair_mask.sum() + eps)
+
+
+def masked_edge_keep_regularization_loss_from_pair_weights(
+    edge_delta_logits: torch.Tensor,
+    pair_weights: torch.Tensor,
+    eps: float = 1e-8,
+) -> torch.Tensor:
+    """
+    Auxiliary KEEP-only loss on a weighted edge region.
+
+    edge_delta_logits: [B, N, N, 3]
+    pair_weights:      [B, N, N] nonnegative weights
+    """
+    if pair_weights.sum().item() <= 0:
+        return edge_delta_logits.sum() * 0.0
+
+    bsz, num_nodes, _, num_classes = edge_delta_logits.shape
+    keep_targets = torch.full(
+        (bsz, num_nodes, num_nodes),
+        fill_value=EDGE_DELTA_KEEP,
+        device=edge_delta_logits.device,
+        dtype=torch.long,
+    )
+    flat_logits = edge_delta_logits.reshape(bsz * num_nodes * num_nodes, num_classes)
+    flat_targets = keep_targets.reshape(bsz * num_nodes * num_nodes)
+    ce = F.cross_entropy(flat_logits, flat_targets, reduction="none").reshape(bsz, num_nodes, num_nodes)
+    ce = ce * pair_weights
+    return ce.sum() / (pair_weights.sum() + eps)
+
+
+def masked_edge_delete_regularization_loss_from_pair_weights(
+    edge_delta_logits: torch.Tensor,
+    pair_weights: torch.Tensor,
+    eps: float = 1e-8,
+) -> torch.Tensor:
+    """
+    Auxiliary DELETE-only loss on a weighted edge region.
+
+    edge_delta_logits: [B, N, N, 3]
+    pair_weights:      [B, N, N] nonnegative weights
+    """
+    if pair_weights.sum().item() <= 0:
+        return edge_delta_logits.sum() * 0.0
+
+    bsz, num_nodes, _, num_classes = edge_delta_logits.shape
+    delete_targets = torch.full(
+        (bsz, num_nodes, num_nodes),
+        fill_value=EDGE_DELTA_DELETE,
+        device=edge_delta_logits.device,
+        dtype=torch.long,
+    )
+    flat_logits = edge_delta_logits.reshape(bsz * num_nodes * num_nodes, num_classes)
+    flat_targets = delete_targets.reshape(bsz * num_nodes * num_nodes)
+    ce = F.cross_entropy(flat_logits, flat_targets, reduction="none").reshape(bsz, num_nodes, num_nodes)
+    ce = ce * pair_weights
+    return ce.sum() / (pair_weights.sum() + eps)
+
+
 class OracleLocalDeltaRewriteModel(nn.Module):
     """
     Stage 1 oracle local rewrite baseline with edge-delta prediction.
@@ -196,18 +283,44 @@ class OracleLocalDeltaRewriteModel(nn.Module):
             dropout=config.dropout,
         )
 
+        self.node_scope_adapter: nn.Linear | None = None
+        self.edge_scope_adapter: nn.Linear | None = None
+        if config.use_proposal_conditioning:
+            # Zero init preserves the exact pre-conditioning behavior at
+            # initialization and makes warm-starting from older checkpoints safe.
+            self.node_scope_adapter = nn.Linear(1, config.hidden_dim)
+            self.edge_scope_adapter = nn.Linear(1, edge_in_dim)
+            nn.init.zeros_(self.node_scope_adapter.weight)
+            nn.init.zeros_(self.node_scope_adapter.bias)
+            nn.init.zeros_(self.edge_scope_adapter.weight)
+            nn.init.zeros_(self.edge_scope_adapter.bias)
+
     def forward(
         self,
         node_feats: torch.Tensor,
         adj: torch.Tensor,
         scope_node_mask: torch.Tensor,
         scope_edge_mask: torch.Tensor,
+        proposal_node_probs: Optional[torch.Tensor] = None,
+        proposal_edge_probs: Optional[torch.Tensor] = None,
     ) -> Dict[str, torch.Tensor]:
         h = self.encoder(node_feats, adj)
 
-        type_logits_local = self.type_head(h)                    # [B, N, C]
-        state_pred_local = self.state_head(h)                    # [B, N, state_dim]
-        edge_delta_logits_local = self.predict_edge_deltas_from_nodes(h)  # [B, N, N, 3]
+        h_for_node_heads = h
+        if (
+            self.config.use_proposal_conditioning
+            and self.config.condition_on_node_scope_prob
+            and proposal_node_probs is not None
+            and self.node_scope_adapter is not None
+        ):
+            h_for_node_heads = h + self.node_scope_adapter(proposal_node_probs.unsqueeze(-1).to(h.dtype))
+
+        type_logits_local = self.type_head(h_for_node_heads)                    # [B, N, C]
+        state_pred_local = self.state_head(h_for_node_heads)                    # [B, N, state_dim]
+        edge_delta_logits_local = self.predict_edge_deltas_from_nodes(
+            h,
+            proposal_edge_probs=proposal_edge_probs,
+        )  # [B, N, N, 3]
         edge_logits_local = self.decode_next_edge_logits_from_delta(adj, edge_delta_logits_local)
 
         type_logits_full = self.merge_type_logits(
@@ -239,7 +352,11 @@ class OracleLocalDeltaRewriteModel(nn.Module):
             "edge_logits_full": edge_logits_full,
         }
 
-    def predict_edge_deltas_from_nodes(self, h: torch.Tensor) -> torch.Tensor:
+    def predict_edge_deltas_from_nodes(
+        self,
+        h: torch.Tensor,
+        proposal_edge_probs: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
         bsz, num_nodes, hidden_dim = h.shape
 
         h_i = h.unsqueeze(2).expand(bsz, num_nodes, num_nodes, hidden_dim)
@@ -254,6 +371,14 @@ class OracleLocalDeltaRewriteModel(nn.Module):
             ],
             dim=-1,
         )
+
+        if (
+            self.config.use_proposal_conditioning
+            and self.config.condition_on_edge_scope_prob
+            and proposal_edge_probs is not None
+            and self.edge_scope_adapter is not None
+        ):
+            pair_feat = pair_feat + self.edge_scope_adapter(proposal_edge_probs.unsqueeze(-1).to(pair_feat.dtype))
 
         pair_feat = self.edge_input_dropout(pair_feat)
         edge_delta_logits = self.edge_delta_head(pair_feat)
