@@ -2,40 +2,50 @@
 
 A staged research project on **local event-centric world modeling** in a fully structured synthetic graph environment.
 
-The core question is:
+The central question is:
 
-> If world changes are fundamentally sparse, local, and event-driven, can a model do better by first identifying the relevant event region and then rewriting only that local region, instead of predicting the whole next graph monolithically?
+> If world changes are sparse, local, and event-driven, can a model do better by first proposing the relevant event region and then rewriting only that local region, instead of predicting the whole next graph monolithically?
 
 This repository is intentionally scoped to a clean synthetic regime first:
 
 - structured graph state input only
 - no raw images
 - no real-world data
-- no hypergraph formulation yet
+- no hypergraph formulation
 - no LLM integration
 
-The purpose is to isolate the local-event modeling hypothesis before moving to noisier observations, more complex interaction structure, and later-stage realism.
+The goal is to isolate the local-event modeling hypothesis before moving to richer realism.
 
 ---
 
 ## 1. Project Scope
 
-The current repository studies a two-part local world model:
+The current working stack is an **event-centric local world model** with two explicit stages:
 
 1. **Proposal**
-   - predicts which local region of the graph is relevant to the current event(s)
+   - predict the local event scope in the graph
 2. **Rewrite**
-   - predicts how that local region should change
+   - update only that local region to produce the next graph state
 
-The project has already moved well beyond the earliest oracle-only feasibility stage. It now covers:
+The repository has already moved beyond early oracle-local feasibility. It now covers:
 
 - oracle-local rewrite feasibility
 - learned-scope bridging
-- robust rewrite under learned scope noise
+- robust rewrite under learned-scope noise
 - sequential composition consistency
 - short-horizon rollout stability
 - transfer to more complex multi-event structural regimes
 - transfer to noisy structured observation regimes
+- scope/edit failure decomposition under learned scope
+- proposal-side internal completion and interface-side fallback studies
+- noisy multi-event interaction benchmarking
+
+A key long-running project theme is the distinction between:
+
+- **changed region**: nodes / edges that actually change
+- **event scope**: the local region associated with the event, which may include extra context
+
+Many later bottlenecks come from the gap between predicting the correct scope and rewriting the correct changed subset inside that scope.
 
 ---
 
@@ -56,55 +66,41 @@ Current event types:
 3. `edge_delete`
 4. `motif_type_flip`
 
-### Dataset properties
+### Dataset capabilities
 
-The data pipeline supports:
+The data pipeline now supports:
 
 - variable-size graphs
 - train / val / test splits
 - one-event transitions
-- two-event transitions
-- independent two-event pairs
-- changed-region annotations
-- event-scope annotations
-- matched sequential-composition data
+- two-event composition data
+- sequential composition data
 - rollout data
 - multi-event interaction data
 - noisy structured observation data
-
-A central distinction is preserved throughout the project:
-
-- **changed region**: nodes / edges that actually changed
-- **event scope**: the local region associated with the event, which may include extra context
-
-That distinction became one of the defining project themes: many later bottlenecks come from the gap between predicting the correct scope and rewriting the correct changed subset inside that scope.
+- noisy multi-event interaction data
+- changed-region annotations
+- event-scope annotations
+- interaction labels such as:
+  - `fully_independent`
+  - `partially_dependent`
+  - `strongly_interacting`
 
 ---
 
 ## 3. Repository Structure
 
+The codebase is organized around data generation, proposal/rewrite models, and stage-specific training/evaluation scripts.
+
 ```text
 relational-event-world-model/
 ├── data/
 │   ├── generate_graph_event_data.py
+│   ├── generate_step22_noisy_step5_data.py
+│   ├── generate_step23_noisy_step5_train.py
 │   ├── dataset.py
 │   ├── collate.py
-│   ├── graph_event_train.pkl
-│   ├── graph_event_val.pkl
-│   ├── graph_event_test.pkl
-│   ├── graph_event_step3_matched_test.pkl
-│   ├── graph_event_step3_sequential_train.pkl
-│   ├── graph_event_step3_sequential_val.pkl
-│   ├── graph_event_step3_sequential_test.pkl
-│   ├── graph_event_rollout_train.pkl
-│   ├── graph_event_rollout_val.pkl
-│   ├── graph_event_rollout_test.pkl
-│   ├── graph_event_step5_train.pkl
-│   ├── graph_event_step5_val.pkl
-│   ├── graph_event_step5_test.pkl
-│   ├── graph_event_step6a_train.pkl
-│   ├── graph_event_step6a_val.pkl
-│   └── graph_event_step6a_test.pkl
+│   └── *.pkl datasets
 │
 ├── models/
 │   ├── baselines.py
@@ -113,38 +109,33 @@ relational-event-world-model/
 │   └── proposal.py
 │
 ├── train/
-│   ├── train_baseline_global.py
-│   ├── oracle_sanity_check.py
-│   ├── train_oracle_local.py
-│   ├── train_oracle_local_delta.py
-│   ├── train_oracle_local_delta_earlystop.py
 │   ├── train_scope_proposal.py
 │   ├── train_scope_proposal_noisy_obs.py
-│   ├── eval_scope_proposal.py
-│   ├── eval_proposal_conditioned_delta.py
-│   ├── eval_independent_pair_consistency.py
-│   ├── eval_sequential_composition_consistency.py
-│   ├── eval_rollout_stability.py
-│   ├── eval_step5_multievent_regime.py
-│   ├── eval_noisy_structured_observation.py
 │   ├── train_step3_sequential_consistency.py
 │   ├── train_step4_rollout_finetune.py
 │   ├── train_step5_interaction_finetune.py
 │   ├── train_step6_noisy_rewrite_finetune.py
 │   ├── train_step6_joint_noisy_finetune.py
+│   ├── train_step23_noisy_interaction_proposal.py
+│   ├── train_step24_noisy_interaction_joint.py
+│   ├── eval_scope_proposal.py
+│   ├── eval_proposal_conditioned_delta.py
+│   ├── eval_sequential_composition_consistency.py
+│   ├── eval_rollout_stability.py
+│   ├── eval_step5_multievent_regime.py
+│   ├── eval_noisy_structured_observation.py
+│   ├── eval_step22_noisy_multievent_interaction.py
 │   └── ...
 │
 ├── checkpoints/
+├── artifacts/
 ├── docs/
-├── README.md
-└── ...
+└── README.md
 ```
 
 ---
 
 ## 4. Stage Summary
-
-The cleanest way to understand the project is by stage.
 
 ### Step 1 — Oracle-local rewrite feasibility
 
@@ -152,55 +143,11 @@ The cleanest way to understand the project is by stage.
 
 **Answer:** Yes.
 
-This established the core viability of local event-centric modeling. Oracle-local rewrite is learnable, and merge-back sanity checks pass.
-
-A key early lesson was that **edge behavior** is the main bottleneck, especially:
+This established the basic viability of local event-centric modeling. A key early lesson was that **edge behavior** is the main bottleneck, especially:
 
 - delete accuracy
 - changed-vs-context balance
 - avoiding trivial keep/copy collapse
-
-This led to the current oracle-scope edge reference:
-
-- `delta_keep_weight = 1.10`
-- `delta_add_weight = 1.0`
-- `delta_delete_weight = 3.0`
-
-This later became the `keep110` reference.
-
----
-
-### Step 1b — Typed failure analysis
-
-A major type-side result was that `motif_type_flip` is not just a generic hard classification case. The model has a strong **copy-current-type bias**, so true flips are the real difficulty.
-
-This established that:
-
-- locality helps
-- but flip-specific supervision still matters
-
----
-
-### Step 1c — Learned-scope bridge
-
-**Question:** Can a learned proposal replace oracle scope well enough to support local rewrite?
-
-**Key findings:**
-
-- node-only proposal is not enough
-- explicit node+edge proposal is necessary
-- learned-scope bridge is viable
-- threshold choice matters substantially
-
-The strongest learned-scope bridge reference became:
-
-- explicit node+edge proposal
-- `node_flip_weight = 2.0`
-- `node_threshold = 0.20`
-- `edge_threshold = 0.15`
-- rewrite initialized from `keep110`
-
-This gave a meaningful learned-scope bridge, but did not yet solve robust rewrite under learned-scope noise.
 
 ---
 
@@ -208,16 +155,7 @@ This gave a meaningful learned-scope bridge, but did not yet solve robust rewrit
 
 **Question:** Once scope is learned rather than oracle-perfect, can rewrite remain reliable?
 
-This became the central bottleneck of the project.
-
-Important negative results:
-
-- predicted-only training collapses toward keep/copy
-- union-scope training remains too copy-heavy
-
-The main lesson was:
-
-> The proposal/rewrite interface is not a detail; it is the core learned-scope bottleneck.
+This became the central learned-scope bottleneck.
 
 #### Current broad Step 2 default
 
@@ -227,19 +165,14 @@ Interpretation:
 
 - strongest broad learned-scope rewrite compromise so far
 - best overall balance between edit sensitivity and context preservation
-- not perfect, but the most stable broad reference
+- safest broad default to carry forward
 
 #### Strong alternatives worth keeping
 
 - `WG025`
-  - more edit-preserving
-  - stronger on delete / changed / flip
-  - weaker on context stability
-
+  - strongest edit-preserving alternative
 - `DR005`
-  - delete-rescue style alternative
-  - important proof that targeted delete recovery is real
-  - not the broad default
+  - delete-rescue anchor
 
 **Step 2 status:** sufficiently closed for now.
 
@@ -247,21 +180,9 @@ Interpretation:
 
 ### Step 3 — Sequential composition consistency
 
-**Question:** If two events are independent, does the model behave consistently when event order changes?
+The original exact reverse-order final-state matching setup turned out to be vacuous.
 
-An exact reverse-order final-state matched dataset was first constructed, but this turned out to be effectively vacuous: final targets commute by construction, so exact reverse-order gaps were zero.
-
-The real Step 3 substrate became:
-
-**sequential composition consistency**
-
-That is, comparing:
-
-- first-step quality
-- second-step quality
-- path-level sensitivity under event reordering
-
-This produced real, nontrivial consistency signals.
+The real Step 3 substrate became **sequential composition consistency**.
 
 #### Current Step 3 candidate
 
@@ -269,55 +190,44 @@ This produced real, nontrivial consistency signals.
 
 Interpretation:
 
-- light consistency objective helps on the true sequential-composition substrate
+- light consistency objective helps on the real sequential-composition substrate
 - path-gap reductions are real
-- still trades against step quality
-- useful Step 3 mode, not a universal replacement
+- not a new broad default
 
 ---
 
 ### Step 4 — Rollout stability
 
-**Question:** Can the learned-scope local world model roll forward autoregressively without rapidly collapsing?
-
 Main result:
 
 - rollout degradation is real
 - degradation is cumulative
-- but it is not catastrophic over short horizons
+- but not catastrophic over short horizons
 
 The characteristic failure mode is conservative drift:
 
-- changed-edge behavior remains weak
+- changed-edge stays weak
 - add behavior tends to collapse
-- context edge accuracy stays relatively strong
+- context-edge remains relatively strong
 
 #### Current Step 4 candidate
 
 **`R050`**
 
-Interpretation:
-
-- best rollout-aware candidate so far
-- improves rollout-specific edit behavior
-- still trades against overall stability
-
 ---
 
-### Step 5 — More complex synthetic structural regime
-
-**Question:** Does the method family transfer to a more complex multi-event structural world?
+### Step 5 — More complex multi-event structural regime
 
 Step 5 introduced a harder synthetic regime with:
 
-- 3-event sequences
+- three-event sequences
 - fully independent chains
 - partially dependent chains
 - strongly interacting chains
 
 Main result:
 
-- the method family does transfer
+- the method family transfers
 - the main new bottleneck is **event interaction complexity**
 
 #### Current Step 5 defaults
@@ -329,150 +239,193 @@ Interpretation:
 
 - `W012` is the safest broad-transfer model
 - `I1520` is the stronger interaction-sensitive alternative
-- interaction-aware training helps, but gains saturate quickly
+- gains from interaction-aware tuning exist, but broad stability remains important
 
 ---
 
 ### Step 6 — Noisy structured observation
 
-**Question:** What happens when the model no longer sees a perfect graph state, but only a noisy structured observation?
-
-This became the bridge from ideal structured-world modeling toward more realistic imperfect observation.
-
-#### Step 6a — Noisy structured observation benchmark
+Step 6 introduced corrupted structured observations while keeping the latent target next-state clean.
 
 Main result:
 
-- the method family remains usable under noisy structured observations
-- the main bottleneck shifts to proposal robustness, especially on the edge side
+- the family remains usable under noisy structured observations
+- the main bottleneck shifts toward proposal robustness and proposal/rewrite coupling
 
-#### Step 6b — Noisy proposal training
+#### Current noisy proposal front-end
 
-Main result:
+**calibrated `P2`**
 
-- noisy-observation proposal training helps
-- proposal-only best checkpoint becomes **`P2`**
-
-#### Step 6c — Global threshold calibration
-
-Main result:
-
-- calibration matters
-- after threshold calibration, `P2` becomes the system-level best proposal front-end
-
-Current best noisy-observation front-end:
-
-- **calibrated `P2`**
 - `node_threshold = 0.15`
 - `edge_threshold = 0.10`
 
-#### Step 6d — Regime-aware threshold calibration
-
-Main result:
-
-- no meaningful gain over global calibration
-
-Useful negative result:
-
-- remaining calibration issues are not simply per-regime threshold mismatch
-
-#### Step 6e — Temperature scaling / confidence calibration
-
-Main result:
-
-- no meaningful downstream gain over threshold calibration
-- calibration beyond thresholds did not help in the first clean pass
-
-Useful negative result:
-
-- proposal-side simple confidence calibration appears close to saturation
-
-#### Step 6f — Rewrite-only noisy adaptation
-
-Proposal frozen as calibrated `P2`, rewrite adapted under noisy structured observation.
-
-Main result:
-
-- rewrite-only noisy adaptation helps
-- gains are incremental, not transformative
-- best current candidate from this line is:
-
-### **`RFT1 + calibrated P2`**
-
-This is the current best broad noisy-observation system candidate.
-
-#### Step 6g — Light joint noisy proposal+rewrite fine-tuning
-
-A light joint noisy-observation fine-tuning pass was tested.
-
-Main result:
-
-- coupling signal is real
-- but the joint line does **not** beat `RFT1 + calibrated P2`
-- joint results are informative, but not the new default
-
 #### Current Step 6 main candidate
 
-### **`RFT1 + calibrated P2`**
+**`RFT1 + calibrated P2`**
 
-This is the current best noisy structured observation system stack.
+Interpretation:
+
+- best balanced noisy-observation stack found so far
+- better overall than `W012 + calibrated P2`
+- light joint noisy fine-tuning showed signal, but did not beat this stack
 
 **Step 6 status:** sufficiently closed for now.
 
 ---
 
-## 5. Current Stable Defaults
+### Steps 7–10 — Scope/edit gap, edge miss anatomy, closure, and rescued-scope decomposition
 
-At the current project checkpoint, the most useful defaults are:
+These stages reframed the learned-scope bottleneck more precisely.
+
+Main results:
+
+- the dominant overall bottleneck is **edge-side proposal miss / out-of-scope miss**
+- the dominant missed-edge subtype is:
+  - **both endpoints already inside predicted node scope**
+- proposal-side internal edge completion is a real mechanism family
+- the context loss from budgeted internal completion does **not** mainly come from broad rewrite spillover
+- it comes overwhelmingly from **rescued false-scope edges** being admitted and then actively rewritten
+
+This established a useful proposal-side branch candidate:
+
+- **Step 9c fixed-budget internal completion @ 10%**
+
+But that branch did not become a new default.
+
+---
+
+### Steps 11–15 — Proposal-side minimal guard line
+
+A series of minimal proposal-side guard / reranking / objective / representation experiments were tested to reduce false-scope rescue admissions.
+
+Main result:
+
+- oracle guard ceilings were real
+- but the minimal learned guard family did not materially improve the system-level tradeoff
+- continuing tiny guard tweaks became low value
+
+**Status:** parked for now.
+
+---
+
+### Steps 16–21 — Rewrite-side fallback interface line
+
+An oracle rewrite-side fallback probe showed a very strong ceiling:
+
+- if rescued false-scope edges are prevented from being actively rewritten,
+- most of the Step 9c context loss can be recovered,
+- while preserving the main changed-edge / add / delete gains
+
+This established that the interface direction is real.
+
+However, the learned chooser line was extensively tested and did not become usable:
+
+- compact chooser collapsed to all-fallback at default operating point
+- chooser was not ranking-dead, but top-tail quality was too weak
+- objective-only tweaks were insufficient
+- shallow/local representation probes helped only slightly
+- a contained two-path local-subgraph chooser still did not materially beat the best shallow probe
+
+**Status:** parked for now.
+
+---
+
+### Step 22 — Noisy multievent interaction benchmark
+
+This stage combined:
+
+- Step 5 multi-event interaction complexity
+- Step 6 noisy structured observation
+
+Main result:
+
+- the new substrate is meaningful and nontrivial
+- `RFT1 + calibrated P2` remains the safest broad noisy stack on this substrate
+- noise does **not** catastrophically collapse the family
+- the main amplified bottleneck is on **strongly interacting** sequences
+- the failure is mainly **edit / proposal coverage limited**, not broad context collapse
+
+---
+
+### Step 23 — Proposal-only noisy interaction-aware adaptation
+
+Proposal-only adaptation from noisy `P2`, with rewrite frozen as `RFT1`, was tested on the Step 22 substrate.
+
+Main result:
+
+- it improved broad full/context-edge mainly by becoming more conservative
+- proposal edge recall dropped
+- out-of-scope miss worsened
+- changed-edge / add / delete weakened
+- strongly interacting proposal miss did not improve materially
+
+**Conclusion:** proposal-only adaptation does not solve the noisy interaction bottleneck.
+
+---
+
+### Step 24 — Light joint noisy interaction-aware coupling
+
+A first light joint proposal+rewrite fine-tuning pass was tested on the Step 22 substrate.
+
+Main result:
+
+- overall proposal coverage / miss improved slightly relative to noisy `P2 + RFT1`
+- it avoided the conservative collapse seen in Step 23
+- but it did **not** improve the intended strongly-interacting downstream changed-edge/delete behavior
+
+**Conclusion:** informative, but not promotable.
+
+---
+
+## 5. Current Stable Defaults
 
 ### Broad structured-world default
 **`W012`**
 
-### Step 3 consistency reference
-**`C005`**
+### Broad noisy default
+**`RFT1 + calibrated P2`**
 
-### Step 4 rollout-aware reference
-**`R050`**
-
-### Step 5 interaction-aware alternative
+### Interaction-aware alternative
 **`I1520`**
 
-### Step 6 proposal front-end
+### Consistency reference
+**`C005`**
+
+### Rollout-aware reference
+**`R050`**
+
+### Noisy proposal front-end
 **calibrated `P2`**
 - `node_threshold = 0.15`
 - `edge_threshold = 0.10`
 
-### Step 6 broad noisy-observation system default
-**`RFT1 + calibrated P2`**
-
 ---
 
-## 6. Strong Alternatives Worth Keeping
+## 6. Important Non-Default References
 
-These are not the current defaults, but remain important reference points:
+These are informative and should be preserved, but they are not the current defaults:
 
 - `WG025`
   - strongest edit-preserving Step 2 alternative
-
 - `DR005`
-  - strongest delete-rescue Step 2 anchor
-
+  - delete-rescue anchor
 - `J05`
-  - informative joint noisy-observation result
-  - useful evidence that coupling has signal
-  - not better than `RFT1 + calibrated P2`
+  - first light noisy joint line with real coupling signal
+- `Step 9c` fixed-budget internal completion @ 10%
+  - proposal-side branch candidate with meaningful but not default-level value
 
 ---
 
 ## 7. What Is Explicitly Not Being Reopened Right Now
 
-The following lines are considered sufficiently explored for the current phase and should **not** be reopened unless a later phase specifically demands it:
+The following lines are considered sufficiently explored or temporarily parked:
 
 - more Step 2 keep/rescue micro-tuning
 - more Step 6 threshold-only retuning
 - more Step 6 temperature-only calibration variants
-- reopening proposal-only architecture changes without a genuinely new bottleneck
-- broader local tuning loops inside Steps 2–6 without a new mechanism-level question
+- the parked chooser-interface line from Steps 16–21
+- more proposal-only noisy interaction micro-tuning after Step 23
+- more tiny guard / reranking / minimal-representation proposal-side tweaks after Steps 11–15
 
 ---
 
@@ -483,13 +436,14 @@ The repository now supports a coherent view of local event-centric world modelin
 1. local rewrite is learnable
 2. learned-scope bridging is viable
 3. proposal/rewrite interface robustness is the central learned-scope bottleneck
-4. sequential composition consistency is a real issue
+4. sequential composition consistency is real
 5. rollout degradation is real but manageable
-6. the family transfers to a more complex multi-event structural regime
+6. the family transfers to harder multi-event structural regimes
 7. noisy structured observation is survivable
-8. proposal-side noisy robustness can be improved substantially
-9. rewrite-side noisy adaptation provides the strongest current Step 6 system result
-10. fully joint noisy coupling has signal, but not yet a decisive net gain
+8. the proposal-side internal completion line has real but non-default value
+9. the rewrite-side fallback interface has a strong oracle ceiling, but no usable learned chooser yet
+10. the new noisy multievent substrate is established
+11. on that substrate, the main active bottleneck is noisy interaction-time proposal/rewrite coverage, especially on strongly interacting cases
 
 ---
 
@@ -497,30 +451,34 @@ The repository now supports a coherent view of local event-centric world modelin
 
 If you are running new experiments in this repository:
 
-- use `W012` as the default broad model unless you specifically care about stronger edit preservation
-- use `I1520` when event interaction sensitivity is the main concern
-- use `RFT1 + calibrated P2` when working in noisy structured observation settings
-- compare against `WG025`, `DR005`, or `J05` only when the mechanism under study directly touches their corresponding tradeoff axes
+- use `W012` as the default broad clean model
+- use `RFT1 + calibrated P2` as the default noisy system stack
+- use `I1520` when interaction sensitivity is the main clean-structured concern
+- compare against `WG025`, `DR005`, `J05`, or `Step 9c` only when the mechanism under study directly touches their tradeoff axes
+- treat the Step 22 substrate as the current entry point for noisy multi-event interaction work
 
 ---
 
 ## 10. Next-Phase Entry Point
 
-The next phase should **not** start by reopening old Step 2–6 tuning loops.
+The next phase should **not** reopen old Step 2–6 tuning loops.
 
-Instead, it should begin from the consolidated defaults:
+It should begin from the consolidated defaults:
 
 - broad structural default: `W012`
+- noisy broad default: `RFT1 + calibrated P2`
+- interaction-aware alternative: `I1520`
 - consistency reference: `C005`
 - rollout reference: `R050`
-- interaction-aware alternative: `I1520`
-- noisy-observation front-end: calibrated `P2`
-- noisy-observation broad system: `RFT1 + calibrated P2`
 
-The next phase should ask a genuinely new question rather than revisiting already-saturated local tradeoff lines.
+The current clean next-phase question is:
+
+> On the Step 22 noisy multievent substrate, how much of the strongly-interacting failure is still proposal-limited, and how much remains even under oracle event scope?
+
+That is the intended entry point for the next oracle-headroom stage.
 
 ---
 
 ## 11. Summary in One Sentence
 
-This repository now supports a staged, mechanistically interpretable local event-centric world model pipeline in a structured synthetic graph world, with stable defaults for learned-scope rewrite, sequential consistency, rollout stability, interaction complexity, and noisy structured observation.
+This repository now supports a staged, mechanistically interpretable local event-centric world model pipeline in a structured synthetic graph world, with stable defaults for clean and noisy settings, established interaction and rollout references, and a newly benchmarked noisy multievent substrate whose next bottleneck is oracle-headroom analysis rather than more old micro-tuning.

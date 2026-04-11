@@ -1,0 +1,1467 @@
+{
+  "metadata": {
+    "proposal_checkpoint_path": "/Users/richwang/newprogram/checkpoints/proposal_noisy_obs_p2/best.pt",
+    "rewrite_checkpoint_path": "/Users/richwang/newprogram/checkpoints/fp_keep_w012/best.pt",
+    "completion_checkpoint_path": "/Users/richwang/newprogram/checkpoints/step9_edge_completion_noisy_p2/best.pt",
+    "data_path": "/Users/richwang/newprogram/data/graph_event_step6a_test.pkl",
+    "split_name": "test",
+    "node_threshold": 0.15,
+    "edge_threshold": 0.1,
+    "completion_threshold": 0.5,
+    "edge_completion_modes": [
+      "off",
+      "naive_induced_closure",
+      "learned_gated_internal_completion"
+    ],
+    "rewrite_uses_proposal_conditioning": true,
+    "notes": [
+      "node proposal is unchanged",
+      "learned completion only rescues edge slots whose endpoints are already inside predicted node scope",
+      "rewrite checkpoint is unchanged; proposal edge probabilities are updated only for completed edges"
+    ]
+  },
+  "results": {
+    "proposal_side": {
+      "off": {
+        "overall": {
+          "num_samples": 6000,
+          "proposal_changed_region_recall_edge": 0.48097955301949596,
+          "out_of_scope_miss_edge": 0.5190204469805041,
+          "proposal_scope_excess_ratio_edge": 0.9723946890820517,
+          "edge_changed_total": 8412,
+          "edge_pred_total": 146566,
+          "edge_out_scope_changed_total": 4366,
+          "rescued_edge_total": 0,
+          "rescued_changed_edge_total": 0
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 1902,
+            "proposal_changed_region_recall_edge": 0.2222222222222222,
+            "out_of_scope_miss_edge": 0.7777777777777778,
+            "proposal_scope_excess_ratio_edge": 0.9778097738629626,
+            "edge_changed_total": 4716,
+            "edge_pred_total": 47228,
+            "edge_out_scope_changed_total": 3668,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "edge_delete": {
+            "num_samples": 2055,
+            "proposal_changed_region_recall_edge": 0.7309870550161812,
+            "out_of_scope_miss_edge": 0.2690129449838188,
+            "proposal_scope_excess_ratio_edge": 0.927418059125964,
+            "edge_changed_total": 4944,
+            "edge_pred_total": 49792,
+            "edge_out_scope_changed_total": 1330,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "node_state_update": {
+            "num_samples": 1818,
+            "proposal_changed_region_recall_edge": 0.5146198830409356,
+            "out_of_scope_miss_edge": 0.4853801169590643,
+            "proposal_scope_excess_ratio_edge": 0.9877220723653614,
+            "edge_changed_total": 1026,
+            "edge_pred_total": 43004,
+            "edge_out_scope_changed_total": 498,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "motif_type_flip": {
+            "num_samples": 1605,
+            "proposal_changed_region_recall_edge": 0.4826666666666667,
+            "out_of_scope_miss_edge": 0.5173333333333333,
+            "proposal_scope_excess_ratio_edge": 0.9910178154930276,
+            "edge_changed_total": 750,
+            "edge_pred_total": 40302,
+            "edge_out_scope_changed_total": 388,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          }
+        },
+        "by_corruption_setting": {
+          "N1": {
+            "num_samples": 2000,
+            "proposal_changed_region_recall_edge": 0.5099857346647646,
+            "out_of_scope_miss_edge": 0.4900142653352354,
+            "proposal_scope_excess_ratio_edge": 0.9698909335916116,
+            "edge_changed_total": 2804,
+            "edge_pred_total": 47494,
+            "edge_out_scope_changed_total": 1374,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "N2": {
+            "num_samples": 2000,
+            "proposal_changed_region_recall_edge": 0.48502139800285304,
+            "out_of_scope_miss_edge": 0.514978601997147,
+            "proposal_scope_excess_ratio_edge": 0.9722912676745039,
+            "edge_changed_total": 2804,
+            "edge_pred_total": 49082,
+            "edge_out_scope_changed_total": 1444,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "N3": {
+            "num_samples": 2000,
+            "proposal_changed_region_recall_edge": 0.4479315263908702,
+            "out_of_scope_miss_edge": 0.5520684736091298,
+            "proposal_scope_excess_ratio_edge": 0.974874974994999,
+            "edge_changed_total": 2804,
+            "edge_pred_total": 49990,
+            "edge_out_scope_changed_total": 1548,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          }
+        },
+        "by_corruption_event_type": {
+          "corruption::N1::event_type::edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.21374045801526717,
+            "out_of_scope_miss_edge": 0.7862595419847328,
+            "proposal_scope_excess_ratio_edge": 0.9781107491856678,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 15350,
+            "edge_out_scope_changed_total": 1236,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N1::event_type::edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.7924757281553398,
+            "out_of_scope_miss_edge": 0.20752427184466019,
+            "proposal_scope_excess_ratio_edge": 0.9191531509223722,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 16154,
+            "edge_out_scope_changed_total": 342,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N2::event_type::edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.21755725190839695,
+            "out_of_scope_miss_edge": 0.7824427480916031,
+            "proposal_scope_excess_ratio_edge": 0.9782553407934893,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 15728,
+            "edge_out_scope_changed_total": 1230,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N2::event_type::edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.7378640776699029,
+            "out_of_scope_miss_edge": 0.2621359223300971,
+            "proposal_scope_excess_ratio_edge": 0.9270283245319251,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 16664,
+            "edge_out_scope_changed_total": 432,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N3::event_type::edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.23536895674300254,
+            "out_of_scope_miss_edge": 0.7646310432569975,
+            "proposal_scope_excess_ratio_edge": 0.9770897832817338,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 16150,
+            "edge_out_scope_changed_total": 1202,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N3::event_type::edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.662621359223301,
+            "out_of_scope_miss_edge": 0.33737864077669905,
+            "proposal_scope_excess_ratio_edge": 0.935666313184871,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 16974,
+            "edge_out_scope_changed_total": 556,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N1::event_type::node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.5614035087719298,
+            "out_of_scope_miss_edge": 0.43859649122807015,
+            "proposal_scope_excess_ratio_edge": 0.9862345856036708,
+            "edge_changed_total": 342,
+            "edge_pred_total": 13948,
+            "edge_out_scope_changed_total": 150,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N2::event_type::node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.5029239766081871,
+            "out_of_scope_miss_edge": 0.49707602339181284,
+            "proposal_scope_excess_ratio_edge": 0.9880489160644803,
+            "edge_changed_total": 342,
+            "edge_pred_total": 14392,
+            "edge_out_scope_changed_total": 170,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N3::event_type::node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.47953216374269003,
+            "out_of_scope_miss_edge": 0.52046783625731,
+            "proposal_scope_excess_ratio_edge": 0.9888161483906165,
+            "edge_changed_total": 342,
+            "edge_pred_total": 14664,
+            "edge_out_scope_changed_total": 178,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N1::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.512,
+            "out_of_scope_miss_edge": 0.488,
+            "proposal_scope_excess_ratio_edge": 0.9902394387677291,
+            "edge_changed_total": 250,
+            "edge_pred_total": 13114,
+            "edge_out_scope_changed_total": 122,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N2::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.504,
+            "out_of_scope_miss_edge": 0.496,
+            "proposal_scope_excess_ratio_edge": 0.990747540020561,
+            "edge_changed_total": 250,
+            "edge_pred_total": 13618,
+            "edge_out_scope_changed_total": 124,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N3::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.432,
+            "out_of_scope_miss_edge": 0.568,
+            "proposal_scope_excess_ratio_edge": 0.9920412675018423,
+            "edge_changed_total": 250,
+            "edge_pred_total": 13570,
+            "edge_out_scope_changed_total": 142,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          }
+        }
+      },
+      "naive_induced_closure": {
+        "overall": {
+          "num_samples": 6000,
+          "proposal_changed_region_recall_edge": 0.9479315263908702,
+          "out_of_scope_miss_edge": 0.05206847360912981,
+          "proposal_scope_excess_ratio_edge": 0.982587010355204,
+          "edge_changed_total": 8412,
+          "edge_pred_total": 457934,
+          "edge_out_scope_changed_total": 438,
+          "rescued_edge_total": 311368,
+          "rescued_changed_edge_total": 3928
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 1902,
+            "proposal_changed_region_recall_edge": 0.9372349448685326,
+            "out_of_scope_miss_edge": 0.06276505513146735,
+            "proposal_scope_excess_ratio_edge": 0.9700493305144468,
+            "edge_changed_total": 4716,
+            "edge_pred_total": 147576,
+            "edge_out_scope_changed_total": 296,
+            "rescued_edge_total": 100348,
+            "rescued_changed_edge_total": 3372
+          },
+          "edge_delete": {
+            "num_samples": 2055,
+            "proposal_changed_region_recall_edge": 0.9591423948220065,
+            "out_of_scope_miss_edge": 0.04085760517799353,
+            "proposal_scope_excess_ratio_edge": 0.9698725523831306,
+            "edge_changed_total": 4944,
+            "edge_pred_total": 157398,
+            "edge_out_scope_changed_total": 202,
+            "rescued_edge_total": 107606,
+            "rescued_changed_edge_total": 1128
+          },
+          "node_state_update": {
+            "num_samples": 1818,
+            "proposal_changed_region_recall_edge": 0.9395711500974658,
+            "out_of_scope_miss_edge": 0.06042884990253411,
+            "proposal_scope_excess_ratio_edge": 0.9928559783011457,
+            "edge_changed_total": 1026,
+            "edge_pred_total": 134938,
+            "edge_out_scope_changed_total": 62,
+            "rescued_edge_total": 91934,
+            "rescued_changed_edge_total": 436
+          },
+          "motif_type_flip": {
+            "num_samples": 1605,
+            "proposal_changed_region_recall_edge": 0.9493333333333334,
+            "out_of_scope_miss_edge": 0.050666666666666665,
+            "proposal_scope_excess_ratio_edge": 0.9942366844746641,
+            "edge_changed_total": 750,
+            "edge_pred_total": 123540,
+            "edge_out_scope_changed_total": 38,
+            "rescued_edge_total": 83238,
+            "rescued_changed_edge_total": 350
+          }
+        },
+        "by_corruption_setting": {
+          "N1": {
+            "num_samples": 2000,
+            "proposal_changed_region_recall_edge": 0.9522111269614836,
+            "out_of_scope_miss_edge": 0.04778887303851641,
+            "proposal_scope_excess_ratio_edge": 0.9822291442035063,
+            "edge_changed_total": 2804,
+            "edge_pred_total": 150246,
+            "edge_out_scope_changed_total": 134,
+            "rescued_edge_total": 102752,
+            "rescued_changed_edge_total": 1240
+          },
+          "N2": {
+            "num_samples": 2000,
+            "proposal_changed_region_recall_edge": 0.9514978601997147,
+            "out_of_scope_miss_edge": 0.04850213980028531,
+            "proposal_scope_excess_ratio_edge": 0.9825461206332592,
+            "edge_changed_total": 2804,
+            "edge_pred_total": 152860,
+            "edge_out_scope_changed_total": 136,
+            "rescued_edge_total": 103778,
+            "rescued_changed_edge_total": 1308
+          },
+          "N3": {
+            "num_samples": 2000,
+            "proposal_changed_region_recall_edge": 0.9400855920114123,
+            "out_of_scope_miss_edge": 0.05991440798858773,
+            "proposal_scope_excess_ratio_edge": 0.9829746557470225,
+            "edge_changed_total": 2804,
+            "edge_pred_total": 154828,
+            "edge_out_scope_changed_total": 168,
+            "rescued_edge_total": 104838,
+            "rescued_changed_edge_total": 1380
+          }
+        },
+        "by_corruption_event_type": {
+          "corruption::N1::event_type::edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.9338422391857506,
+            "out_of_scope_miss_edge": 0.06615776081424936,
+            "proposal_scope_excess_ratio_edge": 0.969804179693928,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 48616,
+            "edge_out_scope_changed_total": 104,
+            "rescued_edge_total": 33266,
+            "rescued_changed_edge_total": 1132
+          },
+          "corruption::N1::event_type::edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.9684466019417476,
+            "out_of_scope_miss_edge": 0.03155339805825243,
+            "proposal_scope_excess_ratio_edge": 0.9689445828144458,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 51392,
+            "edge_out_scope_changed_total": 52,
+            "rescued_edge_total": 35238,
+            "rescued_changed_edge_total": 290
+          },
+          "corruption::N2::event_type::edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.9427480916030534,
+            "out_of_scope_miss_edge": 0.05725190839694656,
+            "proposal_scope_excess_ratio_edge": 0.9698486328125,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 49152,
+            "edge_out_scope_changed_total": 90,
+            "rescued_edge_total": 33424,
+            "rescued_changed_edge_total": 1140
+          },
+          "corruption::N2::event_type::edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.9635922330097088,
+            "out_of_scope_miss_edge": 0.03640776699029126,
+            "proposal_scope_excess_ratio_edge": 0.9699833660970815,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 52904,
+            "edge_out_scope_changed_total": 60,
+            "rescued_edge_total": 36240,
+            "rescued_changed_edge_total": 372
+          },
+          "corruption::N3::event_type::edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.9351145038167938,
+            "out_of_scope_miss_edge": 0.0648854961832061,
+            "proposal_scope_excess_ratio_edge": 0.9704866688082235,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 49808,
+            "edge_out_scope_changed_total": 102,
+            "rescued_edge_total": 33658,
+            "rescued_changed_edge_total": 1100
+          },
+          "corruption::N3::event_type::edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.9453883495145631,
+            "out_of_scope_miss_edge": 0.05461165048543689,
+            "proposal_scope_excess_ratio_edge": 0.9706602387857332,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 53102,
+            "edge_out_scope_changed_total": 90,
+            "rescued_edge_total": 36128,
+            "rescued_changed_edge_total": 466
+          },
+          "corruption::N1::event_type::node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.9590643274853801,
+            "out_of_scope_miss_edge": 0.04093567251461988,
+            "proposal_scope_excess_ratio_edge": 0.992628550880978,
+            "edge_changed_total": 342,
+            "edge_pred_total": 44496,
+            "edge_out_scope_changed_total": 14,
+            "rescued_edge_total": 30548,
+            "rescued_changed_edge_total": 136
+          },
+          "corruption::N2::event_type::node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.935672514619883,
+            "out_of_scope_miss_edge": 0.06432748538011696,
+            "proposal_scope_excess_ratio_edge": 0.9928555481134181,
+            "edge_changed_total": 342,
+            "edge_pred_total": 44790,
+            "edge_out_scope_changed_total": 22,
+            "rescued_edge_total": 30398,
+            "rescued_changed_edge_total": 148
+          },
+          "corruption::N3::event_type::node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.9239766081871345,
+            "out_of_scope_miss_edge": 0.07602339181286549,
+            "proposal_scope_excess_ratio_edge": 0.9930780688688338,
+            "edge_changed_total": 342,
+            "edge_pred_total": 45652,
+            "edge_out_scope_changed_total": 26,
+            "rescued_edge_total": 30988,
+            "rescued_changed_edge_total": 152
+          },
+          "corruption::N1::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.968,
+            "out_of_scope_miss_edge": 0.032,
+            "proposal_scope_excess_ratio_edge": 0.993995633187773,
+            "edge_changed_total": 250,
+            "edge_pred_total": 40304,
+            "edge_out_scope_changed_total": 8,
+            "rescued_edge_total": 27190,
+            "rescued_changed_edge_total": 114
+          },
+          "corruption::N2::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.936,
+            "out_of_scope_miss_edge": 0.064,
+            "proposal_scope_excess_ratio_edge": 0.9943162496963809,
+            "edge_changed_total": 250,
+            "edge_pred_total": 41170,
+            "edge_out_scope_changed_total": 16,
+            "rescued_edge_total": 27552,
+            "rescued_changed_edge_total": 108
+          },
+          "corruption::N3::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.944,
+            "out_of_scope_miss_edge": 0.056,
+            "proposal_scope_excess_ratio_edge": 0.9943897684590881,
+            "edge_changed_total": 250,
+            "edge_pred_total": 42066,
+            "edge_out_scope_changed_total": 14,
+            "rescued_edge_total": 28496,
+            "rescued_changed_edge_total": 128
+          }
+        }
+      },
+      "learned_gated_internal_completion": {
+        "overall": {
+          "num_samples": 6000,
+          "proposal_changed_region_recall_edge": 0.495244888254874,
+          "out_of_scope_miss_edge": 0.504755111745126,
+          "proposal_scope_excess_ratio_edge": 0.9720500228108311,
+          "edge_changed_total": 8412,
+          "edge_pred_total": 149052,
+          "edge_out_scope_changed_total": 4246,
+          "rescued_edge_total": 2486,
+          "rescued_changed_edge_total": 120,
+          "recall_recovery_fraction_vs_naive": 0.03054989816700613,
+          "cost_fraction_vs_naive": 0.007984121682382262
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 1902,
+            "proposal_changed_region_recall_edge": 0.2455470737913486,
+            "out_of_scope_miss_edge": 0.7544529262086515,
+            "proposal_scope_excess_ratio_edge": 0.9758508508508509,
+            "edge_changed_total": 4716,
+            "edge_pred_total": 47952,
+            "edge_out_scope_changed_total": 3558,
+            "rescued_edge_total": 724,
+            "rescued_changed_edge_total": 110,
+            "recall_recovery_fraction_vs_naive": 0.03262158956109136,
+            "cost_fraction_vs_naive": 0.007214892175230199
+          },
+          "edge_delete": {
+            "num_samples": 2055,
+            "proposal_changed_region_recall_edge": 0.7366504854368932,
+            "out_of_scope_miss_edge": 0.2633495145631068,
+            "proposal_scope_excess_ratio_edge": 0.9281259867382381,
+            "edge_changed_total": 4944,
+            "edge_pred_total": 50672,
+            "edge_out_scope_changed_total": 1302,
+            "rescued_edge_total": 880,
+            "rescued_changed_edge_total": 28,
+            "recall_recovery_fraction_vs_naive": 0.024822695035460817,
+            "cost_fraction_vs_naive": 0.008177982640373213
+          },
+          "node_state_update": {
+            "num_samples": 1818,
+            "proposal_changed_region_recall_edge": 0.5380116959064327,
+            "out_of_scope_miss_edge": 0.4619883040935672,
+            "proposal_scope_excess_ratio_edge": 0.9874099078551227,
+            "edge_changed_total": 1026,
+            "edge_pred_total": 43844,
+            "edge_out_scope_changed_total": 474,
+            "rescued_edge_total": 840,
+            "rescued_changed_edge_total": 24,
+            "recall_recovery_fraction_vs_naive": 0.05504587155963303,
+            "cost_fraction_vs_naive": 0.009136989579480932
+          },
+          "motif_type_flip": {
+            "num_samples": 1605,
+            "proposal_changed_region_recall_edge": 0.496,
+            "out_of_scope_miss_edge": 0.504,
+            "proposal_scope_excess_ratio_edge": 0.9909139758683015,
+            "edge_changed_total": 750,
+            "edge_pred_total": 40942,
+            "edge_out_scope_changed_total": 378,
+            "rescued_edge_total": 640,
+            "rescued_changed_edge_total": 10,
+            "recall_recovery_fraction_vs_naive": 0.02857142857142852,
+            "cost_fraction_vs_naive": 0.007688795982604099
+          }
+        },
+        "by_corruption_setting": {
+          "N1": {
+            "num_samples": 2000,
+            "proposal_changed_region_recall_edge": 0.5271041369472182,
+            "out_of_scope_miss_edge": 0.47289586305278175,
+            "proposal_scope_excess_ratio_edge": 0.9694678565526359,
+            "edge_changed_total": 2804,
+            "edge_pred_total": 48408,
+            "edge_out_scope_changed_total": 1326,
+            "rescued_edge_total": 914,
+            "rescued_changed_edge_total": 48
+          },
+          "N2": {
+            "num_samples": 2000,
+            "proposal_changed_region_recall_edge": 0.4985734664764622,
+            "out_of_scope_miss_edge": 0.5014265335235378,
+            "proposal_scope_excess_ratio_edge": 0.9719626168224299,
+            "edge_changed_total": 2804,
+            "edge_pred_total": 49862,
+            "edge_out_scope_changed_total": 1406,
+            "rescued_edge_total": 780,
+            "rescued_changed_edge_total": 38
+          },
+          "N3": {
+            "num_samples": 2000,
+            "proposal_changed_region_recall_edge": 0.4600570613409415,
+            "out_of_scope_miss_edge": 0.5399429386590585,
+            "proposal_scope_excess_ratio_edge": 0.9745972982552873,
+            "edge_changed_total": 2804,
+            "edge_pred_total": 50782,
+            "edge_out_scope_changed_total": 1514,
+            "rescued_edge_total": 792,
+            "rescued_changed_edge_total": 34
+          }
+        },
+        "by_corruption_event_type": {
+          "corruption::N1::event_type::edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.24427480916030533,
+            "out_of_scope_miss_edge": 0.7557251908396947,
+            "proposal_scope_excess_ratio_edge": 0.9754192805018563,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 15622,
+            "edge_out_scope_changed_total": 1188,
+            "rescued_edge_total": 272,
+            "rescued_changed_edge_total": 48
+          },
+          "corruption::N1::event_type::edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.7949029126213593,
+            "out_of_scope_miss_edge": 0.20509708737864077,
+            "proposal_scope_excess_ratio_edge": 0.9204131227217497,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 16460,
+            "edge_out_scope_changed_total": 338,
+            "rescued_edge_total": 306,
+            "rescued_changed_edge_total": 4
+          },
+          "corruption::N2::event_type::edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.24045801526717558,
+            "out_of_scope_miss_edge": 0.7595419847328244,
+            "proposal_scope_excess_ratio_edge": 0.9763009404388715,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 15950,
+            "edge_out_scope_changed_total": 1194,
+            "rescued_edge_total": 222,
+            "rescued_changed_edge_total": 36
+          },
+          "corruption::N2::event_type::edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.7439320388349514,
+            "out_of_scope_miss_edge": 0.25606796116504854,
+            "proposal_scope_excess_ratio_edge": 0.9276440037771483,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 16944,
+            "edge_out_scope_changed_total": 422,
+            "rescued_edge_total": 280,
+            "rescued_changed_edge_total": 10
+          },
+          "corruption::N3::event_type::edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.25190839694656486,
+            "out_of_scope_miss_edge": 0.7480916030534351,
+            "proposal_scope_excess_ratio_edge": 0.9758241758241758,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 16380,
+            "edge_out_scope_changed_total": 1176,
+            "rescued_edge_total": 230,
+            "rescued_changed_edge_total": 26
+          },
+          "corruption::N3::event_type::edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.6711165048543689,
+            "out_of_scope_miss_edge": 0.3288834951456311,
+            "proposal_scope_excess_ratio_edge": 0.9359508918230253,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 17268,
+            "edge_out_scope_changed_total": 542,
+            "rescued_edge_total": 294,
+            "rescued_changed_edge_total": 14
+          },
+          "corruption::N1::event_type::node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.5906432748538012,
+            "out_of_scope_miss_edge": 0.4093567251461988,
+            "proposal_scope_excess_ratio_edge": 0.9858563226438875,
+            "edge_changed_total": 342,
+            "edge_pred_total": 14282,
+            "edge_out_scope_changed_total": 140,
+            "rescued_edge_total": 334,
+            "rescued_changed_edge_total": 10
+          },
+          "corruption::N2::event_type::node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.52046783625731,
+            "out_of_scope_miss_edge": 0.47953216374269003,
+            "proposal_scope_excess_ratio_edge": 0.9878415300546448,
+            "edge_changed_total": 342,
+            "edge_pred_total": 14640,
+            "edge_out_scope_changed_total": 164,
+            "rescued_edge_total": 248,
+            "rescued_changed_edge_total": 6
+          },
+          "corruption::N3::event_type::node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.5029239766081871,
+            "out_of_scope_miss_edge": 0.49707602339181284,
+            "proposal_scope_excess_ratio_edge": 0.9884733949872672,
+            "edge_changed_total": 342,
+            "edge_pred_total": 14922,
+            "edge_out_scope_changed_total": 170,
+            "rescued_edge_total": 258,
+            "rescued_changed_edge_total": 8
+          },
+          "corruption::N1::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.544,
+            "out_of_scope_miss_edge": 0.456,
+            "proposal_scope_excess_ratio_edge": 0.989809680803237,
+            "edge_changed_total": 250,
+            "edge_pred_total": 13346,
+            "edge_out_scope_changed_total": 114,
+            "rescued_edge_total": 232,
+            "rescued_changed_edge_total": 8
+          },
+          "corruption::N2::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.504,
+            "out_of_scope_miss_edge": 0.496,
+            "proposal_scope_excess_ratio_edge": 0.9908801389693109,
+            "edge_changed_total": 250,
+            "edge_pred_total": 13816,
+            "edge_out_scope_changed_total": 124,
+            "rescued_edge_total": 198,
+            "rescued_changed_edge_total": 0
+          },
+          "corruption::N3::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.44,
+            "out_of_scope_miss_edge": 0.56,
+            "proposal_scope_excess_ratio_edge": 0.9920174165457184,
+            "edge_changed_total": 250,
+            "edge_pred_total": 13780,
+            "edge_out_scope_changed_total": 140,
+            "rescued_edge_total": 210,
+            "rescued_changed_edge_total": 2
+          }
+        }
+      }
+    },
+    "downstream": {
+      "off": {
+        "overall": {
+          "num_samples": 6000,
+          "full_edge": 0.8754634971083586,
+          "changed_edge": 0.2622444127436995,
+          "context_edge": 0.8849662510684705,
+          "delta_all": 0.8754634971083586,
+          "keep": 0.8849662510684705,
+          "add": 0.08944281524926687,
+          "delete": 0.42592592592592593,
+          "edge_changed_total": 8412,
+          "edge_context_total": 542832
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 1902,
+            "full_edge": 0.8633266668926477,
+            "changed_edge": 0.13061916878710772,
+            "context_edge": 0.8833826687561669,
+            "delta_all": 0.8633266668926477,
+            "keep": 0.8833826687561669,
+            "add": 0.08944281524926687,
+            "delete": 0.40064102564102566,
+            "edge_changed_total": 4716,
+            "edge_context_total": 172290
+          },
+          "edge_delete": {
+            "num_samples": 2055,
+            "full_edge": 0.8765703484235454,
+            "changed_edge": 0.38470873786407767,
+            "context_edge": 0.8898304160532199,
+            "delta_all": 0.8765703484235454,
+            "keep": 0.8898304160532199,
+            "add": 0.09935897435897435,
+            "delete": 0.42592592592592593,
+            "edge_changed_total": 4944,
+            "edge_context_total": 183390
+          },
+          "node_state_update": {
+            "num_samples": 1818,
+            "full_edge": 0.8778157498254511,
+            "changed_edge": 0.2631578947368421,
+            "context_edge": 0.8817025367946157,
+            "delta_all": 0.8778157498254511,
+            "keep": 0.8817025367946157,
+            "add": 0.07142857142857142,
+            "delete": 0.39603960396039606,
+            "edge_changed_total": 1026,
+            "edge_context_total": 162252
+          },
+          "motif_type_flip": {
+            "num_samples": 1605,
+            "full_edge": 0.8821987778624627,
+            "changed_edge": 0.23733333333333334,
+            "context_edge": 0.8854485835617911,
+            "delta_all": 0.8821987778624627,
+            "keep": 0.8854485835617911,
+            "add": 0.109375,
+            "delete": 0.37158469945355194,
+            "edge_changed_total": 750,
+            "edge_context_total": 148824
+          }
+        },
+        "by_corruption_setting": {
+          "N1": {
+            "num_samples": 2000,
+            "full_edge": 0.9006683065938133,
+            "changed_edge": 0.2396576319543509,
+            "context_edge": 0.910911663277036,
+            "delta_all": 0.9006683065938133,
+            "keep": 0.910911663277036,
+            "add": 0.06744868035190615,
+            "delete": 0.4027777777777778,
+            "edge_changed_total": 2804,
+            "edge_context_total": 180944
+          },
+          "N2": {
+            "num_samples": 2000,
+            "full_edge": 0.8769836950606265,
+            "changed_edge": 0.2631954350927247,
+            "context_edge": 0.886495269254576,
+            "delta_all": 0.8769836950606265,
+            "keep": 0.886495269254576,
+            "add": 0.09237536656891496,
+            "delete": 0.425,
+            "edge_changed_total": 2804,
+            "edge_context_total": 180944
+          },
+          "N3": {
+            "num_samples": 2000,
+            "full_edge": 0.8487384896706359,
+            "changed_edge": 0.2838801711840228,
+            "context_edge": 0.8574918206737996,
+            "delta_all": 0.8487384896706359,
+            "keep": 0.8574918206737996,
+            "add": 0.10850439882697947,
+            "delete": 0.45,
+            "edge_changed_total": 2804,
+            "edge_context_total": 180944
+          }
+        },
+        "by_corruption_event_type": {
+          "corruption::N1::event_type::edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.8889190196942477,
+            "changed_edge": 0.11195928753180662,
+            "context_edge": 0.9101863137732892,
+            "delta_all": 0.8889190196942477,
+            "keep": 0.9101863137732892,
+            "add": 0.06744868035190615,
+            "delete": 0.40384615384615385,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "corruption::N1::event_type::edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.8998693809933416,
+            "changed_edge": 0.3616504854368932,
+            "context_edge": 0.9143791918861442,
+            "delta_all": 0.8998693809933416,
+            "keep": 0.9143791918861442,
+            "add": 0.07692307692307693,
+            "delete": 0.4027777777777778,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "corruption::N2::event_type::edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.864343581573506,
+            "changed_edge": 0.1272264631043257,
+            "context_edge": 0.8845202855650357,
+            "delta_all": 0.864343581573506,
+            "keep": 0.8845202855650357,
+            "add": 0.09237536656891496,
+            "delete": 0.3557692307692308,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "corruption::N2::event_type::edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.8789703399280002,
+            "changed_edge": 0.38470873786407767,
+            "context_edge": 0.8922951087845575,
+            "delta_all": 0.8789703399280002,
+            "keep": 0.8922951087845575,
+            "add": 0.10576923076923077,
+            "delete": 0.425,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "corruption::N3::event_type::edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.8367173994101895,
+            "changed_edge": 0.15267175572519084,
+            "context_edge": 0.8554414069301759,
+            "delta_all": 0.8367173994101895,
+            "keep": 0.8554414069301759,
+            "add": 0.10850439882697947,
+            "delete": 0.4423076923076923,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "corruption::N3::event_type::edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.8508713243492944,
+            "changed_edge": 0.4077669902912621,
+            "context_edge": 0.862816947488958,
+            "delta_all": 0.8508713243492944,
+            "keep": 0.862816947488958,
+            "add": 0.11538461538461539,
+            "delete": 0.45,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "corruption::N1::event_type::node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.9025098298607284,
+            "changed_edge": 0.23391812865497075,
+            "context_edge": 0.9067376673322979,
+            "delta_all": 0.9025098298607284,
+            "keep": 0.9067376673322979,
+            "add": 0.07142857142857142,
+            "delete": 0.3465346534653465,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "corruption::N2::event_type::node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.8786976812552824,
+            "changed_edge": 0.29239766081871343,
+            "context_edge": 0.8824051475482583,
+            "delta_all": 0.8786976812552824,
+            "keep": 0.8824051475482583,
+            "add": 0.05714285714285714,
+            "delete": 0.45544554455445546,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "corruption::N3::event_type::node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.8522397383603425,
+            "changed_edge": 0.2631578947368421,
+            "context_edge": 0.8559647955032912,
+            "delta_all": 0.8522397383603425,
+            "keep": 0.8559647955032912,
+            "add": 0.08571428571428572,
+            "delete": 0.38613861386138615,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "corruption::N1::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.908018773316218,
+            "changed_edge": 0.2,
+            "context_edge": 0.9115868408321238,
+            "delta_all": 0.908018773316218,
+            "keep": 0.9115868408321238,
+            "add": 0.078125,
+            "delete": 0.32786885245901637,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          },
+          "corruption::N2::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.883669621725701,
+            "changed_edge": 0.256,
+            "context_edge": 0.8868327689082406,
+            "delta_all": 0.883669621725701,
+            "keep": 0.8868327689082406,
+            "add": 0.125,
+            "delete": 0.39344262295081966,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          },
+          "corruption::N3::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.8549079385454691,
+            "changed_edge": 0.256,
+            "context_edge": 0.8579261409450089,
+            "delta_all": 0.8549079385454691,
+            "keep": 0.8579261409450089,
+            "add": 0.125,
+            "delete": 0.39344262295081966,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        }
+      },
+      "naive_induced_closure": {
+        "overall": {
+          "num_samples": 6000,
+          "full_edge": 0.7412216731610685,
+          "changed_edge": 0.3640038040893961,
+          "context_edge": 0.7470672325876145,
+          "delta_all": 0.7412216731610685,
+          "keep": 0.7470672325876145,
+          "add": 0.4579667644183773,
+          "delete": 0.275,
+          "edge_changed_total": 8412,
+          "edge_context_total": 542832
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 1902,
+            "full_edge": 0.7397263369603291,
+            "changed_edge": 0.42832909245122985,
+            "context_edge": 0.7482500435312555,
+            "delta_all": 0.7397263369603291,
+            "keep": 0.7482500435312555,
+            "add": 0.4579667644183773,
+            "delete": 0.23397435897435898,
+            "edge_changed_total": 4716,
+            "edge_context_total": 172290
+          },
+          "edge_delete": {
+            "num_samples": 2055,
+            "full_edge": 0.7321991780560069,
+            "changed_edge": 0.2961165048543689,
+            "context_edge": 0.7439555046621953,
+            "delta_all": 0.7321991780560069,
+            "keep": 0.7439555046621953,
+            "add": 0.4423076923076923,
+            "delete": 0.275,
+            "edge_changed_total": 4944,
+            "edge_context_total": 183390
+          },
+          "node_state_update": {
+            "num_samples": 1818,
+            "full_edge": 0.7423780301081591,
+            "changed_edge": 0.3742690058479532,
+            "context_edge": 0.7447057663387816,
+            "delta_all": 0.7423780301081591,
+            "keep": 0.7447057663387816,
+            "add": 0.5238095238095238,
+            "delete": 0.2706270627062706,
+            "edge_changed_total": 1026,
+            "edge_context_total": 162252
+          },
+          "motif_type_flip": {
+            "num_samples": 1605,
+            "full_edge": 0.7493949483198952,
+            "changed_edge": 0.34933333333333333,
+            "context_edge": 0.7514110627318175,
+            "delta_all": 0.7493949483198952,
+            "keep": 0.7514110627318175,
+            "add": 0.4427083333333333,
+            "delete": 0.25136612021857924,
+            "edge_changed_total": 750,
+            "edge_context_total": 148824
+          }
+        },
+        "by_corruption_setting": {
+          "N1": {
+            "num_samples": 2000,
+            "full_edge": 0.7639375666673923,
+            "changed_edge": 0.35306704707560627,
+            "context_edge": 0.7703046246352463,
+            "delta_all": 0.7639375666673923,
+            "keep": 0.7703046246352463,
+            "add": 0.4750733137829912,
+            "delete": 0.2375,
+            "edge_changed_total": 2804,
+            "edge_context_total": 180944
+          },
+          "N2": {
+            "num_samples": 2000,
+            "full_edge": 0.7403944532729608,
+            "changed_edge": 0.362339514978602,
+            "context_edge": 0.7462529843487488,
+            "delta_all": 0.7403944532729608,
+            "keep": 0.7462529843487488,
+            "add": 0.46480938416422285,
+            "delete": 0.2652777777777778,
+            "edge_changed_total": 2804,
+            "edge_context_total": 180944
+          },
+          "N3": {
+            "num_samples": 2000,
+            "full_edge": 0.7193329995428521,
+            "changed_edge": 0.37660485021398005,
+            "context_edge": 0.7246440887788487,
+            "delta_all": 0.7193329995428521,
+            "keep": 0.7246440887788487,
+            "add": 0.4340175953079179,
+            "delete": 0.32222222222222224,
+            "edge_changed_total": 2804,
+            "edge_context_total": 180944
+          }
+        },
+        "by_corruption_event_type": {
+          "corruption::N1::event_type::edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.7620080675231348,
+            "changed_edge": 0.44274809160305345,
+            "context_edge": 0.7707469963433745,
+            "delta_all": 0.7620080675231348,
+            "keep": 0.7707469963433745,
+            "add": 0.4750733137829912,
+            "delete": 0.23076923076923078,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "corruption::N1::event_type::edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.7555513077829813,
+            "changed_edge": 0.2657766990291262,
+            "context_edge": 0.7687551120562736,
+            "delta_all": 0.7555513077829813,
+            "keep": 0.7687551120562736,
+            "add": 0.46153846153846156,
+            "delete": 0.2375,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "corruption::N2::event_type::edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.7391274872038236,
+            "changed_edge": 0.4300254452926209,
+            "context_edge": 0.747588368448546,
+            "delta_all": 0.7391274872038236,
+            "keep": 0.747588368448546,
+            "add": 0.46480938416422285,
+            "delete": 0.20192307692307693,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "corruption::N2::event_type::edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.7294593647456116,
+            "changed_edge": 0.29004854368932037,
+            "context_edge": 0.7413054146900049,
+            "delta_all": 0.7294593647456116,
+            "keep": 0.7413054146900049,
+            "add": 0.46153846153846156,
+            "delete": 0.2652777777777778,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "corruption::N3::event_type::edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.7180434561540286,
+            "changed_edge": 0.4122137404580153,
+            "context_edge": 0.7264147658018457,
+            "delta_all": 0.7180434561540286,
+            "keep": 0.7264147658018457,
+            "add": 0.4340175953079179,
+            "delete": 0.2692307692307692,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "corruption::N3::event_type::edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.7115868616394279,
+            "changed_edge": 0.3325242718446602,
+            "context_edge": 0.7218059872403075,
+            "delta_all": 0.7115868616394279,
+            "keep": 0.7218059872403075,
+            "add": 0.40384615384615385,
+            "delete": 0.32222222222222224,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "corruption::N1::event_type::node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.7641568368059384,
+            "changed_edge": 0.38011695906432746,
+            "context_edge": 0.7665853117372975,
+            "delta_all": 0.7641568368059384,
+            "keep": 0.7665853117372975,
+            "add": 0.6,
+            "delete": 0.22772277227722773,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "corruption::N2::event_type::node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.7445706096351009,
+            "changed_edge": 0.4327485380116959,
+            "context_edge": 0.746542415501812,
+            "delta_all": 0.7445706096351009,
+            "keep": 0.746542415501812,
+            "add": 0.6428571428571429,
+            "delete": 0.2871287128712871,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "corruption::N3::event_type::node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.7184066438834381,
+            "changed_edge": 0.30994152046783624,
+            "context_edge": 0.7209895717772354,
+            "delta_all": 0.7184066438834381,
+            "keep": 0.7209895717772354,
+            "add": 0.32857142857142857,
+            "delete": 0.297029702970297,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "corruption::N1::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.7729953066709455,
+            "changed_edge": 0.32,
+            "context_edge": 0.7752781809385583,
+            "delta_all": 0.7729953066709455,
+            "keep": 0.7752781809385583,
+            "add": 0.453125,
+            "delete": 0.18032786885245902,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          },
+          "corruption::N2::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.7472020538328854,
+            "changed_edge": 0.328,
+            "context_edge": 0.7493146266731172,
+            "delta_all": 0.7472020538328854,
+            "keep": 0.7493146266731172,
+            "add": 0.40625,
+            "delete": 0.2459016393442623,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          },
+          "corruption::N3::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.7279874844558546,
+            "changed_edge": 0.4,
+            "context_edge": 0.7296403805837768,
+            "delta_all": 0.7279874844558546,
+            "keep": 0.7296403805837768,
+            "add": 0.46875,
+            "delete": 0.32786885245901637,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        }
+      },
+      "learned_gated_internal_completion": {
+        "overall": {
+          "num_samples": 6000,
+          "full_edge": 0.8726407906480614,
+          "changed_edge": 0.2738944365192582,
+          "context_edge": 0.8819192678397736,
+          "delta_all": 0.8726407906480614,
+          "keep": 0.8819192678397736,
+          "add": 0.11241446725317693,
+          "delete": 0.42685185185185187,
+          "edge_changed_total": 8412,
+          "edge_context_total": 542832
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 1902,
+            "full_edge": 0.8615753138311696,
+            "changed_edge": 0.15097540288379982,
+            "context_edge": 0.8810261767949388,
+            "delta_all": 0.8615753138311696,
+            "keep": 0.8810261767949388,
+            "add": 0.11241446725317693,
+            "delete": 0.40384615384615385,
+            "edge_changed_total": 4716,
+            "edge_context_total": 172290
+          },
+          "edge_delete": {
+            "num_samples": 2055,
+            "full_edge": 0.8734800938757739,
+            "changed_edge": 0.3883495145631068,
+            "context_edge": 0.8865587000381701,
+            "delta_all": 0.8734800938757739,
+            "keep": 0.8865587000381701,
+            "add": 0.12179487179487179,
+            "delete": 0.42685185185185187,
+            "edge_changed_total": 4944,
+            "edge_context_total": 183390
+          },
+          "node_state_update": {
+            "num_samples": 1818,
+            "full_edge": 0.8743982655348547,
+            "changed_edge": 0.2787524366471735,
+            "context_edge": 0.8781648300175037,
+            "delta_all": 0.8743982655348547,
+            "keep": 0.8781648300175037,
+            "add": 0.10476190476190476,
+            "delete": 0.39933993399339934,
+            "edge_changed_total": 1026,
+            "edge_context_total": 162252
+          },
+          "motif_type_flip": {
+            "num_samples": 1605,
+            "full_edge": 0.8793506892909195,
+            "changed_edge": 0.24533333333333332,
+            "context_edge": 0.8825458259420523,
+            "delta_all": 0.8793506892909195,
+            "keep": 0.8825458259420523,
+            "add": 0.125,
+            "delete": 0.37158469945355194,
+            "edge_changed_total": 750,
+            "edge_context_total": 148824
+          }
+        },
+        "by_corruption_setting": {
+          "N1": {
+            "num_samples": 2000,
+            "full_edge": 0.8973811959858067,
+            "changed_edge": 0.25463623395149787,
+            "context_edge": 0.907341497922009,
+            "delta_all": 0.8973811959858067,
+            "keep": 0.907341497922009,
+            "add": 0.09824046920821114,
+            "delete": 0.4027777777777778,
+            "edge_changed_total": 2804,
+            "edge_context_total": 180944
+          },
+          "N2": {
+            "num_samples": 2000,
+            "full_edge": 0.8744476130352439,
+            "changed_edge": 0.2767475035663338,
+            "context_edge": 0.8837098770890441,
+            "delta_all": 0.8744476130352439,
+            "keep": 0.8837098770890441,
+            "add": 0.1187683284457478,
+            "delete": 0.4263888888888889,
+            "edge_changed_total": 2804,
+            "edge_context_total": 180944
+          },
+          "N3": {
+            "num_samples": 2000,
+            "full_edge": 0.8460935629231339,
+            "changed_edge": 0.29029957203994294,
+            "context_edge": 0.8547064285082677,
+            "delta_all": 0.8460935629231339,
+            "keep": 0.8547064285082677,
+            "add": 0.12023460410557185,
+            "delete": 0.4513888888888889,
+            "edge_changed_total": 2804,
+            "edge_context_total": 180944
+          }
+        },
+        "by_corruption_event_type": {
+          "corruption::N1::event_type::edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.8871902647367886,
+            "changed_edge": 0.138676844783715,
+            "context_edge": 0.9076789134598642,
+            "delta_all": 0.8871902647367886,
+            "keep": 0.9076789134598642,
+            "add": 0.09824046920821114,
+            "delete": 0.40384615384615385,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "corruption::N1::event_type::edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.8962693937366594,
+            "changed_edge": 0.3640776699029126,
+            "context_edge": 0.9106167184688368,
+            "delta_all": 0.8962693937366594,
+            "keep": 0.9106167184688368,
+            "add": 0.09615384615384616,
+            "delete": 0.4027777777777778,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "corruption::N2::event_type::edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.8626148266160469,
+            "changed_edge": 0.15012722646310434,
+            "context_edge": 0.88211736026467,
+            "delta_all": 0.8626148266160469,
+            "keep": 0.88211736026467,
+            "add": 0.1187683284457478,
+            "delete": 0.3557692307692308,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "corruption::N2::event_type::edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.8762305266176049,
+            "changed_edge": 0.3907766990291262,
+            "context_edge": 0.889317847210862,
+            "delta_all": 0.8762305266176049,
+            "keep": 0.889317847210862,
+            "add": 0.14423076923076922,
+            "delete": 0.4263888888888889,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "corruption::N3::event_type::edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.8349208501406732,
+            "changed_edge": 0.16412213740458015,
+            "context_edge": 0.8532822566602821,
+            "delta_all": 0.8349208501406732,
+            "keep": 0.8532822566602821,
+            "add": 0.12023460410557185,
+            "delete": 0.4519230769230769,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "corruption::N3::event_type::edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.8479403612730574,
+            "changed_edge": 0.41019417475728154,
+            "context_edge": 0.859741534434811,
+            "delta_all": 0.8479403612730574,
+            "keep": 0.859741534434811,
+            "add": 0.125,
+            "delete": 0.4513888888888889,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "corruption::N1::event_type::node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.8981369198544813,
+            "changed_edge": 0.2573099415204678,
+            "context_edge": 0.9021891871902966,
+            "delta_all": 0.8981369198544813,
+            "keep": 0.9021891871902966,
+            "add": 0.12857142857142856,
+            "delete": 0.3465346534653465,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "corruption::N2::event_type::node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.8756109212508727,
+            "changed_edge": 0.30994152046783624,
+            "context_edge": 0.8791879298868427,
+            "delta_all": 0.8756109212508727,
+            "keep": 0.8791879298868427,
+            "add": 0.08571428571428572,
+            "delete": 0.46534653465346537,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "corruption::N3::event_type::node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.8494469554992099,
+            "changed_edge": 0.26900584795321636,
+            "context_edge": 0.8531173729753716,
+            "delta_all": 0.8494469554992099,
+            "keep": 0.8531173729753716,
+            "add": 0.1,
+            "delete": 0.38613861386138615,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "corruption::N1::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.904849773356332,
+            "changed_edge": 0.216,
+            "context_edge": 0.9083212385099177,
+            "delta_all": 0.904849773356332,
+            "keep": 0.9083212385099177,
+            "add": 0.109375,
+            "delete": 0.32786885245901637,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          },
+          "corruption::N2::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.8812627863131293,
+            "changed_edge": 0.256,
+            "context_edge": 0.8844138042251249,
+            "delta_all": 0.8812627863131293,
+            "keep": 0.8844138042251249,
+            "add": 0.125,
+            "delete": 0.39344262295081966,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          },
+          "corruption::N3::event_type::motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.8519395082032973,
+            "changed_edge": 0.264,
+            "context_edge": 0.8549024350911143,
+            "delta_all": 0.8519395082032973,
+            "keep": 0.8549024350911143,
+            "add": 0.140625,
+            "delete": 0.39344262295081966,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        }
+      }
+    }
+  }
+}

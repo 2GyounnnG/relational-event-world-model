@@ -1,0 +1,230 @@
+{
+  "metadata": {
+    "proposal_checkpoint_path": "/Users/richwang/newprogram/checkpoints/scope_proposal_node_edge_flipw2/best.pt",
+    "rewrite_checkpoint_path": "/Users/richwang/newprogram/checkpoints/fp_keep_w012/best.pt",
+    "data_path": "/Users/richwang/newprogram/data/graph_event_test.pkl",
+    "split_name": "test",
+    "run_name": "clean_w012_edge_scope_closure_probe",
+    "node_threshold": 0.2,
+    "edge_threshold": 0.15,
+    "evaluation_mode": "edge_scope_miss_anatomy_and_induced_closure_probe",
+    "model_input": "obs_graph_t when present; clean graph_t otherwise",
+    "note_cn": "本评估主要是 proposal 侧，因此同一 proposal 前端下，换 rewrite 不会改变 anatomy / closure 统计。"
+  },
+  "definitions": {
+    "miss_both_endpoints_in_predicted_node_scope": "missed GT changed edges whose two endpoints are both already inside predicted node scope",
+    "miss_one_endpoint_in_predicted_node_scope": "missed GT changed edges with exactly one endpoint in predicted node scope",
+    "miss_neither_endpoint_in_predicted_node_scope": "missed GT changed edges with neither endpoint in predicted node scope",
+    "closure_mode::none": "use original predicted edge scope",
+    "closure_mode::induced_edge_closure_over_predicted_nodes": "include every valid edge slot whose two endpoints are both in predicted node scope"
+  },
+  "results": {
+    "miss_anatomy": {
+      "overall": {
+        "num_samples": 2000,
+        "edge_changed_total": 2804,
+        "missed_changed_edge_total": 2240,
+        "miss_both_endpoints_in_predicted_node_scope": 1744,
+        "miss_one_endpoint_in_predicted_node_scope": 476,
+        "miss_neither_endpoint_in_predicted_node_scope": 20,
+        "miss_both_share_of_missed": 0.7785714285714286,
+        "miss_one_share_of_missed": 0.2125,
+        "miss_neither_share_of_missed": 0.008928571428571428,
+        "miss_both_share_of_total_changed": 0.6219686162624821,
+        "miss_one_share_of_total_changed": 0.16975748930099857,
+        "miss_neither_share_of_total_changed": 0.007132667617689016
+      },
+      "by_event_type": {
+        "node_state_update": {
+          "num_samples": 606,
+          "edge_changed_total": 342,
+          "missed_changed_edge_total": 274,
+          "miss_both_endpoints_in_predicted_node_scope": 206,
+          "miss_one_endpoint_in_predicted_node_scope": 66,
+          "miss_neither_endpoint_in_predicted_node_scope": 2,
+          "miss_both_share_of_missed": 0.7518248175182481,
+          "miss_one_share_of_missed": 0.24087591240875914,
+          "miss_neither_share_of_missed": 0.0072992700729927005,
+          "miss_both_share_of_total_changed": 0.6023391812865497,
+          "miss_one_share_of_total_changed": 0.19298245614035087,
+          "miss_neither_share_of_total_changed": 0.005847953216374269
+        },
+        "edge_add": {
+          "num_samples": 634,
+          "edge_changed_total": 1572,
+          "missed_changed_edge_total": 1456,
+          "miss_both_endpoints_in_predicted_node_scope": 1114,
+          "miss_one_endpoint_in_predicted_node_scope": 332,
+          "miss_neither_endpoint_in_predicted_node_scope": 10,
+          "miss_both_share_of_missed": 0.7651098901098901,
+          "miss_one_share_of_missed": 0.22802197802197802,
+          "miss_neither_share_of_missed": 0.006868131868131868,
+          "miss_both_share_of_total_changed": 0.7086513994910941,
+          "miss_one_share_of_total_changed": 0.21119592875318066,
+          "miss_neither_share_of_total_changed": 0.006361323155216285
+        },
+        "edge_delete": {
+          "num_samples": 685,
+          "edge_changed_total": 1648,
+          "missed_changed_edge_total": 1122,
+          "miss_both_endpoints_in_predicted_node_scope": 906,
+          "miss_one_endpoint_in_predicted_node_scope": 204,
+          "miss_neither_endpoint_in_predicted_node_scope": 12,
+          "miss_both_share_of_missed": 0.8074866310160428,
+          "miss_one_share_of_missed": 0.18181818181818182,
+          "miss_neither_share_of_missed": 0.0106951871657754,
+          "miss_both_share_of_total_changed": 0.5497572815533981,
+          "miss_one_share_of_total_changed": 0.12378640776699029,
+          "miss_neither_share_of_total_changed": 0.007281553398058253
+        },
+        "motif_type_flip": {
+          "num_samples": 535,
+          "edge_changed_total": 250,
+          "missed_changed_edge_total": 196,
+          "miss_both_endpoints_in_predicted_node_scope": 140,
+          "miss_one_endpoint_in_predicted_node_scope": 54,
+          "miss_neither_endpoint_in_predicted_node_scope": 2,
+          "miss_both_share_of_missed": 0.7142857142857143,
+          "miss_one_share_of_missed": 0.2755102040816326,
+          "miss_neither_share_of_missed": 0.01020408163265306,
+          "miss_both_share_of_total_changed": 0.56,
+          "miss_one_share_of_total_changed": 0.216,
+          "miss_neither_share_of_total_changed": 0.008
+        }
+      },
+      "by_corruption_setting": {}
+    },
+    "closure_probe": {
+      "none": {
+        "overall": {
+          "num_samples": 2000,
+          "proposal_changed_region_recall_edge": 0.20114122681883023,
+          "out_of_scope_miss_edge": 0.7988587731811697,
+          "proposal_scope_excess_ratio_edge": 0.9601413427561838,
+          "edge_changed_total": 2804,
+          "edge_pred_total": 14150,
+          "edge_out_scope_changed_total": 2240
+        },
+        "by_event_type": {
+          "node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.19883040935672514,
+            "out_of_scope_miss_edge": 0.8011695906432749,
+            "proposal_scope_excess_ratio_edge": 0.9842154131847726,
+            "edge_changed_total": 342,
+            "edge_pred_total": 4308,
+            "edge_out_scope_changed_total": 274
+          },
+          "edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.0737913486005089,
+            "out_of_scope_miss_edge": 0.926208651399491,
+            "proposal_scope_excess_ratio_edge": 0.9737199818758495,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 4414,
+            "edge_out_scope_changed_total": 1456
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.3191747572815534,
+            "out_of_scope_miss_edge": 0.6808252427184466,
+            "proposal_scope_excess_ratio_edge": 0.8923895253682488,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 4888,
+            "edge_out_scope_changed_total": 1122
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.216,
+            "out_of_scope_miss_edge": 0.784,
+            "proposal_scope_excess_ratio_edge": 0.9857894736842105,
+            "edge_changed_total": 250,
+            "edge_pred_total": 3800,
+            "edge_out_scope_changed_total": 196
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "induced_edge_closure_over_predicted_nodes": {
+        "overall": {
+          "num_samples": 2000,
+          "proposal_changed_region_recall_edge": 0.8231098430813124,
+          "out_of_scope_miss_edge": 0.1768901569186876,
+          "proposal_scope_excess_ratio_edge": 0.9802667578659371,
+          "edge_changed_total": 2804,
+          "edge_pred_total": 116960,
+          "edge_out_scope_changed_total": 496
+        },
+        "by_event_type": {
+          "node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.8011695906432749,
+            "out_of_scope_miss_edge": 0.19883040935672514,
+            "proposal_scope_excess_ratio_edge": 0.9920960018461894,
+            "edge_changed_total": 342,
+            "edge_pred_total": 34666,
+            "edge_out_scope_changed_total": 68
+          },
+          "edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.7824427480916031,
+            "out_of_scope_miss_edge": 0.21755725190839695,
+            "proposal_scope_excess_ratio_edge": 0.96723669490171,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 37542,
+            "edge_out_scope_changed_total": 342
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.8689320388349514,
+            "out_of_scope_miss_edge": 0.13106796116504854,
+            "proposal_scope_excess_ratio_edge": 0.963938554520272,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 39710,
+            "edge_out_scope_changed_total": 216
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.776,
+            "out_of_scope_miss_edge": 0.224,
+            "proposal_scope_excess_ratio_edge": 0.993870458135861,
+            "edge_changed_total": 250,
+            "edge_pred_total": 31650,
+            "edge_out_scope_changed_total": 56
+          }
+        },
+        "by_corruption_setting": {}
+      }
+    },
+    "closure_delta_induced_minus_none": {
+      "overall": {
+        "proposal_changed_region_recall_edge": 0.6219686162624822,
+        "out_of_scope_miss_edge": -0.6219686162624821,
+        "proposal_scope_excess_ratio_edge": 0.020125415109753297
+      },
+      "by_event_type": {
+        "node_state_update": {
+          "proposal_changed_region_recall_edge": 0.6023391812865497,
+          "out_of_scope_miss_edge": -0.6023391812865497,
+          "proposal_scope_excess_ratio_edge": 0.007880588661416832
+        },
+        "edge_add": {
+          "proposal_changed_region_recall_edge": 0.7086513994910941,
+          "out_of_scope_miss_edge": -0.7086513994910941,
+          "proposal_scope_excess_ratio_edge": -0.006483286974139468
+        },
+        "edge_delete": {
+          "proposal_changed_region_recall_edge": 0.549757281553398,
+          "out_of_scope_miss_edge": -0.549757281553398,
+          "proposal_scope_excess_ratio_edge": 0.07154902915202321
+        },
+        "motif_type_flip": {
+          "proposal_changed_region_recall_edge": 0.56,
+          "out_of_scope_miss_edge": -0.56,
+          "proposal_scope_excess_ratio_edge": 0.008080984451650397
+        }
+      },
+      "by_corruption_setting": {}
+    }
+  }
+}

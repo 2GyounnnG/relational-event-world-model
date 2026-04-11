@@ -1,0 +1,1242 @@
+{
+  "metadata": {
+    "proposal_checkpoint_path": "/Users/richwang/newprogram/checkpoints/scope_proposal_node_edge_flipw2/best.pt",
+    "rewrite_checkpoint_path": "/Users/richwang/newprogram/checkpoints/fp_keep_w012/best.pt",
+    "completion_checkpoint_path": "/Users/richwang/newprogram/checkpoints/step9_edge_completion_clean/best.pt",
+    "data_path": "/Users/richwang/newprogram/data/graph_event_test.pkl",
+    "split_name": "test",
+    "node_threshold": 0.2,
+    "edge_threshold": 0.15,
+    "completion_threshold": 0.5,
+    "rescue_budget_fractions": [
+      0.02,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "budget_definition": "per-sample top-k over internal candidates; k=floor(fraction * candidate_count)",
+    "candidate_definition": "both endpoints inside predicted node scope and base edge proposal did not select the edge",
+    "rewrite_uses_proposal_conditioning": true
+  },
+  "results": {
+    "score_separability": {
+      "overall": {
+        "candidate_count": 102810,
+        "oracle_positive_count": 4426,
+        "changed_positive_count": 1744,
+        "oracle_ap": 0.11174171196083865,
+        "oracle_auroc": 0.7776842803656479,
+        "changed_ap": 0.027430444682410005,
+        "changed_auroc": 0.6689541494548843,
+        "oracle_positive_scores": {
+          "mean": 0.4587154984474182,
+          "std": 0.18674033880233765,
+          "p01": 0.021023446694016457,
+          "p05": 0.09970958530902863,
+          "p10": 0.17167402803897858,
+          "p25": 0.334031343460083,
+          "p50": 0.4984351694583893,
+          "p75": 0.6034424901008606,
+          "p90": 0.6750463247299194,
+          "p95": 0.7065396904945374,
+          "p99": 0.7614255547523499
+        },
+        "oracle_negative_scores": {
+          "mean": 0.23407070338726044,
+          "std": 0.2190970480442047,
+          "p01": 1.4020655726199038e-05,
+          "p05": 0.00027072441298514605,
+          "p10": 0.0015447043115273118,
+          "p25": 0.026991408318281174,
+          "p50": 0.17173437774181366,
+          "p75": 0.4108438491821289,
+          "p90": 0.5753085017204285,
+          "p95": 0.6377615332603455,
+          "p99": 0.7166747450828552
+        },
+        "changed_positive_scores": {
+          "mean": 0.3634665608406067,
+          "std": 0.20386569201946259,
+          "p01": 0.0076432800851762295,
+          "p05": 0.03776277229189873,
+          "p10": 0.08377915620803833,
+          "p25": 0.19613558053970337,
+          "p50": 0.36486586928367615,
+          "p75": 0.535281240940094,
+          "p90": 0.6350353956222534,
+          "p95": 0.6843348741531372,
+          "p99": 0.7453839778900146
+        },
+        "changed_negative_scores": {
+          "mean": 0.2416757345199585,
+          "std": 0.22226761281490326,
+          "p01": 1.450371382816229e-05,
+          "p05": 0.0002874002093449235,
+          "p10": 0.001661668997257948,
+          "p25": 0.0294797420501709,
+          "p50": 0.18312561511993408,
+          "p75": 0.42521247267723083,
+          "p90": 0.5841162800788879,
+          "p95": 0.643444299697876,
+          "p99": 0.7199708819389343
+        }
+      },
+      "by_event_type": {
+        "edge_add": {
+          "candidate_count": 33128,
+          "oracle_positive_count": 1476,
+          "changed_positive_count": 1114,
+          "oracle_ap": 0.06490970497855003,
+          "oracle_auroc": 0.6464729320931526,
+          "changed_ap": 0.037003974298172405,
+          "changed_auroc": 0.5800293946802224,
+          "oracle_positive_scores": {
+            "mean": 0.34262359142303467,
+            "std": 0.20681039988994598,
+            "p01": 0.00500910310074687,
+            "p05": 0.033385977149009705,
+            "p10": 0.07054881006479263,
+            "p25": 0.16487500071525574,
+            "p50": 0.3171848952770233,
+            "p75": 0.5191400647163391,
+            "p90": 0.6273146867752075,
+            "p95": 0.6804378032684326,
+            "p99": 0.7258980870246887
+          },
+          "oracle_negative_scores": {
+            "mean": 0.24158082902431488,
+            "std": 0.22195370495319366,
+            "p01": 1.6101315850391984e-05,
+            "p05": 0.0002999784774146974,
+            "p10": 0.0017652910901233554,
+            "p25": 0.029854703694581985,
+            "p50": 0.18488170206546783,
+            "p75": 0.4257121682167053,
+            "p90": 0.5857946276664734,
+            "p95": 0.6431180834770203,
+            "p99": 0.7200352549552917
+          },
+          "changed_positive_scores": {
+            "mean": 0.28319084644317627,
+            "std": 0.1871284693479538,
+            "p01": 0.002993517555296421,
+            "p05": 0.024627139791846275,
+            "p10": 0.047436293214559555,
+            "p25": 0.1281752586364746,
+            "p50": 0.2509744465351105,
+            "p75": 0.4299163222312927,
+            "p90": 0.565172553062439,
+            "p95": 0.6151024699211121,
+            "p99": 0.7100033164024353
+          },
+          "changed_negative_scores": {
+            "mean": 0.24479147791862488,
+            "std": 0.2232934981584549,
+            "p01": 1.6511461581103504e-05,
+            "p05": 0.00030669537954963744,
+            "p10": 0.0018240446224808693,
+            "p25": 0.030756838619709015,
+            "p50": 0.1896015703678131,
+            "p75": 0.4321730136871338,
+            "p90": 0.5889977216720581,
+            "p95": 0.6449121236801147,
+            "p99": 0.7223266959190369
+          }
+        },
+        "edge_delete": {
+          "candidate_count": 34822,
+          "oracle_positive_count": 1230,
+          "changed_positive_count": 906,
+          "oracle_ap": 0.10411436499618902,
+          "oracle_auroc": 0.8022690265006961,
+          "changed_ap": 0.07171738647730408,
+          "changed_auroc": 0.7860264822557327,
+          "oracle_positive_scores": {
+            "mean": 0.4809282124042511,
+            "std": 0.16992588341236115,
+            "p01": 0.05517250671982765,
+            "p05": 0.1369241327047348,
+            "p10": 0.237583190202713,
+            "p25": 0.37257733941078186,
+            "p50": 0.5074541568756104,
+            "p75": 0.6102322936058044,
+            "p90": 0.6811670064926147,
+            "p95": 0.7112827897071838,
+            "p99": 0.7614255547523499
+          },
+          "oracle_negative_scores": {
+            "mean": 0.23437923192977905,
+            "std": 0.21801196038722992,
+            "p01": 1.3852679330739193e-05,
+            "p05": 0.00022444213391281664,
+            "p10": 0.001356845023110509,
+            "p25": 0.027964606881141663,
+            "p50": 0.173079252243042,
+            "p75": 0.41148456931114197,
+            "p90": 0.573896586894989,
+            "p95": 0.6345109343528748,
+            "p99": 0.7180080413818359
+          },
+          "changed_positive_scores": {
+            "mean": 0.468170702457428,
+            "std": 0.17533861100673676,
+            "p01": 0.043888915330171585,
+            "p05": 0.13050228357315063,
+            "p10": 0.21568286418914795,
+            "p25": 0.35432714223861694,
+            "p50": 0.49927666783332825,
+            "p75": 0.6023125648498535,
+            "p90": 0.6774821281433105,
+            "p95": 0.7109153270721436,
+            "p99": 0.7613702416419983
+          },
+          "changed_negative_scores": {
+            "mean": 0.2370753139257431,
+            "std": 0.21917620301246643,
+            "p01": 1.398399308527587e-05,
+            "p05": 0.0002302315115230158,
+            "p10": 0.0014019645750522614,
+            "p25": 0.02911541238427162,
+            "p50": 0.17626646161079407,
+            "p75": 0.41594254970550537,
+            "p90": 0.5769727230072021,
+            "p95": 0.6366705298423767,
+            "p99": 0.7193701863288879
+          }
+        },
+        "node_state_update": {
+          "candidate_count": 30358,
+          "oracle_positive_count": 1924,
+          "changed_positive_count": 206,
+          "oracle_ap": 0.19089807839502665,
+          "oracle_auroc": 0.829604140719355,
+          "changed_ap": 0.014646263955866249,
+          "changed_auroc": 0.6913618250057315,
+          "oracle_positive_scores": {
+            "mean": 0.49589917063713074,
+            "std": 0.15903961658477783,
+            "p01": 0.08593276143074036,
+            "p05": 0.17875424027442932,
+            "p10": 0.25957155227661133,
+            "p25": 0.3989710807800293,
+            "p50": 0.5258651375770569,
+            "p75": 0.613525927066803,
+            "p90": 0.6771910786628723,
+            "p95": 0.7094254493713379,
+            "p99": 0.7635400295257568
+          },
+          "oracle_negative_scores": {
+            "mean": 0.2232012301683426,
+            "std": 0.21578073501586914,
+            "p01": 1.4318415196612477e-05,
+            "p05": 0.00026515297940932214,
+            "p10": 0.0012848370242863894,
+            "p25": 0.022825997322797775,
+            "p50": 0.15589673817157745,
+            "p75": 0.3893679678440094,
+            "p90": 0.5615047812461853,
+            "p95": 0.6341994404792786,
+            "p99": 0.7176534533500671
+          },
+          "changed_positive_scores": {
+            "mean": 0.382967084646225,
+            "std": 0.20930826663970947,
+            "p01": 0.012564901262521744,
+            "p05": 0.06410671770572662,
+            "p10": 0.11668895184993744,
+            "p25": 0.20215892791748047,
+            "p50": 0.3987468481063843,
+            "p75": 0.5626115202903748,
+            "p90": 0.6655950546264648,
+            "p95": 0.6970641613006592,
+            "p99": 0.770074725151062
+          },
+          "changed_negative_scores": {
+            "mean": 0.23951056599617004,
+            "std": 0.2225484848022461,
+            "p01": 1.5318217265303247e-05,
+            "p05": 0.00029625953175127506,
+            "p10": 0.0015027514891698956,
+            "p25": 0.027829483151435852,
+            "p50": 0.17930100858211517,
+            "p75": 0.4201878309249878,
+            "p90": 0.5802625417709351,
+            "p95": 0.6453472375869751,
+            "p99": 0.7220418453216553
+          }
+        },
+        "motif_type_flip": {
+          "candidate_count": 27850,
+          "oracle_positive_count": 1338,
+          "changed_positive_count": 140,
+          "oracle_ap": 0.17336269772106222,
+          "oracle_auroc": 0.8395349134847587,
+          "changed_ap": 0.009766166550772531,
+          "changed_auroc": 0.6438438933855751,
+          "oracle_positive_scores": {
+            "mean": 0.5196765065193176,
+            "std": 0.15809985995292664,
+            "p01": 0.06160629168152809,
+            "p05": 0.201780304312706,
+            "p10": 0.2933339476585388,
+            "p25": 0.4363434314727783,
+            "p50": 0.5592116117477417,
+            "p75": 0.6351468563079834,
+            "p90": 0.6911377906799316,
+            "p95": 0.7174152135848999,
+            "p99": 0.7683457136154175
+          },
+          "oracle_negative_scores": {
+            "mean": 0.2336708903312683,
+            "std": 0.21750062704086304,
+            "p01": 1.6441930711152963e-05,
+            "p05": 0.000368250795872882,
+            "p10": 0.002069509821012616,
+            "p25": 0.028786253184080124,
+            "p50": 0.17188440263271332,
+            "p75": 0.4066711664199829,
+            "p90": 0.5728212594985962,
+            "p95": 0.6349219083786011,
+            "p99": 0.7122212052345276
+          },
+          "changed_positive_scores": {
+            "mean": 0.34512606263160706,
+            "std": 0.19594015181064606,
+            "p01": 0.015137176029384136,
+            "p05": 0.034938979893922806,
+            "p10": 0.07860658317804337,
+            "p25": 0.18959428369998932,
+            "p50": 0.3539876341819763,
+            "p75": 0.49927666783332825,
+            "p90": 0.591034471988678,
+            "p95": 0.6611578464508057,
+            "p99": 0.7548142075538635
+          },
+          "changed_negative_scores": {
+            "mean": 0.24691778421401978,
+            "std": 0.2235749512910843,
+            "p01": 1.784099185897503e-05,
+            "p05": 0.00039951479993760586,
+            "p10": 0.0023285788483917713,
+            "p25": 0.03262672200798988,
+            "p50": 0.18978263437747955,
+            "p75": 0.433398962020874,
+            "p90": 0.590313732624054,
+            "p95": 0.6478467583656311,
+            "p99": 0.7179392576217651
+          }
+        }
+      },
+      "by_corruption_setting": {}
+    },
+    "proposal_side": {
+      "off": {
+        "overall": {
+          "num_samples": 2000,
+          "proposal_changed_region_recall_edge": 0.20114122681883023,
+          "out_of_scope_miss_edge": 0.7988587731811697,
+          "proposal_scope_excess_ratio_edge": 0.9601413427561838,
+          "edge_changed_total": 2804,
+          "edge_pred_total": 14150,
+          "edge_out_scope_changed_total": 2240,
+          "rescued_edge_total": 0,
+          "rescued_changed_edge_total": 0
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.0737913486005089,
+            "out_of_scope_miss_edge": 0.926208651399491,
+            "proposal_scope_excess_ratio_edge": 0.9737199818758495,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 4414,
+            "edge_out_scope_changed_total": 1456,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.3191747572815534,
+            "out_of_scope_miss_edge": 0.6808252427184466,
+            "proposal_scope_excess_ratio_edge": 0.8923895253682488,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 4888,
+            "edge_out_scope_changed_total": 1122,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.19883040935672514,
+            "out_of_scope_miss_edge": 0.8011695906432749,
+            "proposal_scope_excess_ratio_edge": 0.9842154131847726,
+            "edge_changed_total": 342,
+            "edge_pred_total": 4308,
+            "edge_out_scope_changed_total": 274,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.216,
+            "out_of_scope_miss_edge": 0.784,
+            "proposal_scope_excess_ratio_edge": 0.9857894736842105,
+            "edge_changed_total": 250,
+            "edge_pred_total": 3800,
+            "edge_out_scope_changed_total": 196,
+            "rescued_edge_total": 0,
+            "rescued_changed_edge_total": 0
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_default_threshold_0.5": {
+        "overall": {
+          "num_samples": 2000,
+          "proposal_changed_region_recall_edge": 0.39657631954350925,
+          "out_of_scope_miss_edge": 0.6034236804564908,
+          "proposal_scope_excess_ratio_edge": 0.9661244135746055,
+          "edge_changed_total": 2804,
+          "edge_pred_total": 32826,
+          "edge_out_scope_changed_total": 1692,
+          "rescued_edge_total": 18676,
+          "rescued_changed_edge_total": 548,
+          "recall_recovery_fraction_vs_naive": 0.3142201834862385,
+          "cost_fraction_vs_naive": 0.18165548098434003
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.20229007633587787,
+            "out_of_scope_miss_edge": 0.7977099236641222,
+            "proposal_scope_excess_ratio_edge": 0.9696042821640222,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 10462,
+            "edge_out_scope_changed_total": 1254,
+            "rescued_edge_total": 6048,
+            "rescued_changed_edge_total": 202,
+            "recall_recovery_fraction_vs_naive": 0.1813285457809695,
+            "cost_fraction_vs_naive": 0.18256459792320695
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.5934466019417476,
+            "out_of_scope_miss_edge": 0.4065533980582524,
+            "proposal_scope_excess_ratio_edge": 0.9117806242107163,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 11086,
+            "edge_out_scope_changed_total": 670,
+            "rescued_edge_total": 6198,
+            "rescued_changed_edge_total": 452,
+            "recall_recovery_fraction_vs_naive": 0.49889624724061815,
+            "cost_fraction_vs_naive": 0.17799092527712365
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.4093567251461988,
+            "out_of_scope_miss_edge": 0.5906432748538012,
+            "proposal_scope_excess_ratio_edge": 0.985711369667279,
+            "edge_changed_total": 342,
+            "edge_pred_total": 9798,
+            "edge_out_scope_changed_total": 202,
+            "rescued_edge_total": 5490,
+            "rescued_changed_edge_total": 72
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.352,
+            "out_of_scope_miss_edge": 0.648,
+            "proposal_scope_excess_ratio_edge": 0.9902048085485308,
+            "edge_changed_total": 250,
+            "edge_pred_total": 8984,
+            "edge_out_scope_changed_total": 162,
+            "rescued_edge_total": 5184,
+            "rescued_changed_edge_total": 34
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_budget_0.02": {
+        "overall": {
+          "num_samples": 2000,
+          "proposal_changed_region_recall_edge": 0.21540656205420827,
+          "out_of_scope_miss_edge": 0.7845934379457917,
+          "proposal_scope_excess_ratio_edge": 0.9604219906952363,
+          "edge_changed_total": 2804,
+          "edge_pred_total": 15261,
+          "edge_out_scope_changed_total": 2200,
+          "rescued_edge_total": 1111,
+          "rescued_changed_edge_total": 40,
+          "recall_recovery_fraction_vs_naive": 0.022935779816513773,
+          "cost_fraction_vs_naive": 0.01080634179554518
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.07760814249363868,
+            "out_of_scope_miss_edge": 0.9223918575063613,
+            "proposal_scope_excess_ratio_edge": 0.974503657262278,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 4785,
+            "edge_out_scope_changed_total": 1450,
+            "rescued_edge_total": 371,
+            "rescued_changed_edge_total": 6,
+            "recall_recovery_fraction_vs_naive": 0.005385996409335736,
+            "cost_fraction_vs_naive": 0.01119898575223376
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.3428398058252427,
+            "out_of_scope_miss_edge": 0.6571601941747572,
+            "proposal_scope_excess_ratio_edge": 0.8926263778031167,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 5262,
+            "edge_out_scope_changed_total": 1083,
+            "rescued_edge_total": 374,
+            "rescued_changed_edge_total": 39,
+            "recall_recovery_fraction_vs_naive": 0.043046357615893975,
+            "cost_fraction_vs_naive": 0.010740336568835794
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.21929824561403508,
+            "out_of_scope_miss_edge": 0.7807017543859649,
+            "proposal_scope_excess_ratio_edge": 0.9837837837837838,
+            "edge_changed_total": 342,
+            "edge_pred_total": 4625,
+            "edge_out_scope_changed_total": 267,
+            "rescued_edge_total": 317,
+            "rescued_changed_edge_total": 7
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.228,
+            "out_of_scope_miss_edge": 0.772,
+            "proposal_scope_excess_ratio_edge": 0.9861111111111112,
+            "edge_changed_total": 250,
+            "edge_pred_total": 4104,
+            "edge_out_scope_changed_total": 193,
+            "rescued_edge_total": 304,
+            "rescued_changed_edge_total": 3
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_budget_0.05": {
+        "overall": {
+          "num_samples": 2000,
+          "proposal_changed_region_recall_edge": 0.25178316690442226,
+          "out_of_scope_miss_edge": 0.7482168330955777,
+          "proposal_scope_excess_ratio_edge": 0.9616970486111112,
+          "edge_changed_total": 2804,
+          "edge_pred_total": 18432,
+          "edge_out_scope_changed_total": 2098,
+          "rescued_edge_total": 4282,
+          "rescued_changed_edge_total": 142,
+          "recall_recovery_fraction_vs_naive": 0.08142201834862388,
+          "cost_fraction_vs_naive": 0.04164964497616963
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.09669211195928754,
+            "out_of_scope_miss_edge": 0.9033078880407125,
+            "proposal_scope_excess_ratio_edge": 0.9737885842386619,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 5799,
+            "edge_out_scope_changed_total": 1420,
+            "rescued_edge_total": 1385,
+            "rescued_changed_edge_total": 36,
+            "recall_recovery_fraction_vs_naive": 0.03231597845601438,
+            "cost_fraction_vs_naive": 0.041807534411977786
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.39745145631067963,
+            "out_of_scope_miss_edge": 0.6025485436893204,
+            "proposal_scope_excess_ratio_edge": 0.8965735038686247,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 6333,
+            "edge_out_scope_changed_total": 993,
+            "rescued_edge_total": 1445,
+            "rescued_changed_edge_total": 129,
+            "recall_recovery_fraction_vs_naive": 0.1423841059602649,
+            "cost_fraction_vs_naive": 0.04149675492504738
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.26900584795321636,
+            "out_of_scope_miss_edge": 0.7309941520467836,
+            "proposal_scope_excess_ratio_edge": 0.9834591873426825,
+            "edge_changed_total": 342,
+            "edge_pred_total": 5562,
+            "edge_out_scope_changed_total": 250,
+            "rescued_edge_total": 1254,
+            "rescued_changed_edge_total": 24
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.248,
+            "out_of_scope_miss_edge": 0.752,
+            "proposal_scope_excess_ratio_edge": 0.9875326764528454,
+            "edge_changed_total": 250,
+            "edge_pred_total": 4973,
+            "edge_out_scope_changed_total": 188,
+            "rescued_edge_total": 1173,
+            "rescued_changed_edge_total": 8
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_budget_0.10": {
+        "overall": {
+          "num_samples": 2000,
+          "proposal_changed_region_recall_edge": 0.2949358059914408,
+          "out_of_scope_miss_edge": 0.7050641940085592,
+          "proposal_scope_excess_ratio_edge": 0.9649976721547382,
+          "edge_changed_total": 2804,
+          "edge_pred_total": 23627,
+          "edge_out_scope_changed_total": 1977,
+          "rescued_edge_total": 9477,
+          "rescued_changed_edge_total": 263,
+          "recall_recovery_fraction_vs_naive": 0.150802752293578,
+          "cost_fraction_vs_naive": 0.09217974905164868
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.12595419847328243,
+            "out_of_scope_miss_edge": 0.8740458015267175,
+            "proposal_scope_excess_ratio_edge": 0.9735010706638115,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 7472,
+            "edge_out_scope_changed_total": 1374,
+            "rescued_edge_total": 3058,
+            "rescued_changed_edge_total": 82,
+            "recall_recovery_fraction_vs_naive": 0.07360861759425494,
+            "cost_fraction_vs_naive": 0.09230862110601304
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.4575242718446602,
+            "out_of_scope_miss_edge": 0.5424757281553398,
+            "proposal_scope_excess_ratio_edge": 0.9067869946841389,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 8089,
+            "edge_out_scope_changed_total": 894,
+            "rescued_edge_total": 3201,
+            "rescued_changed_edge_total": 228,
+            "recall_recovery_fraction_vs_naive": 0.25165562913907286,
+            "cost_fraction_vs_naive": 0.09192464533915341
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.3216374269005848,
+            "out_of_scope_miss_edge": 0.6783625730994152,
+            "proposal_scope_excess_ratio_edge": 0.9845026768103691,
+            "edge_changed_total": 342,
+            "edge_pred_total": 7098,
+            "edge_out_scope_changed_total": 232,
+            "rescued_edge_total": 2790,
+            "rescued_changed_edge_total": 42
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.284,
+            "out_of_scope_miss_edge": 0.716,
+            "proposal_scope_excess_ratio_edge": 0.9888767037443209,
+            "edge_changed_total": 250,
+            "edge_pred_total": 6383,
+            "edge_out_scope_changed_total": 179,
+            "rescued_edge_total": 2583,
+            "rescued_changed_edge_total": 17
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_budget_0.20": {
+        "overall": {
+          "num_samples": 2000,
+          "proposal_changed_region_recall_edge": 0.39194008559201143,
+          "out_of_scope_miss_edge": 0.6080599144079886,
+          "proposal_scope_excess_ratio_edge": 0.9675992806391698,
+          "edge_changed_total": 2804,
+          "edge_pred_total": 33919,
+          "edge_out_scope_changed_total": 1705,
+          "rescued_edge_total": 19769,
+          "rescued_changed_edge_total": 535,
+          "recall_recovery_fraction_vs_naive": 0.30676605504587157,
+          "cost_fraction_vs_naive": 0.19228674253477288
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.19720101781170485,
+            "out_of_scope_miss_edge": 0.8027989821882952,
+            "proposal_scope_excess_ratio_edge": 0.9712696941612604,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 10790,
+            "edge_out_scope_changed_total": 1262,
+            "rescued_edge_total": 6376,
+            "rescued_changed_edge_total": 194,
+            "recall_recovery_fraction_vs_naive": 0.17414721723518856,
+            "cost_fraction_vs_naive": 0.19246558802221686
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.5807038834951457,
+            "out_of_scope_miss_edge": 0.4192961165048544,
+            "proposal_scope_excess_ratio_edge": 0.9172717842323651,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 11568,
+            "edge_out_scope_changed_total": 691,
+            "rescued_edge_total": 6680,
+            "rescued_changed_edge_total": 431,
+            "recall_recovery_fraction_vs_naive": 0.47571743929359833,
+            "cost_fraction_vs_naive": 0.19183274941129172
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.43859649122807015,
+            "out_of_scope_miss_edge": 0.5614035087719298,
+            "proposal_scope_excess_ratio_edge": 0.9852100177479787,
+            "edge_changed_total": 342,
+            "edge_pred_total": 10142,
+            "edge_out_scope_changed_total": 192,
+            "rescued_edge_total": 5834,
+            "rescued_changed_edge_total": 82
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.352,
+            "out_of_scope_miss_edge": 0.648,
+            "proposal_scope_excess_ratio_edge": 0.9904024430145054,
+            "edge_changed_total": 250,
+            "edge_pred_total": 9169,
+            "edge_out_scope_changed_total": 162,
+            "rescued_edge_total": 5369,
+            "rescued_changed_edge_total": 34
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "naive_induced_closure": {
+        "overall": {
+          "num_samples": 2000,
+          "proposal_changed_region_recall_edge": 0.8231098430813124,
+          "out_of_scope_miss_edge": 0.1768901569186876,
+          "proposal_scope_excess_ratio_edge": 0.9802667578659371,
+          "edge_changed_total": 2804,
+          "edge_pred_total": 116960,
+          "edge_out_scope_changed_total": 496,
+          "rescued_edge_total": 102810,
+          "rescued_changed_edge_total": 1744
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "proposal_changed_region_recall_edge": 0.7824427480916031,
+            "out_of_scope_miss_edge": 0.21755725190839695,
+            "proposal_scope_excess_ratio_edge": 0.96723669490171,
+            "edge_changed_total": 1572,
+            "edge_pred_total": 37542,
+            "edge_out_scope_changed_total": 342,
+            "rescued_edge_total": 33128,
+            "rescued_changed_edge_total": 1114
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "proposal_changed_region_recall_edge": 0.8689320388349514,
+            "out_of_scope_miss_edge": 0.13106796116504854,
+            "proposal_scope_excess_ratio_edge": 0.963938554520272,
+            "edge_changed_total": 1648,
+            "edge_pred_total": 39710,
+            "edge_out_scope_changed_total": 216,
+            "rescued_edge_total": 34822,
+            "rescued_changed_edge_total": 906
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "proposal_changed_region_recall_edge": 0.8011695906432749,
+            "out_of_scope_miss_edge": 0.19883040935672514,
+            "proposal_scope_excess_ratio_edge": 0.9920960018461894,
+            "edge_changed_total": 342,
+            "edge_pred_total": 34666,
+            "edge_out_scope_changed_total": 68,
+            "rescued_edge_total": 30358,
+            "rescued_changed_edge_total": 206
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "proposal_changed_region_recall_edge": 0.776,
+            "out_of_scope_miss_edge": 0.224,
+            "proposal_scope_excess_ratio_edge": 0.993870458135861,
+            "edge_changed_total": 250,
+            "edge_pred_total": 31650,
+            "edge_out_scope_changed_total": 56,
+            "rescued_edge_total": 27850,
+            "rescued_changed_edge_total": 140
+          }
+        },
+        "by_corruption_setting": {}
+      }
+    },
+    "downstream": {
+      "off": {
+        "overall": {
+          "num_samples": 2000,
+          "full_edge": 0.9688921784182685,
+          "changed_edge": 0.07275320970042796,
+          "context_edge": 0.982779202405164,
+          "delta_all": 0.9688921784182685,
+          "keep": 0.982779202405164,
+          "add": 0.021994134897360705,
+          "delete": 0.12083333333333333,
+          "edge_changed_total": 2804,
+          "edge_context_total": 180944
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.9590183383614115,
+            "changed_edge": 0.03689567430025445,
+            "context_edge": 0.9842590980323872,
+            "delta_all": 0.9590183383614115,
+            "keep": 0.9842590980323872,
+            "add": 0.021994134897360705,
+            "delete": 0.1346153846153846,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.9602408487049603,
+            "changed_edge": 0.10922330097087378,
+            "context_edge": 0.9831833796826436,
+            "delta_all": 0.9602408487049603,
+            "keep": 0.9831833796826436,
+            "add": 0.028846153846153848,
+            "delete": 0.12083333333333333,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.9747914599639877,
+            "changed_edge": 0.0935672514619883,
+            "context_edge": 0.9803638784113601,
+            "delta_all": 0.9747914599639877,
+            "keep": 0.9803638784113601,
+            "add": 0.02857142857142857,
+            "delete": 0.13861386138613863,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.979381443298969,
+            "changed_edge": 0.072,
+            "context_edge": 0.983954200935333,
+            "delta_all": 0.979381443298969,
+            "keep": 0.983954200935333,
+            "add": 0.03125,
+            "delete": 0.11475409836065574,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_default_threshold_0.5": {
+        "overall": {
+          "num_samples": 2000,
+          "full_edge": 0.9451313755795981,
+          "changed_edge": 0.14550641940085593,
+          "context_edge": 0.9575227694756389,
+          "delta_all": 0.9451313755795981,
+          "keep": 0.9575227694756389,
+          "add": 0.07917888563049853,
+          "delete": 0.20833333333333334,
+          "edge_changed_total": 2804,
+          "edge_context_total": 180944
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.9373919528151589,
+            "changed_edge": 0.09796437659033079,
+            "context_edge": 0.9603691450461431,
+            "delta_all": 0.9373919528151589,
+            "keep": 0.9603691450461431,
+            "add": 0.07917888563049853,
+            "delete": 0.22115384615384615,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.9394373825225397,
+            "changed_edge": 0.1941747572815534,
+            "context_edge": 0.9595288728938328,
+            "delta_all": 0.9394373825225397,
+            "keep": 0.9595288728938328,
+            "add": 0.09615384615384616,
+            "delete": 0.20833333333333334,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.9481497813544997,
+            "changed_edge": 0.16374269005847952,
+            "context_edge": 0.9531099770727017,
+            "delta_all": 0.9481497813544997,
+            "keep": 0.9531099770727017,
+            "add": 0.05714285714285714,
+            "delete": 0.2376237623762376,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.9545108107023949,
+            "changed_edge": 0.128,
+            "context_edge": 0.9586760199967748,
+            "delta_all": 0.9545108107023949,
+            "keep": 0.9586760199967748,
+            "add": 0.078125,
+            "delete": 0.18032786885245902,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_budget_0.02": {
+        "overall": {
+          "num_samples": 2000,
+          "full_edge": 0.9683153013910355,
+          "changed_edge": 0.07346647646219687,
+          "context_edge": 0.9821823326554072,
+          "delta_all": 0.9683153013910355,
+          "keep": 0.9821823326554072,
+          "add": 0.02346041055718475,
+          "delete": 0.12083333333333333,
+          "edge_changed_total": 2804,
+          "edge_context_total": 180944
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.958543778177011,
+            "changed_edge": 0.03816793893129771,
+            "context_edge": 0.9837367229670904,
+            "delta_all": 0.958543778177011,
+            "keep": 0.9837367229670904,
+            "add": 0.02346041055718475,
+            "delete": 0.1346153846153846,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.9597629742903565,
+            "changed_edge": 0.10922330097087378,
+            "context_edge": 0.982692622280386,
+            "delta_all": 0.9597629742903565,
+            "keep": 0.982692622280386,
+            "add": 0.028846153846153848,
+            "delete": 0.12083333333333333,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.9740197699628854,
+            "changed_edge": 0.0935672514619883,
+            "context_edge": 0.9795873086310184,
+            "delta_all": 0.9740197699628854,
+            "keep": 0.9795873086310184,
+            "add": 0.02857142857142857,
+            "delete": 0.13861386138613863,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.978819848369369,
+            "changed_edge": 0.072,
+            "context_edge": 0.983389775842606,
+            "delta_all": 0.978819848369369,
+            "keep": 0.983389775842606,
+            "add": 0.03125,
+            "delete": 0.11475409836065574,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_budget_0.05": {
+        "overall": {
+          "num_samples": 2000,
+          "full_edge": 0.9644077758669483,
+          "changed_edge": 0.08630527817403709,
+          "context_edge": 0.9780152975506234,
+          "delta_all": 0.9644077758669483,
+          "keep": 0.9780152975506234,
+          "add": 0.03372434017595308,
+          "delete": 0.1361111111111111,
+          "edge_changed_total": 2804,
+          "edge_context_total": 180944
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.9555269312904647,
+            "changed_edge": 0.04834605597964377,
+            "context_edge": 0.9803586975448372,
+            "delta_all": 0.9555269312904647,
+            "keep": 0.9803586975448372,
+            "add": 0.03372434017595308,
+            "delete": 0.14423076923076922,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.9559399789735258,
+            "changed_edge": 0.12378640776699029,
+            "context_edge": 0.9783739571405202,
+            "delta_all": 0.9559399789735258,
+            "keep": 0.9783739571405202,
+            "add": 0.038461538461538464,
+            "delete": 0.1361111111111111,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.9697203542424576,
+            "changed_edge": 0.10526315789473684,
+            "context_edge": 0.9751867465424156,
+            "delta_all": 0.9697203542424576,
+            "keep": 0.9751867465424156,
+            "add": 0.02857142857142857,
+            "delete": 0.15841584158415842,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.9742869750090256,
+            "changed_edge": 0.072,
+            "context_edge": 0.9788340590227382,
+            "delta_all": 0.9742869750090256,
+            "keep": 0.9788340590227382,
+            "add": 0.03125,
+            "delete": 0.11475409836065574,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_budget_0.10": {
+        "overall": {
+          "num_samples": 2000,
+          "full_edge": 0.9574634825957289,
+          "changed_edge": 0.10485021398002853,
+          "context_edge": 0.9706760102573172,
+          "delta_all": 0.9574634825957289,
+          "keep": 0.9706760102573172,
+          "add": 0.045454545454545456,
+          "delete": 0.16111111111111112,
+          "edge_changed_total": 2804,
+          "edge_context_total": 180944
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.9487813972407715,
+            "changed_edge": 0.061068702290076333,
+            "context_edge": 0.973080271635034,
+            "delta_all": 0.9487813972407715,
+            "keep": 0.973080271635034,
+            "add": 0.045454545454545456,
+            "delete": 0.16346153846153846,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.9499824779381312,
+            "changed_edge": 0.14684466019417475,
+            "context_edge": 0.9716342221495174,
+            "delta_all": 0.9499824779381312,
+            "keep": 0.9716342221495174,
+            "add": 0.04807692307692308,
+            "delete": 0.16111111111111112,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.9612317642303311,
+            "changed_edge": 0.1286549707602339,
+            "context_edge": 0.9664965609052585,
+            "delta_all": 0.9612317642303311,
+            "keep": 0.9664965609052585,
+            "add": 0.02857142857142857,
+            "delete": 0.19801980198019803,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.9679890890127963,
+            "changed_edge": 0.104,
+            "context_edge": 0.972343170456378,
+            "delta_all": 0.9679890890127963,
+            "keep": 0.972343170456378,
+            "add": 0.0625,
+            "delete": 0.14754098360655737,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "learned_budget_0.20": {
+        "overall": {
+          "num_samples": 2000,
+          "full_edge": 0.9400918649454688,
+          "changed_edge": 0.14621968616262482,
+          "context_edge": 0.9523941108851357,
+          "delta_all": 0.9400918649454688,
+          "keep": 0.9523941108851357,
+          "add": 0.08797653958944282,
+          "delete": 0.2013888888888889,
+          "edge_changed_total": 2804,
+          "edge_context_total": 180944
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.9343751059286126,
+            "changed_edge": 0.10559796437659033,
+            "context_edge": 0.9570607696325962,
+            "delta_all": 0.9343751059286126,
+            "keep": 0.9570607696325962,
+            "add": 0.08797653958944282,
+            "delete": 0.22115384615384615,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.9328745738953137,
+            "changed_edge": 0.18689320388349515,
+            "context_edge": 0.952985440863733,
+            "delta_all": 0.9328745738953137,
+            "keep": 0.952985440863733,
+            "add": 0.08653846153846154,
+            "delete": 0.2013888888888889,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.9427479513467828,
+            "changed_edge": 0.17543859649122806,
+            "context_edge": 0.9476000295836107,
+            "delta_all": 0.9427479513467828,
+            "keep": 0.9476000295836107,
+            "add": 0.07142857142857142,
+            "delete": 0.24752475247524752,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.9500581651891371,
+            "changed_edge": 0.136,
+            "context_edge": 0.9541606192549589,
+            "delta_all": 0.9500581651891371,
+            "keep": 0.9541606192549589,
+            "add": 0.09375,
+            "delete": 0.18032786885245902,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        },
+        "by_corruption_setting": {}
+      },
+      "naive_induced_closure": {
+        "overall": {
+          "num_samples": 2000,
+          "full_edge": 0.8374839454034874,
+          "changed_edge": 0.2845934379457917,
+          "context_edge": 0.8460518171367937,
+          "delta_all": 0.8374839454034874,
+          "keep": 0.8460518171367937,
+          "add": 0.38563049853372433,
+          "delete": 0.18888888888888888,
+          "edge_changed_total": 2804,
+          "edge_context_total": 180944
+        },
+        "by_event_type": {
+          "edge_add": {
+            "num_samples": 634,
+            "full_edge": 0.8351920273889021,
+            "changed_edge": 0.361323155216285,
+            "context_edge": 0.8481629810203726,
+            "delta_all": 0.8351920273889021,
+            "keep": 0.8481629810203726,
+            "add": 0.38563049853372433,
+            "delete": 0.20192307692307693,
+            "edge_changed_total": 1572,
+            "edge_context_total": 57430
+          },
+          "edge_delete": {
+            "num_samples": 685,
+            "full_edge": 0.8290165344547453,
+            "changed_edge": 0.2111650485436893,
+            "context_edge": 0.8456731555700965,
+            "delta_all": 0.8290165344547453,
+            "keep": 0.8456731555700965,
+            "add": 0.36538461538461536,
+            "delete": 0.18888888888888888,
+            "edge_changed_total": 1648,
+            "edge_context_total": 61130
+          },
+          "node_state_update": {
+            "num_samples": 606,
+            "full_edge": 0.8397824569139749,
+            "changed_edge": 0.3391812865497076,
+            "context_edge": 0.8429480068042304,
+            "delta_all": 0.8397824569139749,
+            "keep": 0.8429480068042304,
+            "add": 0.5,
+            "delete": 0.22772277227722773,
+            "edge_changed_total": 342,
+            "edge_context_total": 54084
+          },
+          "motif_type_flip": {
+            "num_samples": 535,
+            "full_edge": 0.846524128525011,
+            "changed_edge": 0.216,
+            "context_edge": 0.8497016610224157,
+            "delta_all": 0.846524128525011,
+            "keep": 0.8497016610224157,
+            "add": 0.296875,
+            "delete": 0.13114754098360656,
+            "edge_changed_total": 250,
+            "edge_context_total": 49608
+          }
+        },
+        "by_corruption_setting": {}
+      }
+    }
+  }
+}
