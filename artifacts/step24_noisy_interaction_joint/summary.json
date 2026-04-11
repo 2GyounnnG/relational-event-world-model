@@ -1,0 +1,899 @@
+{
+  "metadata": {
+    "evaluation": "Step 24 light joint noisy interaction-aware proposal+rewrite comparison",
+    "single_mechanism_variable": "coupling_regime = frozen_rewrite_baseline | light_joint_noisy_interaction",
+    "fixed_thresholds": {
+      "node_threshold": 0.15,
+      "edge_threshold": 0.1
+    },
+    "step22_artifact_dir": "/Users/richwang/newprogram/artifacts/step22_noisy_multievent_interaction",
+    "step23_artifact_dir": "/Users/richwang/newprogram/artifacts/step23_noisy_interaction_aware_proposal",
+    "step24_artifact_dir": "/Users/richwang/newprogram/artifacts/step24_noisy_interaction_joint",
+    "note": "This script consolidates Step 22/23/24 evaluator outputs; it does not run inference itself."
+  },
+  "run_paths": {
+    "baseline_noisy_p2_w012": "/Users/richwang/newprogram/artifacts/step22_noisy_multievent_interaction/noisy_p2_w012.json",
+    "baseline_noisy_p2_rft1": "/Users/richwang/newprogram/artifacts/step22_noisy_multievent_interaction/noisy_p2_rft1.json",
+    "baseline_noisy_p2_i1520_optional": "/Users/richwang/newprogram/artifacts/step22_noisy_multievent_interaction/noisy_p2_i1520.json",
+    "step23_proposal_only_rft1": "/Users/richwang/newprogram/artifacts/step23_noisy_interaction_aware_proposal/noisy_step23_p2_rft1.json",
+    "step24_joint_candidate": "/Users/richwang/newprogram/artifacts/step24_noisy_interaction_joint/noisy_step24_joint.json"
+  },
+  "missing_runs": {},
+  "runs": {
+    "baseline_noisy_p2_i1520_optional": {
+      "metadata": {
+        "proposal_checkpoint_path": "/Users/richwang/newprogram/checkpoints/proposal_noisy_obs_p2/best.pt",
+        "rewrite_checkpoint_path": "/Users/richwang/newprogram/checkpoints/step5_interaction_i1520/best.pt",
+        "data_path": "/Users/richwang/newprogram/data/graph_event_step22_noisy_step5_test.pkl",
+        "split_name": "test",
+        "observation_regime": "noisy",
+        "node_threshold": 0.15,
+        "edge_threshold": 0.1,
+        "rewrite_uses_proposal_conditioning": true,
+        "evaluation_mode": "step22_observed_current_state_per_transition",
+        "model_input": "clean current graph for observation_regime=clean; obs_graph_inputs[k] for observation_regime=noisy",
+        "targets": "clean Step 5 graph_steps[k]",
+        "note": "This isolates observation_regime on the Step 5 multievent substrate; it is not an autoregressive feedback benchmark."
+      },
+      "sections": {
+        "overall_final": {
+          "overall": {
+            "full_edge_acc": 0.8360804473304473,
+            "context_edge_acc": 0.8409764607820163,
+            "changed_edge_acc": 0.3713646532438479,
+            "add": 0.1090146750524109,
+            "delete": 0.6714628297362111,
+            "proposal_node_scope_recall": 0.972546476437527,
+            "proposal_edge_scope_recall": 0.7094833687190375,
+            "proposal_edge_scope_excess_ratio": 0.9132522822653918,
+            "proposal_out_of_scope_miss_edge": 0.5480984340044743
+          }
+        },
+        "by_dependency_bucket_final": {
+          "fully_independent": {
+            "full_edge_acc": 0.8384829244829245,
+            "context_edge_acc": 0.8445100393433727,
+            "changed_edge_acc": 0.41371158392434987,
+            "add": 0.08717948717948718,
+            "delete": 0.6929824561403509,
+            "proposal_node_scope_recall": 0.9545098039215686,
+            "proposal_edge_scope_recall": 0.5896296296296296,
+            "proposal_edge_scope_excess_ratio": 0.9496775825009482,
+            "proposal_out_of_scope_miss_edge": 0.5319148936170213
+          },
+          "partially_dependent": {
+            "full_edge_acc": 0.8319771524771525,
+            "context_edge_acc": 0.8370242226908893,
+            "changed_edge_acc": 0.4269005847953216,
+            "add": 0.16049382716049382,
+            "delete": 0.6666666666666666,
+            "proposal_node_scope_recall": 0.9804713804713805,
+            "proposal_edge_scope_recall": 0.7084745762711865,
+            "proposal_edge_scope_excess_ratio": 0.9196565863659661,
+            "proposal_out_of_scope_miss_edge": 0.45321637426900585
+          },
+          "strongly_interacting": {
+            "full_edge_acc": 0.837781265031265,
+            "context_edge_acc": 0.841395120311787,
+            "changed_edge_acc": 0.08527131782945736,
+            "add": 0.075,
+            "delete": 0.2222222222222222,
+            "proposal_node_scope_recall": 0.9785637727759914,
+            "proposal_edge_scope_recall": 0.7740916271721959,
+            "proposal_edge_scope_excess_ratio": 0.8675675675675676,
+            "proposal_out_of_scope_miss_edge": 0.8527131782945736
+          }
+        },
+        "by_corruption_setting_final": {
+          "N1": {
+            "full_edge_acc": 0.8549729437229437,
+            "context_edge_acc": 0.8600101750101751,
+            "changed_edge_acc": 0.3825503355704698,
+            "add": 0.09433962264150944,
+            "delete": 0.7122302158273381,
+            "proposal_node_scope_recall": 0.9766536964980544,
+            "proposal_edge_scope_recall": 0.7314225053078556,
+            "proposal_edge_scope_excess_ratio": 0.9076902465166131,
+            "proposal_out_of_scope_miss_edge": 0.5369127516778524
+          },
+          "N2": {
+            "full_edge_acc": 0.835016354016354,
+            "context_edge_acc": 0.8398521941021941,
+            "changed_edge_acc": 0.37583892617449666,
+            "add": 0.11320754716981132,
+            "delete": 0.6762589928057554,
+            "proposal_node_scope_recall": 0.9734111543450065,
+            "proposal_edge_scope_recall": 0.721868365180467,
+            "proposal_edge_scope_excess_ratio": 0.9125739264592441,
+            "proposal_out_of_scope_miss_edge": 0.5067114093959731
+          },
+          "N3": {
+            "full_edge_acc": 0.8182520442520442,
+            "context_edge_acc": 0.8230670132336799,
+            "changed_edge_acc": 0.35570469798657717,
+            "add": 0.11949685534591195,
+            "delete": 0.6258992805755396,
+            "proposal_node_scope_recall": 0.9675745784695201,
+            "proposal_edge_scope_recall": 0.6751592356687898,
+            "proposal_edge_scope_excess_ratio": 0.9191970524710964,
+            "proposal_out_of_scope_miss_edge": 0.6006711409395973
+          }
+        },
+        "by_event_type_all_steps": {
+          "edge_add": {
+            "full_edge_acc": 0.8124446748396328,
+            "context_edge_acc": 0.8284659007348083,
+            "changed_edge_acc": 0.1015406162464986,
+            "add": 0.1015406162464986,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9656862745098039,
+            "proposal_edge_scope_recall": 0.14565826330532214,
+            "proposal_edge_scope_excess_ratio": 0.9892104990144206,
+            "proposal_out_of_scope_miss_edge": 0.8543417366946778
+          },
+          "edge_delete": {
+            "full_edge_acc": 0.8440149343233043,
+            "context_edge_acc": 0.847560733170131,
+            "changed_edge_acc": 0.6791483113069016,
+            "add": null,
+            "delete": 0.6791483113069016,
+            "proposal_node_scope_recall": 0.9761380323054332,
+            "proposal_edge_scope_recall": 0.8076358296622613,
+            "proposal_edge_scope_excess_ratio": 0.9359235742995282,
+            "proposal_out_of_scope_miss_edge": 0.19236417033773867
+          },
+          "motif_type_flip": {
+            "full_edge_acc": 0.8353884487043756,
+            "context_edge_acc": 0.8353884487043756,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9823034522773426,
+            "proposal_edge_scope_recall": 0.8520452567449956,
+            "proposal_edge_scope_excess_ratio": 0.8763966921280222,
+            "proposal_out_of_scope_miss_edge": null
+          },
+          "node_state_update": {
+            "full_edge_acc": 0.8415992821536968,
+            "context_edge_acc": 0.8415992821536968,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9655682298267849,
+            "proposal_edge_scope_recall": 0.8087381607088299,
+            "proposal_edge_scope_excess_ratio": 0.8512169074251026,
+            "proposal_out_of_scope_miss_edge": null
+          }
+        }
+      }
+    },
+    "baseline_noisy_p2_rft1": {
+      "metadata": {
+        "proposal_checkpoint_path": "/Users/richwang/newprogram/checkpoints/proposal_noisy_obs_p2/best.pt",
+        "rewrite_checkpoint_path": "/Users/richwang/newprogram/checkpoints/step6_noisy_rewrite_rft1/best.pt",
+        "data_path": "/Users/richwang/newprogram/data/graph_event_step22_noisy_step5_test.pkl",
+        "split_name": "test",
+        "observation_regime": "noisy",
+        "node_threshold": 0.15,
+        "edge_threshold": 0.1,
+        "rewrite_uses_proposal_conditioning": true,
+        "evaluation_mode": "step22_observed_current_state_per_transition",
+        "model_input": "clean current graph for observation_regime=clean; obs_graph_inputs[k] for observation_regime=noisy",
+        "targets": "clean Step 5 graph_steps[k]",
+        "note": "This isolates observation_regime on the Step 5 multievent substrate; it is not an autoregressive feedback benchmark."
+      },
+      "sections": {
+        "overall_final": {
+          "overall": {
+            "full_edge_acc": 0.8754438031104698,
+            "context_edge_acc": 0.8820924651480206,
+            "changed_edge_acc": 0.25727069351230425,
+            "add": 0.1111111111111111,
+            "delete": 0.4244604316546763,
+            "proposal_node_scope_recall": 0.972546476437527,
+            "proposal_edge_scope_recall": 0.7094833687190375,
+            "proposal_edge_scope_excess_ratio": 0.9132522822653918,
+            "proposal_out_of_scope_miss_edge": 0.5480984340044743
+          }
+        },
+        "by_dependency_bucket_final": {
+          "fully_independent": {
+            "full_edge_acc": 0.8764847282347282,
+            "context_edge_acc": 0.885489217572551,
+            "changed_edge_acc": 0.2624113475177305,
+            "add": 0.08205128205128205,
+            "delete": 0.4166666666666667,
+            "proposal_node_scope_recall": 0.9545098039215686,
+            "proposal_edge_scope_recall": 0.5896296296296296,
+            "proposal_edge_scope_excess_ratio": 0.9496775825009482,
+            "proposal_out_of_scope_miss_edge": 0.5319148936170213
+          },
+          "partially_dependent": {
+            "full_edge_acc": 0.8727883597883598,
+            "context_edge_acc": 0.8799565773732442,
+            "changed_edge_acc": 0.30994152046783624,
+            "add": 0.16666666666666666,
+            "delete": 0.4388888888888889,
+            "proposal_node_scope_recall": 0.9804713804713805,
+            "proposal_edge_scope_recall": 0.7084745762711865,
+            "proposal_edge_scope_excess_ratio": 0.9196565863659661,
+            "proposal_out_of_scope_miss_edge": 0.45321637426900585
+          },
+          "strongly_interacting": {
+            "full_edge_acc": 0.8770583213083213,
+            "context_edge_acc": 0.880831600498267,
+            "changed_edge_acc": 0.10077519379844961,
+            "add": 0.08333333333333333,
+            "delete": 0.3333333333333333,
+            "proposal_node_scope_recall": 0.9785637727759914,
+            "proposal_edge_scope_recall": 0.7740916271721959,
+            "proposal_edge_scope_excess_ratio": 0.8675675675675676,
+            "proposal_out_of_scope_miss_edge": 0.8527131782945736
+          }
+        },
+        "by_corruption_setting_final": {
+          "N1": {
+            "full_edge_acc": 0.9007151274651274,
+            "context_edge_acc": 0.9077865036198369,
+            "changed_edge_acc": 0.2516778523489933,
+            "add": 0.10062893081761007,
+            "delete": 0.4244604316546763,
+            "proposal_node_scope_recall": 0.9766536964980544,
+            "proposal_edge_scope_recall": 0.7314225053078556,
+            "proposal_edge_scope_excess_ratio": 0.9076902465166131,
+            "proposal_out_of_scope_miss_edge": 0.5369127516778524
+          },
+          "N2": {
+            "full_edge_acc": 0.8735511063011063,
+            "context_edge_acc": 0.8803965324798658,
+            "changed_edge_acc": 0.2348993288590604,
+            "add": 0.1069182389937107,
+            "delete": 0.381294964028777,
+            "proposal_node_scope_recall": 0.9734111543450065,
+            "proposal_edge_scope_recall": 0.721868365180467,
+            "proposal_edge_scope_excess_ratio": 0.9125739264592441,
+            "proposal_out_of_scope_miss_edge": 0.5067114093959731
+          },
+          "N3": {
+            "full_edge_acc": 0.8520651755651756,
+            "context_edge_acc": 0.8580943593443593,
+            "changed_edge_acc": 0.28523489932885904,
+            "add": 0.12578616352201258,
+            "delete": 0.4676258992805755,
+            "proposal_node_scope_recall": 0.9675745784695201,
+            "proposal_edge_scope_recall": 0.6751592356687898,
+            "proposal_edge_scope_excess_ratio": 0.9191970524710964,
+            "proposal_out_of_scope_miss_edge": 0.6006711409395973
+          }
+        },
+        "by_event_type_all_steps": {
+          "edge_add": {
+            "full_edge_acc": 0.8587724483732887,
+            "context_edge_acc": 0.8755914409275753,
+            "changed_edge_acc": 0.11204481792717087,
+            "add": 0.11204481792717087,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9656862745098039,
+            "proposal_edge_scope_recall": 0.14565826330532214,
+            "proposal_edge_scope_excess_ratio": 0.9892104990144206,
+            "proposal_out_of_scope_miss_edge": 0.8543417366946778
+          },
+          "edge_delete": {
+            "full_edge_acc": 0.8750333204077697,
+            "context_edge_acc": 0.8849813195995281,
+            "changed_edge_acc": 0.4265785609397944,
+            "add": null,
+            "delete": 0.4265785609397944,
+            "proposal_node_scope_recall": 0.9761380323054332,
+            "proposal_edge_scope_recall": 0.8076358296622613,
+            "proposal_edge_scope_excess_ratio": 0.9359235742995282,
+            "proposal_out_of_scope_miss_edge": 0.19236417033773867
+          },
+          "motif_type_flip": {
+            "full_edge_acc": 0.8803381320352599,
+            "context_edge_acc": 0.8803381320352599,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9823034522773426,
+            "proposal_edge_scope_recall": 0.8520452567449956,
+            "proposal_edge_scope_excess_ratio": 0.8763966921280222,
+            "proposal_out_of_scope_miss_edge": null
+          },
+          "node_state_update": {
+            "full_edge_acc": 0.8792992998331808,
+            "context_edge_acc": 0.8792992998331808,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9655682298267849,
+            "proposal_edge_scope_recall": 0.8087381607088299,
+            "proposal_edge_scope_excess_ratio": 0.8512169074251026,
+            "proposal_out_of_scope_miss_edge": null
+          }
+        }
+      }
+    },
+    "baseline_noisy_p2_w012": {
+      "metadata": {
+        "proposal_checkpoint_path": "/Users/richwang/newprogram/checkpoints/proposal_noisy_obs_p2/best.pt",
+        "rewrite_checkpoint_path": "/Users/richwang/newprogram/checkpoints/fp_keep_w012/best.pt",
+        "data_path": "/Users/richwang/newprogram/data/graph_event_step22_noisy_step5_test.pkl",
+        "split_name": "test",
+        "observation_regime": "noisy",
+        "node_threshold": 0.15,
+        "edge_threshold": 0.1,
+        "rewrite_uses_proposal_conditioning": true,
+        "evaluation_mode": "step22_observed_current_state_per_transition",
+        "model_input": "clean current graph for observation_regime=clean; obs_graph_inputs[k] for observation_regime=noisy",
+        "targets": "clean Step 5 graph_steps[k]",
+        "note": "This isolates observation_regime on the Step 5 multievent substrate; it is not an autoregressive feedback benchmark."
+      },
+      "sections": {
+        "overall_final": {
+          "overall": {
+            "full_edge_acc": 0.8748856822190156,
+            "context_edge_acc": 0.8818045575823353,
+            "changed_edge_acc": 0.2360178970917226,
+            "add": 0.10272536687631027,
+            "delete": 0.38848920863309355,
+            "proposal_node_scope_recall": 0.972546476437527,
+            "proposal_edge_scope_recall": 0.7094833687190375,
+            "proposal_edge_scope_excess_ratio": 0.9132522822653918,
+            "proposal_out_of_scope_miss_edge": 0.5480984340044743
+          }
+        },
+        "by_dependency_bucket_final": {
+          "fully_independent": {
+            "full_edge_acc": 0.8767415824915825,
+            "context_edge_acc": 0.885850720267387,
+            "changed_edge_acc": 0.2624113475177305,
+            "add": 0.08717948717948718,
+            "delete": 0.41228070175438597,
+            "proposal_node_scope_recall": 0.9545098039215686,
+            "proposal_edge_scope_recall": 0.5896296296296296,
+            "proposal_edge_scope_excess_ratio": 0.9496775825009482,
+            "proposal_out_of_scope_miss_edge": 0.5319148936170213
+          },
+          "partially_dependent": {
+            "full_edge_acc": 0.8697487974987975,
+            "context_edge_acc": 0.8775765253265253,
+            "changed_edge_acc": 0.2573099415204678,
+            "add": 0.13580246913580246,
+            "delete": 0.36666666666666664,
+            "proposal_node_scope_recall": 0.9804713804713805,
+            "proposal_edge_scope_recall": 0.7084745762711865,
+            "proposal_edge_scope_excess_ratio": 0.9196565863659661,
+            "proposal_out_of_scope_miss_edge": 0.45321637426900585
+          },
+          "strongly_interacting": {
+            "full_edge_acc": 0.8781666666666667,
+            "context_edge_acc": 0.8819864271530938,
+            "changed_edge_acc": 0.09302325581395349,
+            "add": 0.08333333333333333,
+            "delete": 0.2222222222222222,
+            "proposal_node_scope_recall": 0.9785637727759914,
+            "proposal_edge_scope_recall": 0.7740916271721959,
+            "proposal_edge_scope_excess_ratio": 0.8675675675675676,
+            "proposal_out_of_scope_miss_edge": 0.8527131782945736
+          }
+        },
+        "by_corruption_setting_final": {
+          "N1": {
+            "full_edge_acc": 0.9004433621933621,
+            "context_edge_acc": 0.9078209167375834,
+            "changed_edge_acc": 0.22483221476510068,
+            "add": 0.08176100628930817,
+            "delete": 0.38848920863309355,
+            "proposal_node_scope_recall": 0.9766536964980544,
+            "proposal_edge_scope_recall": 0.7314225053078556,
+            "proposal_edge_scope_excess_ratio": 0.9076902465166131,
+            "proposal_out_of_scope_miss_edge": 0.5369127516778524
+          },
+          "N2": {
+            "full_edge_acc": 0.8734824434824435,
+            "context_edge_acc": 0.8805872214205548,
+            "changed_edge_acc": 0.2181208053691275,
+            "add": 0.1069182389937107,
+            "delete": 0.34532374100719426,
+            "proposal_node_scope_recall": 0.9734111543450065,
+            "proposal_edge_scope_recall": 0.721868365180467,
+            "proposal_edge_scope_excess_ratio": 0.9125739264592441,
+            "proposal_out_of_scope_miss_edge": 0.5067114093959731
+          },
+          "N3": {
+            "full_edge_acc": 0.850731240981241,
+            "context_edge_acc": 0.857005534588868,
+            "changed_edge_acc": 0.2651006711409396,
+            "add": 0.11949685534591195,
+            "delete": 0.4316546762589928,
+            "proposal_node_scope_recall": 0.9675745784695201,
+            "proposal_edge_scope_recall": 0.6751592356687898,
+            "proposal_edge_scope_excess_ratio": 0.9191970524710964,
+            "proposal_out_of_scope_miss_edge": 0.6006711409395973
+          }
+        },
+        "by_event_type_all_steps": {
+          "edge_add": {
+            "full_edge_acc": 0.8604352852252012,
+            "context_edge_acc": 0.8775090403941945,
+            "changed_edge_acc": 0.10364145658263306,
+            "add": 0.10364145658263306,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9656862745098039,
+            "proposal_edge_scope_recall": 0.14565826330532214,
+            "proposal_edge_scope_excess_ratio": 0.9892104990144206,
+            "proposal_out_of_scope_miss_edge": 0.8543417366946778
+          },
+          "edge_delete": {
+            "full_edge_acc": 0.8760600551349451,
+            "context_edge_acc": 0.8868179653054837,
+            "changed_edge_acc": 0.40748898678414097,
+            "add": null,
+            "delete": 0.40748898678414097,
+            "proposal_node_scope_recall": 0.9761380323054332,
+            "proposal_edge_scope_recall": 0.8076358296622613,
+            "proposal_edge_scope_excess_ratio": 0.9359235742995282,
+            "proposal_out_of_scope_miss_edge": 0.19236417033773867
+          },
+          "motif_type_flip": {
+            "full_edge_acc": 0.8809140767365311,
+            "context_edge_acc": 0.8809140767365311,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9823034522773426,
+            "proposal_edge_scope_recall": 0.8520452567449956,
+            "proposal_edge_scope_excess_ratio": 0.8763966921280222,
+            "proposal_out_of_scope_miss_edge": null
+          },
+          "node_state_update": {
+            "full_edge_acc": 0.8792637433294517,
+            "context_edge_acc": 0.8792637433294517,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9655682298267849,
+            "proposal_edge_scope_recall": 0.8087381607088299,
+            "proposal_edge_scope_excess_ratio": 0.8512169074251026,
+            "proposal_out_of_scope_miss_edge": null
+          }
+        }
+      }
+    },
+    "step23_proposal_only_rft1": {
+      "metadata": {
+        "proposal_checkpoint_path": "/Users/richwang/newprogram/checkpoints/step23_noisy_interaction_proposal/best.pt",
+        "rewrite_checkpoint_path": "/Users/richwang/newprogram/checkpoints/step6_noisy_rewrite_rft1/best.pt",
+        "data_path": "/Users/richwang/newprogram/data/graph_event_step22_noisy_step5_test.pkl",
+        "split_name": "test",
+        "observation_regime": "noisy",
+        "node_threshold": 0.15,
+        "edge_threshold": 0.1,
+        "rewrite_uses_proposal_conditioning": true,
+        "evaluation_mode": "step22_observed_current_state_per_transition",
+        "model_input": "clean current graph for observation_regime=clean; obs_graph_inputs[k] for observation_regime=noisy",
+        "targets": "clean Step 5 graph_steps[k]",
+        "note": "This isolates observation_regime on the Step 5 multievent substrate; it is not an autoregressive feedback benchmark."
+      },
+      "sections": {
+        "overall_final": {
+          "overall": {
+            "full_edge_acc": 0.8813185024851691,
+            "context_edge_acc": 0.8881898924121147,
+            "changed_edge_acc": 0.2348993288590604,
+            "add": 0.07966457023060797,
+            "delete": 0.41247002398081534,
+            "proposal_node_scope_recall": 0.9628188499783831,
+            "proposal_edge_scope_recall": 0.6652512384996462,
+            "proposal_edge_scope_excess_ratio": 0.9086447349239516,
+            "proposal_out_of_scope_miss_edge": 0.5950782997762863
+          }
+        },
+        "by_dependency_bucket_final": {
+          "fully_independent": {
+            "full_edge_acc": 0.882982202982203,
+            "context_edge_acc": 0.8922550566717234,
+            "changed_edge_acc": 0.24113475177304963,
+            "add": 0.046153846153846156,
+            "delete": 0.40789473684210525,
+            "proposal_node_scope_recall": 0.9341176470588235,
+            "proposal_edge_scope_recall": 0.5481481481481482,
+            "proposal_edge_scope_excess_ratio": 0.9472483604220131,
+            "proposal_out_of_scope_miss_edge": 0.5768321513002364
+          },
+          "partially_dependent": {
+            "full_edge_acc": 0.8789424001924002,
+            "context_edge_acc": 0.8865007122507123,
+            "changed_edge_acc": 0.2807017543859649,
+            "add": 0.1111111111111111,
+            "delete": 0.43333333333333335,
+            "proposal_node_scope_recall": 0.9764309764309764,
+            "proposal_edge_scope_recall": 0.6610169491525424,
+            "proposal_edge_scope_excess_ratio": 0.9153645833333334,
+            "proposal_out_of_scope_miss_edge": 0.52046783625731
+          },
+          "strongly_interacting": {
+            "full_edge_acc": 0.8820309042809044,
+            "context_edge_acc": 0.8858139083139084,
+            "changed_edge_acc": 0.09302325581395349,
+            "add": 0.09166666666666666,
+            "delete": 0.1111111111111111,
+            "proposal_node_scope_recall": 0.9715969989281886,
+            "proposal_edge_scope_recall": 0.7306477093206951,
+            "proposal_edge_scope_excess_ratio": 0.8609649782053209,
+            "proposal_out_of_scope_miss_edge": 0.8527131782945736
+          }
+        },
+        "by_corruption_setting_final": {
+          "N1": {
+            "full_edge_acc": 0.9062864357864359,
+            "context_edge_acc": 0.913563159063159,
+            "changed_edge_acc": 0.22818791946308725,
+            "add": 0.06918238993710692,
+            "delete": 0.41007194244604317,
+            "proposal_node_scope_recall": 0.9727626459143969,
+            "proposal_edge_scope_recall": 0.6985138004246284,
+            "proposal_edge_scope_excess_ratio": 0.9017910447761194,
+            "proposal_out_of_scope_miss_edge": 0.5805369127516778
+          },
+          "N2": {
+            "full_edge_acc": 0.8807246272246272,
+            "context_edge_acc": 0.8877827357827357,
+            "changed_edge_acc": 0.21476510067114093,
+            "add": 0.07547169811320754,
+            "delete": 0.37410071942446044,
+            "proposal_node_scope_recall": 0.9617380025940337,
+            "proposal_edge_scope_recall": 0.6698513800424628,
+            "proposal_edge_scope_excess_ratio": 0.9087754806997254,
+            "proposal_out_of_scope_miss_edge": 0.5704697986577181
+          },
+          "N3": {
+            "full_edge_acc": 0.8569444444444444,
+            "context_edge_acc": 0.8632237823904492,
+            "changed_edge_acc": 0.26174496644295303,
+            "add": 0.09433962264150944,
+            "delete": 0.45323741007194246,
+            "proposal_node_scope_recall": 0.9539559014267186,
+            "proposal_edge_scope_recall": 0.6273885350318471,
+            "proposal_edge_scope_excess_ratio": 0.9151106004021833,
+            "proposal_out_of_scope_miss_edge": 0.6342281879194631
+          }
+        },
+        "by_event_type_all_steps": {
+          "edge_add": {
+            "full_edge_acc": 0.8656440859171951,
+            "context_edge_acc": 0.8827236268762879,
+            "changed_edge_acc": 0.09873949579831932,
+            "add": 0.09873949579831932,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9516806722689075,
+            "proposal_edge_scope_recall": 0.11764705882352941,
+            "proposal_edge_scope_excess_ratio": 0.9901269393511989,
+            "proposal_out_of_scope_miss_edge": 0.8823529411764706
+          },
+          "edge_delete": {
+            "full_edge_acc": 0.8801992020053695,
+            "context_edge_acc": 0.8902647306465221,
+            "changed_edge_acc": 0.42290748898678415,
+            "add": null,
+            "delete": 0.42290748898678415,
+            "proposal_node_scope_recall": 0.9662261380323054,
+            "proposal_edge_scope_recall": 0.7723935389133627,
+            "proposal_edge_scope_excess_ratio": 0.9318608718181229,
+            "proposal_out_of_scope_miss_edge": 0.2276064610866373
+          },
+          "motif_type_flip": {
+            "full_edge_acc": 0.8860362923026108,
+            "context_edge_acc": 0.8860362923026108,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9767914128227444,
+            "proposal_edge_scope_recall": 0.8037423846823325,
+            "proposal_edge_scope_excess_ratio": 0.8684660304799886,
+            "proposal_out_of_scope_miss_edge": null
+          },
+          "node_state_update": {
+            "full_edge_acc": 0.88379339498436,
+            "context_edge_acc": 0.88379339498436,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9552175749894382,
+            "proposal_edge_scope_recall": 0.7665750076382524,
+            "proposal_edge_scope_excess_ratio": 0.8434028211209587,
+            "proposal_out_of_scope_miss_edge": null
+          }
+        }
+      }
+    },
+    "step24_joint_candidate": {
+      "metadata": {
+        "proposal_checkpoint_path": "/Users/richwang/newprogram/checkpoints/step24_noisy_interaction_joint/proposal_best.pt",
+        "rewrite_checkpoint_path": "/Users/richwang/newprogram/checkpoints/step24_noisy_interaction_joint/rewrite_best.pt",
+        "data_path": "/Users/richwang/newprogram/data/graph_event_step22_noisy_step5_test.pkl",
+        "split_name": "test",
+        "observation_regime": "noisy",
+        "node_threshold": 0.15,
+        "edge_threshold": 0.1,
+        "rewrite_uses_proposal_conditioning": true,
+        "evaluation_mode": "step22_observed_current_state_per_transition",
+        "model_input": "clean current graph for observation_regime=clean; obs_graph_inputs[k] for observation_regime=noisy",
+        "targets": "clean Step 5 graph_steps[k]",
+        "note": "This isolates observation_regime on the Step 5 multievent substrate; it is not an autoregressive feedback benchmark."
+      },
+      "sections": {
+        "overall_final": {
+          "overall": {
+            "full_edge_acc": 0.8761871091871092,
+            "context_edge_acc": 0.8829486367541922,
+            "changed_edge_acc": 0.24720357941834453,
+            "add": 0.11949685534591195,
+            "delete": 0.3932853717026379,
+            "proposal_node_scope_recall": 0.9654128837008215,
+            "proposal_edge_scope_recall": 0.7158527954706299,
+            "proposal_edge_scope_excess_ratio": 0.9125302663438256,
+            "proposal_out_of_scope_miss_edge": 0.534675615212528
+          }
+        },
+        "by_dependency_bucket_final": {
+          "fully_independent": {
+            "full_edge_acc": 0.8731530784030784,
+            "context_edge_acc": 0.8818297874964541,
+            "changed_edge_acc": 0.27423167848699764,
+            "add": 0.1076923076923077,
+            "delete": 0.4166666666666667,
+            "proposal_node_scope_recall": 0.9435294117647058,
+            "proposal_edge_scope_recall": 0.6296296296296297,
+            "proposal_edge_scope_excess_ratio": 0.9473031618102914,
+            "proposal_out_of_scope_miss_edge": 0.4940898345153665
+          },
+          "partially_dependent": {
+            "full_edge_acc": 0.8761469456469456,
+            "context_edge_acc": 0.8838924100590767,
+            "changed_edge_acc": 0.27485380116959063,
+            "add": 0.16049382716049382,
+            "delete": 0.37777777777777777,
+            "proposal_node_scope_recall": 0.9757575757575757,
+            "proposal_edge_scope_recall": 0.703954802259887,
+            "proposal_edge_scope_excess_ratio": 0.9200564609264725,
+            "proposal_out_of_scope_miss_edge": 0.4707602339181286
+          },
+          "strongly_interacting": {
+            "full_edge_acc": 0.8792613035113035,
+            "context_edge_acc": 0.883123712707046,
+            "changed_edge_acc": 0.08527131782945736,
+            "add": 0.08333333333333333,
+            "delete": 0.1111111111111111,
+            "proposal_node_scope_recall": 0.9721329046087889,
+            "proposal_edge_scope_recall": 0.7701421800947867,
+            "proposal_edge_scope_excess_ratio": 0.8658872077028886,
+            "proposal_out_of_scope_miss_edge": 0.8372093023255813
+          }
+        },
+        "by_corruption_setting_final": {
+          "N1": {
+            "full_edge_acc": 0.9012776575276575,
+            "context_edge_acc": 0.9083981635648303,
+            "changed_edge_acc": 0.24161073825503357,
+            "add": 0.11320754716981132,
+            "delete": 0.38848920863309355,
+            "proposal_node_scope_recall": 0.9747081712062257,
+            "proposal_edge_scope_recall": 0.7547770700636943,
+            "proposal_edge_scope_excess_ratio": 0.9055651480940364,
+            "proposal_out_of_scope_miss_edge": 0.5234899328859061
+          },
+          "N2": {
+            "full_edge_acc": 0.8767382154882155,
+            "context_edge_acc": 0.8836547464880798,
+            "changed_edge_acc": 0.2348993288590604,
+            "add": 0.11949685534591195,
+            "delete": 0.3669064748201439,
+            "proposal_node_scope_recall": 0.9636835278858625,
+            "proposal_edge_scope_recall": 0.7229299363057324,
+            "proposal_edge_scope_excess_ratio": 0.9123890389810884,
+            "proposal_out_of_scope_miss_edge": 0.5033557046979866
+          },
+          "N3": {
+            "full_edge_acc": 0.8505454545454545,
+            "context_edge_acc": 0.8567930002096669,
+            "changed_edge_acc": 0.2651006711409396,
+            "add": 0.12578616352201258,
+            "delete": 0.4244604316546763,
+            "proposal_node_scope_recall": 0.9578469520103762,
+            "proposal_edge_scope_recall": 0.6698513800424628,
+            "proposal_edge_scope_excess_ratio": 0.9193713263480705,
+            "proposal_out_of_scope_miss_edge": 0.5771812080536913
+          }
+        },
+        "by_event_type_all_steps": {
+          "edge_add": {
+            "full_edge_acc": 0.8605901451489687,
+            "context_edge_acc": 0.8768482943552972,
+            "changed_edge_acc": 0.13165266106442577,
+            "add": 0.13165266106442577,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9586834733893558,
+            "proposal_edge_scope_recall": 0.1561624649859944,
+            "proposal_edge_scope_excess_ratio": 0.9884029330698424,
+            "proposal_out_of_scope_miss_edge": 0.8438375350140056
+          },
+          "edge_delete": {
+            "full_edge_acc": 0.8731751646949885,
+            "context_edge_acc": 0.8838228136686287,
+            "changed_edge_acc": 0.40602055800293685,
+            "add": null,
+            "delete": 0.40602055800293685,
+            "proposal_node_scope_recall": 0.9695301027900147,
+            "proposal_edge_scope_recall": 0.8142437591776799,
+            "proposal_edge_scope_excess_ratio": 0.9356952336773745,
+            "proposal_out_of_scope_miss_edge": 0.18575624082232012
+          },
+          "motif_type_flip": {
+            "full_edge_acc": 0.8823956335705684,
+            "context_edge_acc": 0.8823956335705684,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9767914128227444,
+            "proposal_edge_scope_recall": 0.8407310704960835,
+            "proposal_edge_scope_excess_ratio": 0.8778529430359739,
+            "proposal_out_of_scope_miss_edge": null
+          },
+          "node_state_update": {
+            "full_edge_acc": 0.8795163426580265,
+            "context_edge_acc": 0.8795163426580265,
+            "changed_edge_acc": null,
+            "add": null,
+            "delete": null,
+            "proposal_node_scope_recall": 0.9583861427967891,
+            "proposal_edge_scope_recall": 0.8221814848762603,
+            "proposal_edge_scope_excess_ratio": 0.8480519480519481,
+            "proposal_out_of_scope_miss_edge": null
+          }
+        }
+      }
+    }
+  },
+  "comparisons": {
+    "step24_minus_baseline_noisy_p2_rft1": {
+      "overall_final": {
+        "full_edge_acc": 0.0007433060766394162,
+        "context_edge_acc": 0.0008561716061715741,
+        "changed_edge_acc": -0.010067114093959717,
+        "add": 0.008385744234800846,
+        "delete": -0.031175059952038398,
+        "proposal_node_scope_recall": -0.007133592736705552,
+        "proposal_edge_scope_recall": 0.006369426751592355,
+        "proposal_edge_scope_excess_ratio": -0.000722015921566177,
+        "proposal_out_of_scope_miss_edge": -0.01342281879194629
+      },
+      "strongly_interacting_final": {
+        "full_edge_acc": 0.0022029822029822066,
+        "context_edge_acc": 0.002292112208779007,
+        "changed_edge_acc": -0.015503875968992248,
+        "add": 0.0,
+        "delete": -0.2222222222222222,
+        "proposal_node_scope_recall": -0.006430868167202508,
+        "proposal_edge_scope_recall": -0.003949447077409185,
+        "proposal_edge_scope_excess_ratio": -0.0016803598646789597,
+        "proposal_out_of_scope_miss_edge": -0.015503875968992276
+      },
+      "fully_independent_final": {
+        "full_edge_acc": -0.0033316498316497967,
+        "context_edge_acc": -0.0036594300760968146,
+        "changed_edge_acc": 0.011820330969267157,
+        "add": 0.025641025641025647,
+        "delete": 0.0,
+        "proposal_node_scope_recall": -0.01098039215686275,
+        "proposal_edge_scope_recall": 0.040000000000000036,
+        "proposal_edge_scope_excess_ratio": -0.0023744206906568532,
+        "proposal_out_of_scope_miss_edge": -0.03782505910165479
+      },
+      "partially_dependent_final": {
+        "full_edge_acc": 0.0033585858585858386,
+        "context_edge_acc": 0.00393583268583253,
+        "changed_edge_acc": -0.03508771929824561,
+        "add": -0.006172839506172839,
+        "delete": -0.061111111111111116,
+        "proposal_node_scope_recall": -0.004713804713804781,
+        "proposal_edge_scope_recall": -0.004519774011299438,
+        "proposal_edge_scope_excess_ratio": 0.0003998745605063858,
+        "proposal_out_of_scope_miss_edge": 0.01754385964912275
+      }
+    },
+    "step24_minus_step23_proposal_only": {
+      "overall_final": {
+        "full_edge_acc": -0.005131393298059894,
+        "context_edge_acc": -0.005241255657922439,
+        "changed_edge_acc": 0.012304250559284136,
+        "add": 0.039832285115303984,
+        "delete": -0.01918465227817745,
+        "proposal_node_scope_recall": 0.0025940337224383825,
+        "proposal_edge_scope_recall": 0.050601556970983674,
+        "proposal_edge_scope_excess_ratio": 0.003885531419874022,
+        "proposal_out_of_scope_miss_edge": -0.0604026845637583
+      },
+      "strongly_interacting_final": {
+        "full_edge_acc": -0.002769600769600866,
+        "context_edge_acc": -0.0026901956068623445,
+        "changed_edge_acc": -0.007751937984496124,
+        "add": -0.008333333333333331,
+        "delete": 0.0,
+        "proposal_node_scope_recall": 0.000535905680600246,
+        "proposal_edge_scope_recall": 0.03949447077409163,
+        "proposal_edge_scope_excess_ratio": 0.0049222294975677094,
+        "proposal_out_of_scope_miss_edge": -0.015503875968992276
+      },
+      "fully_independent_final": {
+        "full_edge_acc": -0.009829124579124549,
+        "context_edge_acc": -0.010425269175269314,
+        "changed_edge_acc": 0.03309692671394801,
+        "add": 0.06153846153846154,
+        "delete": 0.00877192982456143,
+        "proposal_node_scope_recall": 0.009411764705882342,
+        "proposal_edge_scope_recall": 0.08148148148148149,
+        "proposal_edge_scope_excess_ratio": 5.480138827829162e-05,
+        "proposal_out_of_scope_miss_edge": -0.08274231678486987
+      },
+      "partially_dependent_final": {
+        "full_edge_acc": -0.002795454545454601,
+        "context_edge_acc": -0.0026083021916355476,
+        "changed_edge_acc": -0.005847953216374269,
+        "add": 0.04938271604938271,
+        "delete": -0.05555555555555558,
+        "proposal_node_scope_recall": -0.0006734006734007147,
+        "proposal_edge_scope_recall": 0.04293785310734466,
+        "proposal_edge_scope_excess_ratio": 0.00469187759313916,
+        "proposal_out_of_scope_miss_edge": -0.04970760233918137
+      }
+    },
+    "step24_minus_noisy_p2_i1520_optional": {
+      "overall_final": {
+        "full_edge_acc": 0.040106661856661896,
+        "context_edge_acc": 0.04197217597217595,
+        "changed_edge_acc": -0.12416107382550334,
+        "add": 0.01048218029350105,
+        "delete": -0.2781774580335732,
+        "proposal_node_scope_recall": -0.007133592736705552,
+        "proposal_edge_scope_recall": 0.006369426751592355,
+        "proposal_edge_scope_excess_ratio": -0.000722015921566177,
+        "proposal_out_of_scope_miss_edge": -0.01342281879194629
+      },
+      "strongly_interacting_final": {
+        "full_edge_acc": 0.04148003848003845,
+        "context_edge_acc": 0.041728592395259057,
+        "changed_edge_acc": 0.0,
+        "add": 0.008333333333333331,
+        "delete": -0.1111111111111111,
+        "proposal_node_scope_recall": -0.006430868167202508,
+        "proposal_edge_scope_recall": -0.003949447077409185,
+        "proposal_edge_scope_excess_ratio": -0.0016803598646789597,
+        "proposal_out_of_scope_miss_edge": -0.015503875968992276
+      },
+      "fully_independent_final": {
+        "full_edge_acc": 0.034670153920153934,
+        "context_edge_acc": 0.03731974815308148,
+        "changed_edge_acc": -0.13947990543735223,
+        "add": 0.020512820512820523,
+        "delete": -0.27631578947368424,
+        "proposal_node_scope_recall": -0.01098039215686275,
+        "proposal_edge_scope_recall": 0.040000000000000036,
+        "proposal_edge_scope_excess_ratio": -0.0023744206906568532,
+        "proposal_out_of_scope_miss_edge": -0.03782505910165479
+      },
+      "partially_dependent_final": {
+        "full_edge_acc": 0.04416979316979308,
+        "context_edge_acc": 0.04686818736818743,
+        "changed_edge_acc": -0.15204678362573099,
+        "add": 0.0,
+        "delete": -0.28888888888888886,
+        "proposal_node_scope_recall": -0.004713804713804781,
+        "proposal_edge_scope_recall": -0.004519774011299438,
+        "proposal_edge_scope_excess_ratio": 0.0003998745605063858,
+        "proposal_out_of_scope_miss_edge": 0.01754385964912275
+      }
+    }
+  }
+}
