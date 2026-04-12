@@ -155,7 +155,7 @@ Validated calibrated threshold:
 Main result:
 
 - pure scale-up clearly helped the default-threshold operating point
-- candidate_scale became the best default-threshold isolated Step32 reference
+- candidate_scale became the best observed default-threshold isolated Step32 reference
 - calibrated recovery regressed slightly versus candidate_next, so pure scale-up no longer clearly helps the calibrated operating point
 - Step32 is no longer only calibration-dependent in the earlier sense, but remains threshold-sensitive
 - backend transfer still remained closed because Step30 rev6 is still ahead
@@ -188,6 +188,36 @@ Validated calibrated threshold:
 - clean F1: `-0.0259`
 - noisy F1: `-0.0077`
 
+### same-scale variance check
+
+Same-scale repeats were run on the candidate_scale data and recipe with seeds `1`, `2`, and `3`.
+Only the random seed / run identity changed.
+
+Per-seed metrics:
+
+| seed | default overall | default clean | default noisy | calibrated overall | calibrated clean | calibrated noisy |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 | `0.5611` | `0.6293` | `0.4902` | `0.5810` | `0.6386` | `0.5266` |
+| 2 | `0.5185` | `0.5852` | `0.4484` | `0.5806` | `0.6368` | `0.5262` |
+| 3 | `0.5565` | `0.6296` | `0.4786` | `0.5886` | `0.6467` | `0.5325` |
+
+Mean / range:
+
+- default overall F1: mean `0.5454`, range `0.5185-0.5611`
+- default clean F1: mean `0.6147`, range `0.5852-0.6296`
+- default noisy F1: mean `0.4724`, range `0.4484-0.4902`
+- calibrated overall F1: mean `0.5834`, range `0.5806-0.5886`
+- calibrated clean F1: mean `0.6407`, range `0.6368-0.6467`
+- calibrated noisy F1: mean `0.5284`, range `0.5262-0.5325`
+
+Interpretation:
+
+- default-threshold Step32 progress is real, not a total fluke
+- the original candidate_scale default result looks like a high-end seed, not the center
+- calibrated performance is much more stable than default-threshold performance
+- calibrated performance is effectively saturated around the candidate_next / candidate_scale level
+- no more scale-only escalation is currently justified without a new mechanism
+
 ---
 
 ## Current retained isolated references
@@ -195,7 +225,9 @@ Validated calibrated threshold:
 The current retained isolated Step32 references are:
 
 - best calibrated isolated reference: `step32_rendered_bridge_candidate_next @ clean=0.30, noisy=0.30`
-- best default-threshold isolated reference: `step32_rendered_bridge_candidate_scale @ clean=0.50, noisy=0.50`
+- best observed default-threshold isolated reference: `step32_rendered_bridge_candidate_scale @ clean=0.50, noisy=0.50`
+
+The default-threshold reference carries a variance caveat: same-scale repeats confirm meaningful default-threshold behavior, but the original candidate_scale default result is above the repeat mean.
 
 These are **candidate references**, not formal promoted Step32 checkpoints.
 
@@ -219,6 +251,8 @@ Candidate_scale:
 
 However, the operating point still matters materially. At `0.30 / 0.30`, candidate_scale trades precision for recall and does not improve the best calibrated reference. The best calibrated reference remains candidate_next, while the best default-threshold reference is now candidate_scale.
 
+The same-scale variance check tightens this interpretation: default-threshold gains are real but seed-sensitive, while calibrated gains are stable but saturated near candidate_next.
+
 ### 2. Step30 rev6 is still ahead
 
 Retained Step30 rev6 reference:
@@ -235,6 +269,11 @@ Best Step32 default-threshold isolated reference, candidate_scale at default thr
 
 - overall F1: `0.5860`
 - noisy F1: `0.5193`
+
+Same-scale default-threshold repeat mean:
+
+- overall F1: `0.5454`
+- noisy F1: `0.4724`
 
 So Step32 has not yet reached the existing weak-observation recovery reference.
 
@@ -261,7 +300,8 @@ The right public interpretation is:
 
 > Step32 is no longer just an infrastructure smoke line.
 > It now has meaningful default-threshold behavior and a separate best calibrated isolated reference.
-> Pure scale-up clearly improved the default-threshold operating point, but calibrated recovery appears to be starting to saturate under pure scale-up.
+> The best observed default-threshold checkpoint remains candidate_scale, but same-scale repeats show that default-threshold gains are seed-sensitive.
+> Calibrated recovery is much more stable, but appears saturated around the candidate_next / candidate_scale level under pure scale-up.
 > Step32 remains threshold-sensitive, remains below Step30 rev6, and is therefore not formally promotable yet.
 
 ---
@@ -272,7 +312,7 @@ Retain publicly:
 
 - `step31_simple_late_fusion` as the retained Step31 multi-view bridge reference
 - `step32_rendered_bridge_candidate_next @ clean=0.30, noisy=0.30` as the best calibrated isolated Step32 reference
-- `step32_rendered_bridge_candidate_scale @ clean=0.50, noisy=0.50` as the best default-threshold isolated Step32 reference
+- `step32_rendered_bridge_candidate_scale @ clean=0.50, noisy=0.50` as the best observed default-threshold isolated Step32 reference, with the variance caveat above
 
 Do **not** currently do any of the following:
 
@@ -285,7 +325,7 @@ Do **not** currently do any of the following:
 
 ## Next smallest justified action
 
-The next smallest justified action is **not** more threshold tuning for the same checkpoint.
+The next smallest justified action is **not** more threshold tuning for the same checkpoint and **not** more scale-only escalation.
 
 For the current candidate checkpoints, threshold protocol is considered fixed.
 
