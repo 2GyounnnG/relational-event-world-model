@@ -7,7 +7,8 @@ This note records the current public status of the bounded **Step32 synthetic re
 It is not a formal promotion note.
 It does not reopen parked Step22–31 micro-lines.
 It does not introduce a new mechanism.
-It records the current best isolated Step32 candidate and the fixed evaluation protocol now used for this line.
+Step32 source is already in the public repo.
+It records the current best isolated Step32 candidate references and the fixed evaluation protocol now used for this line.
 
 ---
 
@@ -116,7 +117,7 @@ Validated calibrated `0.30 / 0.30`:
 Main result:
 
 - simple scale-up helped clearly under the same fixed protocol
-- candidate_next is the current best isolated Step32 candidate
+- candidate_next became the best calibrated isolated Step32 candidate
 - default-threshold behavior improved materially
 - calibrated behavior improved materially
 - backend transfer still remained closed because Step30 rev6 is still ahead
@@ -149,31 +150,74 @@ Validated calibrated threshold:
 - clean F1: `+0.0749`
 - noisy F1: `+0.0412`
 
+### candidate_scale
+
+Main result:
+
+- pure scale-up clearly helped the default-threshold operating point
+- candidate_scale became the best default-threshold isolated Step32 reference
+- calibrated recovery regressed slightly versus candidate_next, so pure scale-up no longer clearly helps the calibrated operating point
+- Step32 is no longer only calibration-dependent in the earlier sense, but remains threshold-sensitive
+- backend transfer still remained closed because Step30 rev6 is still ahead
+
+Candidate_scale metrics:
+
+Default `0.50 / 0.50`:
+
+- overall F1: `0.5860`
+- clean F1: `0.6515`
+- noisy F1: `0.5193`
+
+Validated calibrated `0.30 / 0.30`:
+
+- overall F1: `0.5685`
+- clean F1: `0.6216`
+- noisy F1: `0.5191`
+
+Direct delta vs candidate_next:
+
+Default threshold:
+
+- overall F1: `+0.1172`
+- clean F1: `+0.1200`
+- noisy F1: `+0.1157`
+
+Validated calibrated threshold:
+
+- overall F1: `-0.0174`
+- clean F1: `-0.0259`
+- noisy F1: `-0.0077`
+
 ---
 
-## Current retained isolated candidate
+## Current retained isolated references
 
-The current retained isolated Step32 candidate reference is:
+The current retained isolated Step32 references are:
 
-- checkpoint: `checkpoints/step32_rendered_bridge_candidate_next/best.pt`
-- validated calibrated operating point: `clean=0.30`, `noisy=0.30`
+- best calibrated isolated reference: `step32_rendered_bridge_candidate_next @ clean=0.30, noisy=0.30`
+- best default-threshold isolated reference: `step32_rendered_bridge_candidate_scale @ clean=0.50, noisy=0.50`
 
-This is a **candidate reference**, not a formal promoted Step32 checkpoint.
+These are **candidate references**, not formal promoted Step32 checkpoints.
+
+The formal Step32 checkpoint path remains untouched:
+
+- `checkpoints/step32_rendered_bridge/`
+- `checkpoints/step32_rendered_bridge/best.pt`
 
 ---
 
 ## Why it is not formally promoted
 
-### 1. It is still calibration-dependent
+### 1. It is still threshold-sensitive
 
-Even though candidate_next is much healthier at the default threshold than earlier runs, calibrated evaluation remains clearly stronger than default evaluation.
+Candidate_scale changed the interpretation: Step32 has progressed beyond the earlier phase where only the calibrated threshold exposed meaningful recovery.
 
-Candidate_next:
+Candidate_scale:
 
-- default overall F1: `0.4688`
-- calibrated overall F1: `0.5859`
+- default overall F1: `0.5860`
+- calibrated overall F1: `0.5685`
 
-So the line still does not have a default-stable operating point.
+However, the operating point still matters materially. At `0.30 / 0.30`, candidate_scale trades precision for recall and does not improve the best calibrated reference. The best calibrated reference remains candidate_next, while the best default-threshold reference is now candidate_scale.
 
 ### 2. Step30 rev6 is still ahead
 
@@ -182,16 +226,23 @@ Retained Step30 rev6 reference:
 - overall F1: `0.7452`
 - noisy F1: `0.6657`
 
-Candidate_next at validated calibrated threshold:
+Best Step32 calibrated isolated reference, candidate_next at validated calibrated threshold:
 
 - overall F1: `0.5859`
 - noisy F1: `0.5268`
+
+Best Step32 default-threshold isolated reference, candidate_scale at default threshold:
+
+- overall F1: `0.5860`
+- noisy F1: `0.5193`
 
 So Step32 has not yet reached the existing weak-observation recovery reference.
 
 ### 3. Backend transfer remains closed
 
-For candidate_next:
+No backend transfer was run for candidate_scale.
+
+For candidate_next and candidate_scale:
 
 - `beats_step30_rev6_overall_f1: false`
 - `beats_step30_rev6_noisy_f1: false`
@@ -209,8 +260,9 @@ So the correct public decision remains:
 The right public interpretation is:
 
 > Step32 is no longer just an infrastructure smoke line.
-> It now has a real isolated learned candidate that beats the trivial rendered baselines under a validation-selected calibrated operating point.
-> But it remains calibration-dependent, remains below Step30 rev6, and is therefore not formally promotable yet.
+> It now has meaningful default-threshold behavior and a separate best calibrated isolated reference.
+> Pure scale-up clearly improved the default-threshold operating point, but calibrated recovery appears to be starting to saturate under pure scale-up.
+> Step32 remains threshold-sensitive, remains below Step30 rev6, and is therefore not formally promotable yet.
 
 ---
 
@@ -219,7 +271,8 @@ The right public interpretation is:
 Retain publicly:
 
 - `step31_simple_late_fusion` as the retained Step31 multi-view bridge reference
-- `step32_rendered_bridge_candidate_next @ clean=0.30, noisy=0.30` as the current retained isolated Step32 candidate reference
+- `step32_rendered_bridge_candidate_next @ clean=0.30, noisy=0.30` as the best calibrated isolated Step32 reference
+- `step32_rendered_bridge_candidate_scale @ clean=0.50, noisy=0.50` as the best default-threshold isolated Step32 reference
 
 Do **not** currently do any of the following:
 
@@ -234,9 +287,9 @@ Do **not** currently do any of the following:
 
 The next smallest justified action is **not** more threshold tuning for the same checkpoint.
 
-For the current candidate checkpoint, threshold protocol is considered fixed.
+For the current candidate checkpoints, threshold protocol is considered fixed.
 
 Future work should either:
 
-1. run another bounded Step32 progression under the same fixed protocol to test scale saturation, or
-2. stop here and use `candidate_next` as the public isolated Step32 candidate reference until a genuinely stronger Step32 mechanism is ready.
+1. stop scale-only progression here and retain the split calibrated/default references, or
+2. wait for a genuinely stronger Step32 mechanism before running another bounded Step32 progression under the same fixed protocol.
