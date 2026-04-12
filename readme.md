@@ -377,6 +377,26 @@ Main result:
 
 ---
 
+### Steps 25–29 — Oracle headroom, factorization, and retained noisy interaction branch
+
+These stages completed the current noisy multievent interaction line.
+
+Main results:
+
+- Step 25 oracle-scope headroom showed large proposal-coverage headroom for strongly interacting changed/add behavior, while delete remained partly rewrite-limited.
+- Step 26 coverage-emphasized joint training recovered real strongly interacting changed/add headroom, but broad full/context-edge stability dropped and strongly interacting delete collapsed.
+- Step 27 factorization showed the positive Step 26 signal is primarily proposal-side, while the negative signal is primarily rewrite-side.
+- Step 28 RFT1-anchored joint training did not improve on the cleaner factorized reference.
+- Step 29 confirmed **`Step26 proposal + RFT1`** as the retained noisy interaction-aware branch candidate.
+
+Retained noisy interaction-aware branch candidate: `Step26 proposal + RFT1`. It should be used when the evaluation priority is strongly-interacting changed/add recovery under noisy multievent interaction, not when broad context/full-edge stability is the priority.
+
+This branch is not the broad noisy default because broad full-edge / context-edge remain materially weaker than `RFT1 + calibrated P2`.
+
+**Status:** sufficiently explored for the current phase; park this local substrate line unless a genuinely new mechanism is introduced.
+
+---
+
 ## 5. Current Stable Defaults
 
 ### Broad structured-world default
@@ -399,6 +419,11 @@ Main result:
 - `node_threshold = 0.15`
 - `edge_threshold = 0.10`
 
+### Retained noisy interaction-aware branch candidate
+**`Step26 proposal + RFT1`**
+
+This is a branch candidate only, not the broad noisy default.
+
 ---
 
 ## 6. Important Non-Default References
@@ -413,6 +438,9 @@ These are informative and should be preserved, but they are not the current defa
   - first light noisy joint line with real coupling signal
 - `Step 9c` fixed-budget internal completion @ 10%
   - proposal-side branch candidate with meaningful but not default-level value
+- `Step26 proposal + RFT1`
+  - retained noisy interaction-aware branch candidate for strongly interacting changed/add recovery
+  - not the broad noisy default because broad full/context-edge stability is weaker than `RFT1 + calibrated P2`
 
 ---
 
@@ -425,6 +453,8 @@ The following lines are considered sufficiently explored or temporarily parked:
 - more Step 6 temperature-only calibration variants
 - the parked chooser-interface line from Steps 16–21
 - more proposal-only noisy interaction micro-tuning after Step 23
+- more Step 26 / Step 28 joint-recipe tweaks on the noisy interaction substrate
+- the Step 22–29 local substrate line, unless a genuinely new mechanism is introduced
 - more tiny guard / reranking / minimal-representation proposal-side tweaks after Steps 11–15
 
 ---
@@ -443,7 +473,8 @@ The repository now supports a coherent view of local event-centric world modelin
 8. the proposal-side internal completion line has real but non-default value
 9. the rewrite-side fallback interface has a strong oracle ceiling, but no usable learned chooser yet
 10. the new noisy multievent substrate is established
-11. on that substrate, the main active bottleneck is noisy interaction-time proposal/rewrite coverage, especially on strongly interacting cases
+11. on that substrate, `Step26 proposal + RFT1` is the retained noisy interaction-aware branch candidate
+12. the Step 22–29 line is now parked for this phase unless a genuinely new mechanism is introduced
 
 ---
 
@@ -454,8 +485,9 @@ If you are running new experiments in this repository:
 - use `W012` as the default broad clean model
 - use `RFT1 + calibrated P2` as the default noisy system stack
 - use `I1520` when interaction sensitivity is the main clean-structured concern
+- use `Step26 proposal + RFT1` only when the target is noisy strongly interacting changed/add recovery and a broad full/context-edge tradeoff is acceptable
 - compare against `WG025`, `DR005`, `J05`, or `Step 9c` only when the mechanism under study directly touches their tradeoff axes
-- treat the Step 22 substrate as the current entry point for noisy multi-event interaction work
+- do not continue the Step 22–29 noisy multievent interaction substrate line without a genuinely new mechanism
 
 ---
 
@@ -470,15 +502,12 @@ It should begin from the consolidated defaults:
 - interaction-aware alternative: `I1520`
 - consistency reference: `C005`
 - rollout reference: `R050`
+- retained noisy interaction-aware branch candidate: `Step26 proposal + RFT1`
 
-The current clean next-phase question is:
-
-> On the Step 22 noisy multievent substrate, how much of the strongly-interacting failure is still proposal-limited, and how much remains even under oracle event scope?
-
-That is the intended entry point for the next oracle-headroom stage.
+The Step 22–29 noisy multievent interaction substrate is sufficiently explored for the current phase. Future work should preserve `Step26 proposal + RFT1` as a branch candidate, but should not continue local tweaks on this line unless a genuinely new mechanism is introduced.
 
 ---
 
 ## 11. Summary in One Sentence
 
-This repository now supports a staged, mechanistically interpretable local event-centric world model pipeline in a structured synthetic graph world, with stable defaults for clean and noisy settings, established interaction and rollout references, and a newly benchmarked noisy multievent substrate whose next bottleneck is oracle-headroom analysis rather than more old micro-tuning.
+This repository now supports a staged, mechanistically interpretable local event-centric world model pipeline in a structured synthetic graph world, with stable defaults for clean and noisy settings, established interaction and rollout references, and a parked noisy multievent interaction line whose retained branch candidate is `Step26 proposal + RFT1`.

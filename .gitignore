@@ -1,48 +1,13 @@
 # macOS
 .DS_Store
 
-# Python
+# experiment outputs
+artifacts/
+checkpoints/
+
+# generated datasets
+data/*.pkl
+
+# python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Jupyter
-.ipynb_checkpoints/
-
-# Virtual environments
-.venv/
-venv/
-env/
-ENV/
-
-# Conda
-conda-meta/
-
-# VS Code
-.vscode/
-
-# Logs
-*.log
-
-# Training artifacts
-checkpoints/
-runs/
-logs/
-
-# Data artifacts
-data/*.pkl
-data/*.pt
-data/*.npy
-data/*.npz
-
-# Temporary local debug scripts
-inspect_dataset.py
-test_dataset.py
-
-
-__pycache__/
-*.pyc
-.DS_Store
-checkpoints/
-data/*.pkl
