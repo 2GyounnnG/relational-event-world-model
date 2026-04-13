@@ -330,6 +330,8 @@ This is the most project-specific next move because Step33's key advantage is ex
 
 ## 8. Smallest Next Implementation After The Memo
 
+Status update: this staged-target diagnostic has now been run. Its result is recorded in the post-memo update below, and it confirms that the next learned target should be staged changed-edge spring-parameter correction rather than another tiny edge residual variant.
+
 Implement exactly one bounded diagnostic:
 
 ### Step33 staged-target rewrite diagnostic for noisy `spring_retension`
@@ -413,3 +415,23 @@ Step33 rewrite should be redesigned around a tighter staged target first.
 The tiny learned edge-head family is paused. It has produced useful diagnostics but not a viable rewrite direction.
 
 A structured propagation model may still be the right eventual architecture, but it should come after the target boundary is clarified. The next implementation should be a staged-target noisy `spring_retension` diagnostic, not another learned edge residual variant.
+
+## Post-Memo Staged-Target Result
+
+The staged-target noisy `spring_retension` diagnostic is now complete.
+
+Total changed-region error on the noisy test subset:
+
+- `noisy_copy`: `0.1791`
+- `event_edge_only`: `0.1633`
+- `changed_nodes_only`: `0.1612`
+- `event_edge_plus_changed_nodes`: `0.1453`
+- `all_changed_edges_only`: `0.0180`
+- `event_edge_plus_changed_edges`: `0.0180`
+- `full_staged_oracle`: `0.0000`
+- `spring_neighbor_scope`: `0.1125`
+- `edge_gate_learned`: `0.1550`
+
+This confirms the memo's direction. The dominant leverage is the full changed-edge spring-parameter target, not event-edge direct edit alone and not changed-node rollout alone. The best current learned edge-gated row captures only a small fraction of that leverage and remains behind `spring_neighbor_scope`.
+
+The tiny learned noisy `spring_retension` edge-head family is therefore formally paused. Future rewrite work should target staged changed-edge parameter correction first, with a structured propagation model considered only after that tighter target boundary is tested. Do not escalate `propagation_edge` or another residual/gate/denoise edge-head variant.

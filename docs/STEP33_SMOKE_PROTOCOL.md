@@ -136,12 +136,26 @@ The stratified noisy `spring_retension` diagnostic rerun corrected the model-sel
 - `propagation_edge` still ranked last among the learned edge variants on both diagnostic val and diagnostic test
 - all learned edge variants remained behind `spring_neighbor_scope`
 
+The staged-target noisy `spring_retension` diagnostic then quantified the target leverage:
+
+- `noisy_copy` total changed-region error: `0.1791`
+- `event_edge_only`: `0.1633`
+- `changed_nodes_only`: `0.1612`
+- `event_edge_plus_changed_nodes`: `0.1453`
+- `all_changed_edges_only`: `0.0180`
+- `event_edge_plus_changed_edges`: `0.0180`
+- `full_staged_oracle`: `0.0000`
+- reference rows: `spring_neighbor_scope` `0.1125`, `edge_gate_learned` `0.1550`
+
 Interpretation:
 
 - the earlier propagation validation gain was mostly a split artifact
 - the ranking differences among the tiny learned edge heads are smaller than the larger failure to beat the structured trivial baseline
-- another small residual edge-head variant is not currently justified
-- future Step33 rewrite work should require either a tighter rewrite target or a genuinely structured propagation model
+- the dominant leverage is the full changed-edge spring-parameter target, not event-edge direct edit alone and not changed-node rollout alone
+- the current learned edge-gated row captures only a small fraction of that staged-target leverage
+- the current tiny learned noisy `spring_retension` edge-head family is formally paused
+- future Step33 rewrite work should move to tighter staged rewrite targets first, and only later to a genuinely structured propagation model if needed
+- `propagation_edge` and related tiny residual/gate/denoise edge variants should not be escalated
 
 Reference artifacts:
 
@@ -149,6 +163,8 @@ Reference artifacts:
 - `artifacts/step33_spring_retension_stratified_split/distribution_summary.csv`
 - `artifacts/step33_spring_retension_stratified_rerun/summary.json`
 - `artifacts/step33_spring_retension_stratified_rerun/rerun_comparison.csv`
+- `artifacts/step33_spring_retension_staged_target_diagnostic/summary.json`
+- `artifacts/step33_spring_retension_staged_target_diagnostic/staged_target_summary.csv`
 
 ---
 
