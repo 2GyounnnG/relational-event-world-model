@@ -435,3 +435,20 @@ Total changed-region error on the noisy test subset:
 This confirms the memo's direction. The dominant leverage is the full changed-edge spring-parameter target, not event-edge direct edit alone and not changed-node rollout alone. The best current learned edge-gated row captures only a small fraction of that leverage and remains behind `spring_neighbor_scope`.
 
 The tiny learned noisy `spring_retension` edge-head family is therefore formally paused. Future rewrite work should target staged changed-edge parameter correction first, with a structured propagation model considered only after that tighter target boundary is tested. Do not escalate `propagation_edge` or another residual/gate/denoise edge-head variant.
+
+## Post-Memo Structured-Propagation Result
+
+The follow-up rewrite probes are now complete.
+
+Noisy `spring_retension` total changed-region error:
+
+- `edge_gate_learned`: `0.1550`
+- `changed_edge_param_learned`: `0.1570`
+- `split_target_edge_learned`: `0.1561`
+- `propagation_target_learned`: `0.1591`
+- stronger `structured_propagation_learned`: `0.1721`
+- `spring_neighbor_scope`: `0.1125`
+
+The tighter changed-edge target and split-target refinement only marginally improved the direct edge-head line. The first stronger structured propagation prototype, which added event-edge injection, edge-to-node propagation, changed-node rollout, and node-to-edge correction, was also negative: it performed worse than the existing tiny-family band and did not improve changed-node velocity meaningfully.
+
+The current learned Step33 rewrite family is paused. Step33 benchmark work and proposal-side work can continue, but future rewrite work must be preceded by a more substantial redesign memo or a narrower target definition. Do not continue with another small local residual, gate, denoise, direct-edge, or propagation-smoke variant in the current family.

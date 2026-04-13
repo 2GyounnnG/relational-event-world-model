@@ -147,15 +147,25 @@ The staged-target noisy `spring_retension` diagnostic then quantified the target
 - `full_staged_oracle`: `0.0000`
 - reference rows: `spring_neighbor_scope` `0.1125`, `edge_gate_learned` `0.1550`
 
+Follow-up learned rewrite probes tested the tighter changed-edge target and a stronger structured propagation prototype:
+
+- `changed_edge_param_learned` noisy total changed-region error: `0.1570`
+- `split_target_edge_learned`: `0.1561`
+- `propagation_target_learned`: `0.1591`
+- stronger `structured_propagation_learned`: `0.1721`
+- reference rows remain `spring_neighbor_scope` `0.1125` and `edge_gate_learned` `0.1550`
+
 Interpretation:
 
 - the earlier propagation validation gain was mostly a split artifact
 - the ranking differences among the tiny learned edge heads are smaller than the larger failure to beat the structured trivial baseline
 - the dominant leverage is the full changed-edge spring-parameter target, not event-edge direct edit alone and not changed-node rollout alone
 - the current learned edge-gated row captures only a small fraction of that staged-target leverage
-- the current tiny learned noisy `spring_retension` edge-head family is formally paused
-- future Step33 rewrite work should move to tighter staged rewrite targets first, and only later to a genuinely structured propagation model if needed
-- `propagation_edge` and related tiny residual/gate/denoise edge variants should not be escalated
+- the tighter changed-edge target helped only marginally and did not close the gap to `spring_neighbor_scope`
+- the first stronger structured propagation prototype is a negative result; it also failed to improve changed-node velocity meaningfully
+- the current learned Step33 rewrite family is formally paused
+- future Step33 rewrite work needs a more substantial redesign or a narrower target definition before implementation
+- small local smoke variants in the current residual/gate/denoise/propagation family should not continue
 
 Reference artifacts:
 
@@ -165,6 +175,10 @@ Reference artifacts:
 - `artifacts/step33_spring_retension_stratified_rerun/rerun_comparison.csv`
 - `artifacts/step33_spring_retension_staged_target_diagnostic/summary.json`
 - `artifacts/step33_spring_retension_staged_target_diagnostic/staged_target_summary.csv`
+- `artifacts/step33_spring_retension_changed_edge_param_smoke_noisy/summary.json`
+- `artifacts/step33_spring_retension_split_target_edge_smoke_noisy/summary.json`
+- `artifacts/step33_spring_retension_propagation_target_smoke_noisy/summary.json`
+- `artifacts/step33_spring_retension_structured_propagation_smoke_noisy/summary.json`
 
 ---
 
