@@ -180,6 +180,53 @@ Reference artifacts:
 - `artifacts/step33_spring_retension_propagation_target_smoke_noisy/summary.json`
 - `artifacts/step33_spring_retension_structured_propagation_smoke_noisy/summary.json`
 
+### Current Pause Update
+
+The later stronger-propagation line found a better learned rewrite family, but it is still not candidate-ready:
+
+- promoted `structured_propagation_v2` with near-node-velocity weighting is the best learned Step33 rewrite family so far
+- promoted `full_v2` noisy `spring_retension` mean total changed-region error is about `0.1312`
+- `spring_neighbor_scope` still wins total changed-region error on noisy `spring_retension` (`0.1125` on the original noisy test reference)
+- auxiliary active/contact assembly improved the original noisy test nearly to `spring_neighbor_scope`, but did not survive the stratified noisy diagnostic test as a retained reference
+- deterministic event-edge retension rule patches and the existing event-edge cleanup head both regressed the stratified diagnostic result
+- oracle event-edge parameters remain a real lever, but current rule-shaped and tiny learned cleanup paths do not capture it
+- current small active/contact/event-rule variants are paused
+- future rewrite work should be preceded by a redesign around event-edge denoising and near-node rollout together, not another tiny local smoke variant
+
+Reference artifacts for this pause decision:
+
+- `artifacts/step33_spring_retension_contact_margin_sweep/summary.json`
+- `artifacts/step33_spring_retension_contact_margin_sweep_stratified_sanity/summary.json`
+- `artifacts/step33_contact_gated_stratified_gap_decomposition/summary.json`
+- `artifacts/step33_contact_gated_event_rule_patch_stratified/summary.json`
+- `artifacts/step33_contact_gated_existing_event_cleanup_patch_stratified/summary.json`
+- `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+
+### Event-Edge Source Update
+
+The event-edge source-estimation line is now also paused under the current local noisy feature set:
+
+- `denoise_from_clean_current_source` remains a real diagnostic upper bound:
+  - noisy total changed-region error: `0.1232`
+  - event-edge stiffness MAE: `0.0085`
+  - oracle event-edge patch on support `full_v2`: `0.1230`
+- the learned `clean_current_estimator` did not recover that lever:
+  - noisy total changed-region error: `0.1299`
+  - support `full_v2`: `0.1297`
+  - hard `stiffness_factor < 1` bucket remained poor: `0.5089` stiffness MAE versus support `full_v2` at `0.4787`
+- the learned estimator improved noisy clean-current source stiffness from `0.4783` to `0.3765`, but this was not enough to improve event-edge target quality or total changed-region error
+- clean sanity regressed slightly: clean total `0.0285` versus support `full_v2` at `0.0280`
+- `denoise_from_clean_current_source` should be treated as an oracle-source upper bound, not a deployable noisy-observation solution
+- future event-edge work requires a stronger source/observation redesign, not another tiny source MLP
+
+Current retained interpretation:
+
+- Step33 benchmark substrate remains healthy
+- proposal-side learned signal remains viable
+- promoted `structured_propagation_v2` with near-node-velocity weighting remains the current best learned rewrite family
+- the current event-edge source-estimation implementation line is paused
+- further Step33 rewrite work should not continue via small event-edge residual/source-estimator variants
+
 ---
 
 ## Commands

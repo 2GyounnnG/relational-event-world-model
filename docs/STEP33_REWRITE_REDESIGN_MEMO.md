@@ -452,3 +452,52 @@ Noisy `spring_retension` total changed-region error:
 The tighter changed-edge target and split-target refinement only marginally improved the direct edge-head line. The first stronger structured propagation prototype, which added event-edge injection, edge-to-node propagation, changed-node rollout, and node-to-edge correction, was also negative: it performed worse than the existing tiny-family band and did not improve changed-node velocity meaningfully.
 
 The current learned Step33 rewrite family is paused. Step33 benchmark work and proposal-side work can continue, but future rewrite work must be preceded by a more substantial redesign memo or a narrower target definition. Do not continue with another small local residual, gate, denoise, direct-edge, or propagation-smoke variant in the current family.
+
+## Post-Memo Full V2 And Auxiliary-Assembly Result
+
+A later stronger-propagation refinement did produce a better learned family:
+
+- promoted `structured_propagation_v2` with near-node-velocity weighting is the current best learned Step33 rewrite family
+- it escaped the earlier tiny-family band and reached about `0.1312` mean noisy `spring_retension` total changed-region error
+- `spring_neighbor_scope` still wins total changed-region error on the same noisy reference (`0.1125`)
+- hop0/1 stiffness weighting did not provide a durable refinement
+- `full_v2` already beats `spring_neighbor_scope` on non-event changed-edge stiffness, but loses on total changed-region error through auxiliary assembly, event-edge parameter error, and near-node rollout
+
+The follow-up active/contact/event-rule tranche is also now complete:
+
+- learned active plus rule distance/contact reached about `0.1162` on the original noisy test
+- validation-selected contact-gated active assembly reached `0.1120` on the original noisy test, slightly better than `spring_neighbor_scope` at `0.1125`
+- the same contact-gated policy failed the stratified noisy diagnostic test: `0.1150` versus `spring_neighbor_scope` at `0.1101`
+- oracle active plus rule distance/contact on the stratified split reached only `0.1126`, so active-channel correction alone is not sufficient
+- deterministic event-edge retension rule patch regressed to `0.1170`
+- the existing event-edge cleanup checkpoint regressed to `0.1156`
+- oracle event-edge parameters would reach `0.1090`, showing that event-edge denoising remains a real lever
+
+Current conclusion:
+
+- `full_v2` remains the best learned rewrite family so far
+- it is still not candidate-ready
+- active/contact/event-rule small variants are paused
+- the next rewrite design question is joint event-edge denoising plus near-node rollout
+- future implementation should not be another small active threshold, contact gate, event rule, or existing cleanup-head patch
+
+## Post-Memo Event-Edge Source Result
+
+The joint event-edge denoising plus near-node rollout prototype produced only a weak positive total-error signal and did not robustly improve event-edge stiffness. A follow-up target/source diagnostic showed why:
+
+- `denoise_from_clean_current_source` nearly matched the oracle event-edge patch:
+  - noisy total changed-region error: `0.1232`
+  - noisy event-edge stiffness MAE: `0.0085`
+  - oracle event-edge patch on support `full_v2`: `0.1230`
+- this confirms that clean-current event-edge source quality is a real lever
+- however, this row uses oracle `clean_edge_features`, so it is a diagnostic upper bound, not a deployable noisy-observation path
+
+The bounded learned `clean_current_estimator` did not recover the lever:
+
+- noisy total changed-region error: `0.1299`
+- support `full_v2`: `0.1297`
+- current joint event-denoise: `0.1299`
+- hard `stiffness_factor < 1` stiffness MAE: `0.5089`, worse than support `full_v2` at `0.4787`
+- clean sanity also regressed slightly: clean total `0.0285` versus support `full_v2` at `0.0280`
+
+This pauses the current event-edge source-estimation implementation line. The clean-current source upper bound remains scientifically important, but the current noisy local feature set plus tiny source MLP is not sufficient. Future event-edge work must begin with a stronger source/observation redesign, not another small estimator, residual head, sign-aware head, or rule-shaped patch.

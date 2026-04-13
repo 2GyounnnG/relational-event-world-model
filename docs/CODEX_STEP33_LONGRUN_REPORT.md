@@ -1,0 +1,930 @@
+# Step33 Long Run Report
+
+Last updated: 2026-04-13
+
+This is a temporary handoff report for the current long Step33 session only. It is not a permanent logging workflow.
+
+## Current State
+
+- Active phase: Step33 synthetic physics-like rewrite diagnostics.
+- Current subline: noisy structured `spring_retension` rewrite, using oracle changed-node and changed-edge support.
+- Current best learned rewrite reference: promoted `structured_propagation_v2` with near-node-velocity weighting, evaluated as a seed set:
+  - `checkpoints/step33_structured_propagation_v2_nearvel_seed1/best.pt`
+  - `checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt`
+  - `checkpoints/step33_structured_propagation_v2_nearvel_seed3/best.pt`
+- Best trivial reference still relevant for total changed error: `spring_neighbor_scope`.
+- Current retained learned mean on noisy `spring_retension`: promoted `full_v2` at `0.1312` total changed-region error.
+- Latest bounded prototype: event-edge denoising plus near-node rollout, using promoted `full_v2` seed2 as fixed non-event changed-edge support, reached `0.1296` noisy total changed-region error in one run, but was not robust enough to promote.
+- Latest target-formulation diagnostic: `denoise_from_clean_current_source` nearly solved event-edge rest/stiffness in isolation and reached `0.1232` noisy total changed-region error with rollout fixed, close to the oracle event-edge patch at `0.1230`.
+- Latest clean-current estimator diagnostic: a tiny noisy-feature estimator improved noisy clean-current source stiffness from `0.4783` to `0.3765`, but did not improve event-edge target or total changed-region error over support `full_v2`.
+- `spring_neighbor_scope` on the same noisy test split: `0.1125` total changed-region error.
+- Key current finding: promoted `full_v2` already beats `spring_neighbor_scope` on non-event changed-edge stiffness, but loses total changed error because it does not assemble changed-edge auxiliary channels and near-node rollout as well as the oracle-copy baseline.
+- Latest auxiliary-channel finding: changed-edge `near_contact` is the largest single auxiliary lever; `spring_active` is second; `current_distance` alone is smaller. Recomputing distance/contact from predicted `full_v2` nodes helps but does not fully close the gap.
+- Current open question: whether a future event-edge observability/source-design diagnostic can show that clean-current event-edge stiffness is recoverable from structured noisy observation at all.
+
+## Session Goal
+
+- Identify whether Step33 rewrite should continue after the tiny edge-head family was paused.
+- If it continues, determine the smallest justified next rewrite target.
+- Avoid broad candidate training, rendered observation, backend transfer, data scaling, and reopening Step22-31 parked lines.
+
+## Runs / Iterations
+
+### 1. Step33 Benchmark Substrate And Smoke Protocol
+
+- Files created/modified:
+  - `data/generate_step33_physics_like_data.py`
+  - `data/step33_dataset.py`
+  - `train/eval_step33_physics_like_smoke.py`
+  - `train/eval_step33_event_family_diagnostics.py`
+  - `docs/STEP33_SYNTHETIC_PHYSICS_LIKE_BENCHMARK_PROPOSAL.md`
+  - `docs/STEP33_SMOKE_PROTOCOL.md`
+- Commands run:
+  - `python data/generate_step33_physics_like_data.py ...`
+  - `python train/eval_step33_physics_like_smoke.py ...`
+  - `python train/eval_step33_event_family_diagnostics.py ...`
+- Main results:
+  - Clean and noisy structured Step33 smoke data were generated.
+  - Event families: `node_impulse`, `spring_break`, `spring_retension`.
+  - Event scope differs from changed region consistently.
+  - `spring_neighbor_scope` is the strongest trivial structured changed-region baseline.
+  - `oracle_scope` clearly leaves headroom over trivial baselines.
+- Interpretation:
+  - Step33 benchmark substrate is healthy.
+  - The benchmark remains controlled, synthetic, labeled, and aligned with the proposal/rewrite spine.
+- Decision:
+  - Proceed to tiny learned smoke and rewrite diagnostics.
+
+### 2. First Learned Step33 Smoke
+
+- Files created/modified:
+  - `models/step33_smoke_model.py`
+  - `train/train_step33_smoke.py`
+  - `train/eval_step33_smoke.py`
+- Commands run:
+  - `python train/train_step33_smoke.py ...`
+  - `python train/eval_step33_smoke.py ...`
+- Main results:
+  - The learned smoke ran end to end on clean and noisy structured observations.
+  - Proposal-side and changed-region classification showed useful learned signal.
+  - Rewrite metrics did not beat `spring_neighbor_scope`.
+- Interpretation:
+  - Step33 learned proposal path is viable.
+  - Rewrite quality, not proposal viability, is the main bottleneck.
+- Decision:
+  - Isolate rewrite with oracle support.
+
+### 3. Oracle Rewrite And Preservation-Focused Rewrite
+
+- Files created/modified:
+  - `train/train_step33_oracle_rewrite_smoke.py`
+  - `train/eval_step33_oracle_rewrite_smoke.py`
+  - `models/step33_preservation_rewrite_model.py`
+  - `train/train_step33_preservation_rewrite_smoke.py`
+  - `train/eval_step33_preservation_rewrite_smoke.py`
+- Commands run:
+  - `python train/train_step33_oracle_rewrite_smoke.py ...`
+  - `python train/eval_step33_oracle_rewrite_smoke.py ...`
+  - `python train/train_step33_preservation_rewrite_smoke.py ...`
+  - `python train/eval_step33_preservation_rewrite_smoke.py ...`
+- Main results:
+  - Oracle support improved preservation and removed proposal uncertainty.
+  - Changed-region rewrite quality still lagged behind `spring_neighbor_scope`.
+  - Preservation-by-construction helped unchanged-region preservation but did not solve changed-region rewrite.
+- Interpretation:
+  - The broad rewrite head was too loose.
+  - The failure is in rewrite discipline, not benchmark plumbing.
+- Decision:
+  - Break rewrite error down by event family and feature channel.
+
+### 4. Event-Specific Direct-Edit Diagnostics
+
+- Files created/modified:
+  - `train/eval_step33_oracle_rewrite_error_breakdown.py`
+  - `train/train_step33_spring_break_oracle_rewrite_smoke.py`
+  - `train/eval_step33_spring_break_oracle_rewrite_smoke.py`
+  - `train/train_step33_spring_retension_oracle_rewrite_smoke.py`
+  - `train/eval_step33_spring_retension_oracle_rewrite_smoke.py`
+- Commands run:
+  - `python train/eval_step33_oracle_rewrite_error_breakdown.py ...`
+  - `python train/train_step33_spring_break_oracle_rewrite_smoke.py ...`
+  - `python train/eval_step33_spring_break_oracle_rewrite_smoke.py ...`
+  - `python train/train_step33_spring_retension_oracle_rewrite_smoke.py ...`
+  - `python train/eval_step33_spring_retension_oracle_rewrite_smoke.py ...`
+- Main results:
+  - `spring_break` direct active-state edit was solvable.
+  - Clean `spring_retension` direct rest/stiffness edits were largely solvable.
+  - Noisy `spring_retension` remained hard, especially stiffness.
+- Interpretation:
+  - Direct event-local edits are not the blocker.
+  - The main issue is propagated noisy changed-region rewrite, especially non-event changed-edge stiffness and node velocity.
+- Decision:
+  - Test cleanup and local rewrite paths, but keep them diagnostic.
+
+### 5. Tiny Noisy `spring_retension` Edge-Head Family
+
+- Files created/modified:
+  - `train/train_step33_spring_retension_param_cleanup_smoke.py`
+  - `train/eval_step33_spring_retension_param_cleanup_smoke.py`
+  - `train/eval_step33_spring_retension_error_decomposition.py`
+  - `train/eval_step33_spring_retension_copy_policy_ablation.py`
+  - `train/train_step33_spring_retension_all_changed_edge_cleanup_smoke.py`
+  - `train/eval_step33_spring_retension_all_changed_edge_cleanup_smoke.py`
+  - `train/train_step33_spring_retension_combined_rewrite_smoke.py`
+  - `train/eval_step33_spring_retension_combined_rewrite_smoke.py`
+  - `train/eval_step33_spring_retension_rollout_predictability.py`
+  - `train/train_step33_spring_retension_local_node_update_smoke.py`
+  - `train/eval_step33_spring_retension_local_node_update_smoke.py`
+  - `train/train_step33_spring_retension_local_edge_update_smoke.py`
+  - `train/eval_step33_spring_retension_local_edge_update_smoke.py`
+  - `train/train_step33_spring_retension_edge_gate_smoke.py`
+  - `train/eval_step33_spring_retension_edge_gate_smoke.py`
+  - `train/train_step33_spring_retension_edge_denoise_target_smoke.py`
+  - `train/eval_step33_spring_retension_edge_denoise_target_smoke.py`
+  - `train/train_step33_spring_retension_propagation_edge_smoke.py`
+  - `train/eval_step33_spring_retension_propagation_edge_smoke.py`
+- Commands run:
+  - Narrow train/eval commands for event-edge cleanup, all-changed-edge cleanup, combined rewrite, local node update, local edge update, edge gating, denoising-target supervision, and propagation-biased edge update.
+- Main results:
+  - Event-edge-only cleanup was too narrow.
+  - All-changed-edge cleanup recovered only a small part of the missing leverage.
+  - Richer local node features helped node rollout materially but did not close the total gap.
+  - Local edge features and edge gating helped some edge-side metrics, but learned variants remained behind `spring_neighbor_scope`.
+  - Denoising-target and propagation-biased edge variants did not materially improve held-out noisy total changed error.
+- Interpretation:
+  - The tiny edge-head family was informative but exhausted.
+  - More residual/gate/denoise/local-feature variants are low value.
+- Decision:
+  - Pause the tiny learned noisy `spring_retension` edge-head family.
+
+### 6. Split Mismatch And Stratified Rerun
+
+- Files created/modified:
+  - `train/eval_step33_spring_retension_distribution_diagnostics.py`
+  - `train/make_step33_spring_retension_stratified_diagnostic_split.py`
+  - `train/eval_step33_spring_retension_stratified_rerun.py`
+- Commands run:
+  - `python train/eval_step33_spring_retension_distribution_diagnostics.py ...`
+  - `python train/make_step33_spring_retension_stratified_diagnostic_split.py ...`
+  - `python train/eval_step33_spring_retension_stratified_rerun.py ...`
+- Main results:
+  - Original noisy val/test unreachable non-event changed-edge mismatch: `0.00%` vs `4.45%`.
+  - Stratified diagnostic val/test mismatch: `2.47%` vs `2.02%`.
+  - After stratified rerun, `propagation_edge` still ranked last among learned edge variants.
+  - `edge_gate` was best on diagnostic test, `denoise oracle_clean` best on diagnostic val.
+  - All learned edge variants remained behind `spring_neighbor_scope`.
+- Interpretation:
+  - The earlier propagation validation gain was mostly a split artifact.
+- Decision:
+  - Do not continue `propagation_edge` or similar tiny edge-head variants.
+
+### 7. Staged Target Diagnostics And Redesign Memos
+
+- Files created/modified:
+  - `train/eval_step33_spring_retension_staged_target_diagnostic.py`
+  - `docs/STEP33_REWRITE_REDESIGN_MEMO.md`
+  - `docs/STEP33_STRONGER_PROPAGATION_FAMILY_MEMO.md`
+- Commands run:
+  - `python train/eval_step33_spring_retension_staged_target_diagnostic.py ...`
+- Main results:
+  - Noisy copy total changed error: `0.1791`.
+  - Event-edge-only oracle patch: `0.1633`.
+  - Changed-nodes-only oracle patch: `0.1612`.
+  - Event-edge plus changed-nodes: `0.1453`.
+  - All-changed-edges-only oracle patch: `0.0180`.
+  - Full staged oracle: `0.0000`.
+  - `spring_neighbor_scope`: `0.1125`.
+  - `edge_gate_learned`: `0.1550`.
+- Interpretation:
+  - The largest oracle leverage is full changed-edge spring-parameter target, not event-edge-only direct edit.
+  - Target tightening was useful but not sufficient for the tiny learned family.
+- Decision:
+  - Move from tiny edge heads to a stronger structured propagation family.
+
+### 8. Changed-Edge Target, Split-Target Edge, And First Propagation Target
+
+- Files created/modified:
+  - `models/step33_changed_edge_param_model.py`
+  - `train/train_step33_spring_retension_changed_edge_param_smoke.py`
+  - `train/eval_step33_spring_retension_changed_edge_param_smoke.py`
+  - `train/train_step33_spring_retension_split_target_edge_smoke.py`
+  - `train/eval_step33_spring_retension_split_target_edge_smoke.py`
+  - `models/step33_changed_edge_propagation_model.py`
+  - `train/train_step33_spring_retension_propagation_target_smoke.py`
+  - `train/eval_step33_spring_retension_propagation_target_smoke.py`
+- Commands run:
+  - Narrow train/eval commands for changed-edge param, split-target edge, and propagation-target smokes.
+- Main results:
+  - Tighter changed-edge target improved some edge metrics but remained far behind `spring_neighbor_scope`.
+  - Split-target staging only marginally improved over changed-edge param.
+  - First propagation-target variant did not materially improve.
+- Interpretation:
+  - Direct edge-head formulation was exhausted.
+- Decision:
+  - Proceed to a genuinely stronger structured propagation prototype.
+
+### 9. Structured Propagation Prototype And V2
+
+- Files created/modified:
+  - `models/step33_structured_propagation_model.py`
+  - `train/train_step33_spring_retension_structured_propagation_smoke.py`
+  - `train/eval_step33_spring_retension_structured_propagation_smoke.py`
+  - `models/step33_structured_propagation_v2_model.py`
+  - `train/train_step33_spring_retention_structured_propagation_v2.py`
+  - `train/eval_step33_spring_retention_structured_propagation_v2.py`
+  - `train/train_step33_spring_retention_structured_propagation_v2_ablation.py`
+  - `train/eval_step33_spring_retention_structured_propagation_v2_ablation.py`
+- Commands run:
+  - `python train/train_step33_spring_retention_structured_propagation_v2.py ...`
+  - `python train/eval_step33_spring_retention_structured_propagation_v2.py ...`
+  - `python train/train_step33_spring_retention_structured_propagation_v2_ablation.py ...`
+  - `python train/eval_step33_spring_retention_structured_propagation_v2_ablation.py ...`
+- Main results:
+  - First structured propagation prototype was negative.
+  - `structured_propagation_v2` escaped the paused tiny-family band.
+  - Single-run noisy total changed error moved to about `0.1346`, below the old tiny-family band around `0.155-0.159`.
+  - Stage ablation found the main gain came from node-to-edge / changed-edge parameter correction; edge-to-node rollout was secondary.
+  - Event injection was not clearly essential, but full v2 was kept as the stable base.
+- Interpretation:
+  - Step33 rewrite was not dead, but progress required a more structured family.
+- Decision:
+  - Keep `full_v2` as the base variant and check stability.
+
+### 10. Full V2 Stability And Near-Field Refinement
+
+- Files created/modified:
+  - `train/eval_step33_structured_propagation_v2_locality_breakdown.py`
+  - `train/train_step33_spring_retention_full_v2_nearfield.py`
+  - `train/eval_step33_spring_retention_full_v2_nearfield.py`
+  - `train/train_step33_spring_retention_full_v2_hop01_refine.py`
+  - `train/eval_step33_spring_retention_full_v2_hop01_refine.py`
+- Commands run:
+  - Seed stability runs for `full_v2` and `no_event_injection`.
+  - Near-field weighting runs for event-edge, near-edge, near-node velocity, and combined variants.
+  - Hop0/1 stiffness refinement runs.
+- Main results:
+  - `full_v2` and `no_event_injection` had similar mean noisy total error, but `full_v2` was more stable.
+  - `near_node_velocity_weighted` improved noisy total changed error across all three seeds and became the promoted training variant.
+  - Hop0/1 stiffness weighting did not help enough and should not be continued.
+- Interpretation:
+  - Node-velocity weighting helped, but remaining gap was not solved by more hop0/1 stiffness loss weighting.
+- Decision:
+  - Promote `near_node_velocity_weighted` as current `full_v2` base and decompose its remaining gap.
+
+### 11. Full V2 Vs Spring Neighbor Error Decomposition
+
+- Files created/modified:
+  - `train/eval_step33_full_v2_vs_spring_neighbor_error_decomposition.py`
+  - `artifacts/step33_full_v2_vs_spring_neighbor_error_decomposition/summary.json`
+  - `artifacts/step33_full_v2_vs_spring_neighbor_error_decomposition/error_decomposition.csv`
+- Commands run:
+  - `python -m py_compile train/eval_step33_full_v2_vs_spring_neighbor_error_decomposition.py`
+  - `python train/eval_step33_full_v2_vs_spring_neighbor_error_decomposition.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --output_dir artifacts/step33_full_v2_vs_spring_neighbor_error_decomposition --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - `spring_neighbor_scope`: `0.1125` total changed-region error.
+  - Promoted `full_v2` seed mean: `0.1312`.
+  - `full_v2` beats `spring_neighbor_scope` on non-event changed-edge stiffness: `0.7973` vs `0.8631`.
+  - Largest positive gap terms against `full_v2`:
+    - non-event changed-edge auxiliary features: contribution gap `+0.0090`, about `48%` of total gap
+    - event-edge stiffness: `+0.0038`, about `20%`
+    - endpoint node velocity: `+0.0035`, about `19%`
+    - one-hop node velocity: `+0.0034`, about `18%`
+- Interpretation:
+  - `spring_neighbor_scope` still wins not because it is uniformly better on stiffness, but because it oracle-copies high-weight auxiliary edge channels and near-node rollout inside its heuristic support.
+- Decision:
+  - Run staged assembly oracle-copy patches on top of fixed `full_v2` predictions.
+
+### 12. Full V2 Staged Assembly Diagnostic
+
+- Files created/modified:
+  - `train/eval_step33_full_v2_staged_assembly_diagnostic.py`
+  - `artifacts/step33_full_v2_staged_assembly_diagnostic/summary.json`
+  - `artifacts/step33_full_v2_staged_assembly_diagnostic/assembly_summary.csv`
+  - `artifacts/step33_full_v2_staged_assembly_diagnostic/assembly_per_seed_summary.csv`
+- Commands run:
+  - `python -m py_compile train/eval_step33_full_v2_staged_assembly_diagnostic.py`
+  - `python train/eval_step33_full_v2_staged_assembly_diagnostic.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --output_dir artifacts/step33_full_v2_staged_assembly_diagnostic --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - `full_v2_base`: `0.1312`.
+  - `full_v2 + oracle event-edge params`: `0.1245`, closes about `36%` of the base gap.
+  - `full_v2 + oracle near-node velocity`: `0.1244`, closes about `37%`.
+  - `full_v2 + oracle changed-edge auxiliary channels`: `0.1032`, beats `spring_neighbor_scope` and closes about `150%`.
+  - `full_v2 + event params + aux`: `0.0965`.
+  - `full_v2 + aux + near velocity`: `0.0964`.
+  - `full_v2 + all three`: `0.0896`.
+  - `spring_neighbor_scope`: `0.1125`.
+- Interpretation:
+  - The dominant assembly lever is changed-edge auxiliary channels: `spring_active`, `current_distance`, `near_contact`, and other non-rest/stiffness edge channels.
+  - Near-node velocity and event-edge params matter, but neither is the single dominant lever.
+  - The current promoted `full_v2` rest/stiffness path is good enough that fixing auxiliary assembly alone would exceed `spring_neighbor_scope`.
+- Decision:
+  - Next implementation should target changed-edge auxiliary-channel assembly/prediction, not more hop0/1 stiffness weighting.
+
+### 13. Full V2 Auxiliary Channel Diagnostic
+
+- Files created/modified:
+  - `train/eval_step33_full_v2_aux_channel_diagnostic.py`
+  - `artifacts/step33_full_v2_aux_channel_diagnostic/summary.json`
+  - `artifacts/step33_full_v2_aux_channel_diagnostic/aux_channel_summary.csv`
+  - `artifacts/step33_full_v2_aux_channel_diagnostic/aux_channel_per_seed_summary.csv`
+- Commands run:
+  - `python -m py_compile train/eval_step33_full_v2_aux_channel_diagnostic.py`
+  - `python train/eval_step33_full_v2_aux_channel_diagnostic.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --output_dir artifacts/step33_full_v2_aux_channel_diagnostic --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - `full_v2_base`: `0.1312` total changed-region error.
+  - `oracle_active`: `0.1212`, closes about `54%` of the base-vs-spring gap.
+  - `oracle_current_distance`: `0.1278`, closes about `18%`.
+  - `oracle_near_contact`: `0.1167`, closes about `78%`.
+  - `oracle_distance_plus_contact`: `0.1133`, nearly matches `spring_neighbor_scope` at `0.1125`.
+  - `oracle_all_aux`: `0.1032`, beats `spring_neighbor_scope`.
+  - Rule recompute distance/contact from `full_v2` predicted nodes: `0.1206`, closes about `57%`.
+  - `oracle_active + rule distance/contact`: `0.1105`, slightly beats `spring_neighbor_scope`.
+- Interpretation:
+  - `near_contact` is the dominant single auxiliary channel.
+  - `current_distance` is useful but not the largest direct lever.
+  - Rule recomputation from predicted node positions helps substantially for distance/contact, but active-state error remains a likely residual lever.
+  - `spring_neighbor_scope` is still not winning because of stiffness; it is benefiting from auxiliary/contact assembly and oracle-copy support.
+- Decision:
+  - Continue with the narrowest next learned smoke: train active-channel denoising/correction only, combine it with rule distance/contact assembly, and keep promoted `full_v2` rest/stiffness and node rollout fixed.
+
+### 14. Active Denoising Plus Rule Distance/Contact Smoke
+
+- Files created/modified:
+  - `models/step33_changed_edge_aux_model.py`
+  - `train/train_step33_spring_retension_active_aux_smoke.py`
+  - `train/eval_step33_spring_retension_active_aux_smoke.py`
+  - `artifacts/step33_spring_retension_active_aux_smoke_noisy/summary.json`
+  - `artifacts/step33_spring_retension_active_aux_smoke_noisy/active_aux_summary.csv`
+- Commands run:
+  - `python -m py_compile models/step33_changed_edge_aux_model.py train/train_step33_spring_retension_active_aux_smoke.py train/eval_step33_spring_retension_active_aux_smoke.py`
+  - `python train/train_step33_spring_retension_active_aux_smoke.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --save_dir checkpoints/step33_spring_retension_active_aux_smoke_bce --epochs 24 --batch_size 64 --hidden_dim 16 --lr 0.002 --negative_weight 1.0 --seed 0 --device cpu --num_workers 0`
+  - `python train/train_step33_spring_retension_active_aux_smoke.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --save_dir checkpoints/step33_spring_retension_active_aux_smoke_neg4 --epochs 24 --batch_size 64 --hidden_dim 16 --lr 0.002 --negative_weight 4.0 --seed 0 --device cpu --num_workers 0`
+  - `python train/train_step33_spring_retension_active_aux_smoke.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --save_dir checkpoints/step33_spring_retension_active_aux_smoke_neg8 --epochs 24 --batch_size 64 --hidden_dim 16 --lr 0.002 --negative_weight 8.0 --seed 0 --device cpu --num_workers 0`
+  - `python train/eval_step33_spring_retension_active_aux_smoke.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --checkpoint checkpoints/step33_spring_retension_active_aux_smoke_bce/best.pt --checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg4/best.pt --checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --output_dir artifacts/step33_spring_retension_active_aux_smoke_noisy --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - `full_v2_base`: `0.1312`.
+  - Rule distance/contact from predicted nodes: `0.1206`.
+  - Set all changed edges active + rule distance/contact: `0.1174`.
+  - Learned active + rule distance/contact aggregate: `0.1166`.
+  - Best learned active variants (`negative_weight=4` and `8`) mean total changed error: `0.1162`, range `0.1151-0.1178` across promoted `full_v2` seeds.
+  - Best learned active MAE: `0.0484`, improving over observed active error `0.0865` and all-active heuristic `0.0588`.
+  - `oracle_active + rule distance/contact`: `0.1105`.
+  - `spring_neighbor_scope`: `0.1125`.
+- Interpretation:
+  - Active denoising is learnable and improves the auxiliary assembly path.
+  - The first active head does not yet reach the oracle-active row or beat `spring_neighbor_scope`.
+  - Since the target is binary and imbalanced, threshold/model-selection may matter more than another architecture change.
+- Decision:
+  - Run a pure threshold sweep on the active head before implementing any new active model variant.
+
+### 15. Active Auxiliary Threshold Sweep
+
+- Files created/modified:
+  - `train/eval_step33_spring_retension_active_aux_threshold_sweep.py`
+  - `artifacts/step33_spring_retension_active_aux_threshold_sweep/summary.json`
+  - `artifacts/step33_spring_retension_active_aux_threshold_sweep/threshold_sweep_summary.csv`
+  - `artifacts/step33_spring_retension_active_aux_threshold_sweep/threshold_sweep_selected_test.csv`
+- Commands run:
+  - `python -m py_compile train/eval_step33_spring_retension_active_aux_threshold_sweep.py`
+  - `python train/eval_step33_spring_retension_active_aux_threshold_sweep.py --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --test_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_bce/best.pt --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg4/best.pt --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --output_dir artifacts/step33_spring_retension_active_aux_threshold_sweep --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Best validation selection: `checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt` at active threshold `0.50`.
+  - Best validation total changed error: `0.1269`; validation active MAE: `0.0455`.
+  - Selected noisy test total changed error: `0.1162`; test active MAE: `0.0484`; test auxiliary MAE: `0.0371`.
+  - This matches the best fixed-threshold active smoke result and remains behind `spring_neighbor_scope` by about `0.0036`.
+  - Higher thresholds collapse by predicting too many inactive changed edges, with test total changed error around `0.22+`.
+- Interpretation:
+  - Thresholding is not the remaining bottleneck.
+  - The current active head learns some signal, but it saturates around active MAE `0.0484`.
+  - The residual gap is now about active-error anatomy, not calibration.
+- Decision:
+  - Run a pure active-error breakdown before training any new active model variant.
+
+### 16. Active Error Breakdown
+
+- Files created/modified:
+  - `train/eval_step33_spring_retension_active_error_breakdown.py`
+  - `artifacts/step33_spring_retension_active_error_breakdown/summary.json`
+  - `artifacts/step33_spring_retension_active_error_breakdown/active_error_breakdown.csv`
+  - `artifacts/step33_spring_retension_active_error_breakdown/active_assembly_summary.csv`
+- Commands run:
+  - `python -m py_compile train/eval_step33_spring_retension_active_error_breakdown.py`
+  - `python train/eval_step33_spring_retension_active_error_breakdown.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --output_dir artifacts/step33_spring_retension_active_error_breakdown --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Changed-edge active targets: 289 upper changed edges, target active rate `94.12%`, observed active rate `85.47%`.
+  - Observed active MAE: `0.0865`.
+  - All-active MAE: `0.0588`.
+  - Learned active MAE: `0.0484`.
+  - Learned active confusion: `268` TP, `7` TN, `10` FP, `4` FN.
+  - Learned false positives are all non-event changed edges; true inactive changed edges are `17`, and the model keeps `10` of them active.
+  - Learned false negatives are mostly non-event observed-dropout active edges: `4` misses out of `25` dropout-active edges.
+  - Event edge is effectively solved: `42/42` active targets correct.
+  - Learned probabilities are poorly separated around the decision boundary:
+    - clean active mean probability about `0.568`
+    - dropout active mean about `0.506`
+    - clean inactive mean about `0.502`
+  - Assembly rows reproduce the previous result:
+    - learned active + rule distance/contact: `0.1162`
+    - oracle active + rule distance/contact: `0.1105`
+    - `spring_neighbor_scope`: `0.1125`
+- Interpretation:
+  - The remaining active gap is not event-edge handling.
+  - The active head mainly fails to distinguish true inactive non-event changed edges from dropped-out active non-event edges.
+  - Since both hard groups sit near probability `0.50`, more threshold tuning is low value.
+  - Contact context is suspicious: observed near-contact edges are much safer under observed-active copying than under learned active, while non-contact edges benefit from learned/dropout recovery.
+- Decision:
+  - Run one pure contact-gated active assembly policy diagnostic before considering any new active model.
+
+### 17. Contact-Gated Active Assembly Policy Diagnostic
+
+- Files created/modified:
+  - `train/eval_step33_spring_retension_contact_gated_active_policy.py`
+  - `artifacts/step33_spring_retension_contact_gated_active_policy/summary.json`
+  - `artifacts/step33_spring_retension_contact_gated_active_policy/contact_gated_policy_summary.csv`
+  - `artifacts/step33_spring_retension_contact_gated_active_policy/contact_gated_active_confusion.csv`
+  - `artifacts/step33_spring_retension_contact_gated_active_policy/contact_gated_policy_per_seed.csv`
+- Commands run:
+  - `python -m py_compile train/eval_step33_spring_retension_contact_gated_active_policy.py`
+  - `python train/eval_step33_spring_retension_contact_gated_active_policy.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --output_dir artifacts/step33_spring_retension_contact_gated_active_policy --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Learned active + rule distance/contact: `0.1162`.
+  - Observed-contact gate, observed else learned: `0.1150`.
+  - Rule-contact gate, observed else learned: `0.1128`.
+  - Rule-contact gate, observed else all-active: `0.1127`.
+  - Target-contact oracle gate, observed else all-active: `0.1121`.
+  - Oracle active + rule distance/contact: `0.1105`.
+  - `spring_neighbor_scope`: `0.1125`.
+  - Rule-contact gate reduced active MAE from `0.0484` to about `0.0185-0.0196`.
+  - Per full-v2 seed, rule-contact observed-else-all was `0.1141`, `0.1119`, `0.1120`; two of three seeds beat `spring_neighbor_scope`, but the aggregate remains slightly worse by `0.00014`.
+- Interpretation:
+  - Contact-gated active assembly recovers most of the remaining active leverage without training a new model.
+  - The active model itself is no longer the obvious next lever; rule contact quality and selection are now the bottleneck.
+  - Since the result is very close to `spring_neighbor_scope`, direct test-set hand tuning would be fragile.
+- Decision:
+  - Run a validation-selected contact-margin sweep for the rule-contact active policy before declaring this path retained.
+
+### 18. Contact-Margin Sweep And Stratified Sanity
+
+- Files created/modified:
+  - `train/eval_step33_spring_retension_contact_margin_sweep.py`
+  - `artifacts/step33_spring_retension_contact_margin_sweep/summary.json`
+  - `artifacts/step33_spring_retension_contact_margin_sweep/contact_margin_sweep_summary.csv`
+  - `artifacts/step33_spring_retension_contact_margin_sweep/contact_margin_selected.csv`
+  - `artifacts/step33_spring_retension_contact_margin_sweep_clean_sanity/summary.json`
+  - `artifacts/step33_spring_retension_contact_margin_sweep_stratified_sanity/summary.json`
+- Commands run:
+  - `python -m py_compile train/eval_step33_spring_retension_contact_margin_sweep.py`
+  - `python train/eval_step33_spring_retension_contact_margin_sweep.py --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --test_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --output_dir artifacts/step33_spring_retension_contact_margin_sweep --batch_size 64 --device cpu --num_workers 0`
+  - `python train/eval_step33_spring_retension_contact_margin_sweep.py --val_path data/graph_event_step33_physics_like_smoke_val.pkl --test_path data/graph_event_step33_physics_like_smoke_test.pkl --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --margins 0.07 --output_dir artifacts/step33_spring_retension_contact_margin_sweep_clean_sanity --batch_size 64 --device cpu --num_workers 0`
+  - `python train/eval_step33_spring_retension_contact_margin_sweep.py --val_path data/graph_event_step33_spring_retension_noisy_diag_val.pkl --test_path data/graph_event_step33_spring_retension_noisy_diag_test.pkl --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --margins 0.07 --output_dir artifacts/step33_spring_retension_contact_margin_sweep_stratified_sanity --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Original noisy val selected `rule_contact_observed_else_all` at margin `0.07`.
+  - Original noisy test selected result: `0.1120`, slightly better than `spring_neighbor_scope` at `0.1125`.
+  - Clean sanity at margin `0.07` is not globally usable:
+    - selected clean-style policy test: about `0.0203`
+    - clean `spring_neighbor_scope`: `0.0060`
+  - Stratified noisy diagnostic split:
+    - val selected `rule_contact_observed_else_all`: `0.1201`, better than stratified val `spring_neighbor_scope` at `0.1239`
+    - stratified test selected result: `0.1150`, worse than stratified test `spring_neighbor_scope` at `0.1101`
+    - stratified test `oracle_active + rule distance/contact`: `0.1126`, still behind `spring_neighbor_scope`
+- Interpretation:
+  - Contact-gated active assembly is a real noisy-test improvement over learned active, but it is not robust enough to retain as a new best reference.
+  - The apparent original-test win over `spring_neighbor_scope` is too small and does not survive the stratified diagnostic test split.
+  - On stratified test, active correction is no longer sufficient; even oracle active plus rule distance/contact remains behind `spring_neighbor_scope`.
+- Decision:
+  - Do not promote contact-gated active assembly as a retained Step33 rewrite reference.
+  - Run one pure stratified-gap component decomposition before any further rewrite implementation.
+
+### 19. Contact-Gated Stratified Gap Decomposition
+
+- Files created/modified:
+  - `train/eval_step33_contact_gated_stratified_gap_decomposition.py`
+  - `artifacts/step33_contact_gated_stratified_gap_decomposition/summary.json`
+  - `artifacts/step33_contact_gated_stratified_gap_decomposition/gap_component_summary.csv`
+  - `artifacts/step33_contact_gated_stratified_gap_decomposition/gap_method_totals.csv`
+- Commands run:
+  - `python -m py_compile train/eval_step33_contact_gated_stratified_gap_decomposition.py`
+  - `python train/eval_step33_contact_gated_stratified_gap_decomposition.py --data_path data/graph_event_step33_spring_retension_noisy_diag_test.pkl --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --contact_margin 0.07 --output_dir artifacts/step33_contact_gated_stratified_gap_decomposition --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Stratified test totals:
+    - `full_v2_base`: `0.1351`
+    - learned active + rule: `0.1183`
+    - contact-gated rule: `0.1150`
+    - oracle active + rule: `0.1126`
+    - `spring_neighbor_scope`: `0.1101`
+  - Contact-gated rule beats `spring_neighbor_scope` on non-event changed-edge stiffness contribution by about `-0.0006`.
+  - Contact-gated rule also beats `spring_neighbor_scope` on non-event changed-edge other-feature contribution by about `-0.0086`.
+  - Remaining positive gap comes mainly from:
+    - event-edge stiffness contribution: about `+0.0031`
+    - endpoint node velocity contribution: about `+0.0034`
+    - one-hop node velocity contribution: about `+0.0034`
+    - two-hop-plus node velocity contribution: about `+0.0022`
+    - smaller node-position and event-rest terms
+- Interpretation:
+  - The active/contact auxiliary policy did its job on stratified test; it is no longer the largest gap source.
+  - The remaining gap has returned to direct event-edge stiffness plus near-field rollout, especially velocity.
+  - More active policy variants are low value.
+- Decision:
+  - Run one deterministic event-edge retension rule patch diagnostic before considering any new learned model.
+
+### 20. Event-Edge Rule And Existing Cleanup Patch Diagnostics
+
+- Files created/modified:
+  - `train/eval_step33_contact_gated_event_rule_patch.py`
+  - `train/eval_step33_contact_gated_existing_event_cleanup_patch.py`
+  - `artifacts/step33_contact_gated_event_rule_patch_stratified/summary.json`
+  - `artifacts/step33_contact_gated_event_rule_patch_stratified/event_rule_patch_summary.csv`
+  - `artifacts/step33_contact_gated_existing_event_cleanup_patch_stratified/summary.json`
+  - `artifacts/step33_contact_gated_existing_event_cleanup_patch_stratified/existing_event_cleanup_patch_summary.csv`
+- Commands run:
+  - `python -m py_compile train/eval_step33_contact_gated_event_rule_patch.py`
+  - `python train/eval_step33_contact_gated_event_rule_patch.py --data_path data/graph_event_step33_spring_retension_noisy_diag_test.pkl --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --contact_margin 0.07 --output_dir artifacts/step33_contact_gated_event_rule_patch_stratified --batch_size 64 --device cpu --num_workers 0`
+  - `python -m py_compile train/eval_step33_contact_gated_existing_event_cleanup_patch.py`
+  - `python train/eval_step33_contact_gated_existing_event_cleanup_patch.py --data_path data/graph_event_step33_spring_retension_noisy_diag_test.pkl --active_checkpoint checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt --cleanup_checkpoint checkpoints/step33_spring_retension_param_cleanup_smoke/best.pt --contact_margin 0.07 --output_dir artifacts/step33_contact_gated_existing_event_cleanup_patch_stratified --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Stratified noisy diagnostic test:
+    - contact-gated rule: `0.1150`
+    - contact-gated + deterministic event retension rule: `0.1170`
+    - contact-gated + existing event cleanup checkpoint: `0.1156`
+    - contact-gated + oracle event params: `0.1090`
+    - oracle active + oracle event params: `0.1066`
+    - `spring_neighbor_scope`: `0.1101`
+  - Deterministic event rule worsened the result.
+  - Existing event cleanup checkpoint also worsened the result.
+  - Oracle event params would beat `spring_neighbor_scope`, so the lever is real but not captured by the current rule/head.
+- Interpretation:
+  - Noisy event-edge parameter denoising remains a real missing capability.
+  - The current simple event-edge rule and old cleanup head are insufficient.
+  - Continuing with another small event-edge residual/cleanup tweak would repeat the paused tiny-head pattern.
+  - The remaining unresolved pieces are event-edge parameter denoising and node rollout, especially velocity.
+- Decision:
+  - Pause this implementation tranche.
+  - Do not promote contact-gated active assembly as a retained reference.
+  - Do not continue small active/contact/event-rule variants without a redesign memo.
+
+### 21. Event-Edge Denoising Plus Near-Node Rollout Prototype
+
+- Files created/modified:
+  - `models/step33_event_edge_denoise_node_rollout_model.py`
+  - `train/train_step33_spring_retention_event_denoise_node_rollout.py`
+  - `train/eval_step33_spring_retention_event_denoise_node_rollout.py`
+  - `checkpoints/step33_spring_retention_event_denoise_node_rollout/best.pt`
+  - `artifacts/step33_spring_retention_event_denoise_node_rollout_clean/summary.json`
+  - `artifacts/step33_spring_retention_event_denoise_node_rollout_noisy/summary.json`
+- Commands run:
+  - `python -m py_compile models/step33_event_edge_denoise_node_rollout_model.py train/train_step33_spring_retention_event_denoise_node_rollout.py train/eval_step33_spring_retention_event_denoise_node_rollout.py`
+  - `python train/train_step33_spring_retention_event_denoise_node_rollout.py --train_path data/graph_event_step33_physics_like_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --val_path data/graph_event_step33_physics_like_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --save_dir checkpoints/step33_spring_retention_event_denoise_node_rollout --epochs 24 --batch_size 64 --hidden_dim 40 --lr 0.002 --device cpu --num_workers 0 --seed 0 --support_full_v2_checkpoint checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt`
+  - `python train/eval_step33_spring_retention_event_denoise_node_rollout.py --data_path data/graph_event_step33_physics_like_smoke_test.pkl --checkpoint checkpoints/step33_spring_retention_event_denoise_node_rollout/best.pt --support_full_v2_checkpoint checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt --output_dir artifacts/step33_spring_retention_event_denoise_node_rollout_clean --batch_size 64 --device cpu --num_workers 0`
+  - `python train/eval_step33_spring_retention_event_denoise_node_rollout.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --checkpoint checkpoints/step33_spring_retention_event_denoise_node_rollout/best.pt --support_full_v2_checkpoint checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt --output_dir artifacts/step33_spring_retention_event_denoise_node_rollout_noisy --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Training used clean+noisy `spring_retension` train/val samples: `340` train, `84` val.
+  - Best checkpoint epoch: `20`.
+  - Noisy test:
+    - promoted `full_v2` mean: `0.1312` total changed-region error
+    - support `full_v2` seed2: `0.1297`
+    - event-edge denoise + node rollout: `0.1296`
+    - `spring_neighbor_scope`: `0.1125`
+    - `oracle_scope`: `0.0000`
+  - Noisy endpoint velocity improved versus promoted `full_v2` mean: `0.0524` vs `0.0557`.
+  - Noisy one-hop velocity was roughly tied/slightly improved versus promoted mean: `0.0475` vs `0.0476`.
+  - Noisy event-edge stiffness regressed versus promoted mean: `0.3773` vs `0.3677`.
+  - Clean sanity:
+    - promoted `full_v2` mean: `0.0281`
+    - event-edge denoise + node rollout: `0.0285`
+    - clean event-edge stiffness regressed: `0.0744` vs promoted `0.0337`
+- Interpretation:
+  - The joint prototype produced a small noisy total-error improvement and a real endpoint-velocity gain.
+  - It did not solve event-edge denoising; event-edge stiffness worsened on both clean and noisy.
+  - The total improvement is too small to call candidate-ready or to replace promoted `full_v2` as the retained reference.
+- Decision:
+  - Treat this as partial signal, not a retained best family.
+  - Do not broaden the model yet.
+  - The next smallest justified step is a no-training stratified diagnostic sanity check, followed by an event-edge denoising failure breakdown if the marginal gain survives.
+
+### 22. Event-Edge Denoising Plus Near-Node Rollout Stratified Sanity Check
+
+- Files created/modified:
+  - `artifacts/step33_spring_retention_event_denoise_node_rollout_stratified_val/summary.json`
+  - `artifacts/step33_spring_retention_event_denoise_node_rollout_stratified_test/summary.json`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python train/eval_step33_spring_retention_event_denoise_node_rollout.py --data_path data/graph_event_step33_spring_retension_noisy_diag_val.pkl --checkpoint checkpoints/step33_spring_retention_event_denoise_node_rollout/best.pt --support_full_v2_checkpoint checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt --output_dir artifacts/step33_spring_retention_event_denoise_node_rollout_stratified_val --batch_size 64 --device cpu --num_workers 0`
+  - `python train/eval_step33_spring_retention_event_denoise_node_rollout.py --data_path data/graph_event_step33_spring_retension_noisy_diag_test.pkl --checkpoint checkpoints/step33_spring_retention_event_denoise_node_rollout/best.pt --support_full_v2_checkpoint checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt --output_dir artifacts/step33_spring_retention_event_denoise_node_rollout_stratified_test --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Stratified val:
+    - promoted `full_v2` mean: `0.1406`
+    - support `full_v2` seed2: `0.1410`
+    - event-denoise + node-rollout: `0.1413`
+    - `spring_neighbor_scope`: `0.1239`
+    - endpoint velocity improved versus promoted mean: `0.0527` vs `0.0543`
+    - one-hop velocity worsened: `0.0411` vs `0.0398`
+    - event-edge stiffness worsened: `0.8633` vs promoted `0.8546`
+  - Stratified test:
+    - promoted `full_v2` mean: `0.1351`
+    - support `full_v2` seed2: `0.1334`
+    - event-denoise + node-rollout: `0.1328`
+    - `spring_neighbor_scope`: `0.1101`
+    - endpoint velocity improved versus promoted mean: `0.0506` vs `0.0552`
+    - one-hop velocity improved: `0.0474` vs `0.0490`
+    - event-edge stiffness was mixed: better than promoted mean (`0.3241` vs `0.3284`), but worse than support seed2 (`0.3220`)
+- Interpretation:
+  - The original-test total-error gain partially survives on stratified test, but not on stratified val.
+  - Endpoint velocity improvement is the strongest repeatable signal.
+  - Event-edge denoising remains unreliable; stiffness does not improve robustly across split/reference rows.
+  - The prototype is still far behind `spring_neighbor_scope` on stratified test: `0.1328` vs `0.1101`.
+- Decision:
+  - Keep the joint prototype as weak positive evidence for coupling event-edge source to endpoint velocity.
+  - Do not promote it over promoted `full_v2`.
+  - Do not continue with another immediate implementation variant.
+  - Next step should be pure diagnostic: break down the event-edge denoising failure before any new model work.
+
+### 23. Event-Edge Denoising Failure Breakdown
+
+- Files created/modified:
+  - `train/eval_step33_event_edge_denoise_failure_breakdown.py`
+  - `artifacts/step33_event_edge_denoise_failure_breakdown/summary.json`
+  - `artifacts/step33_event_edge_denoise_failure_breakdown/event_edge_denoise_breakdown.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_event_edge_denoise_failure_breakdown.py`
+  - `python train/eval_step33_event_edge_denoise_failure_breakdown.py --data_path original_noisy:data/graph_event_step33_physics_like_noisy_smoke_test.pkl --data_path stratified_val:data/graph_event_step33_spring_retension_noisy_diag_val.pkl --data_path stratified_test:data/graph_event_step33_spring_retension_noisy_diag_test.pkl --checkpoint checkpoints/step33_spring_retention_event_denoise_node_rollout/best.pt --support_full_v2_checkpoint checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt --output_dir artifacts/step33_event_edge_denoise_failure_breakdown --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Original noisy event-edge overall:
+    - rule from observed stiffness MAE: `0.4730`
+    - support `full_v2` stiffness MAE: `0.3664`
+    - event-denoise + node-rollout stiffness MAE: `0.3773`
+  - Stratified val overall:
+    - rule from observed stiffness MAE: `1.2492`
+    - support `full_v2`: `0.8489`
+    - event-denoise + node-rollout: `0.8633`
+  - Stratified test overall:
+    - rule from observed stiffness MAE: `0.4377`
+    - support `full_v2`: `0.3220`
+    - event-denoise + node-rollout: `0.3241`
+  - Rest-length denoising is mildly useful:
+    - original noisy rest MAE: support `0.0296`, event-denoise `0.0289`
+    - stratified val rest MAE: support `0.0227`, event-denoise `0.0224`
+    - stratified test rest MAE: support `0.0268`, event-denoise `0.0253`
+  - Stiffness failure is bucketed:
+    - original `stiffness_factor < 1`: support `0.4787`, event-denoise `0.5228`
+    - stratified val `stiffness_factor < 1`: support `1.3441`, event-denoise `1.3815`
+    - stratified test `stiffness_factor < 1`: support `0.3155`, event-denoise `0.3294`
+    - stratified test `stiffness_factor >= 1`: support `0.3260`, event-denoise `0.3208`
+  - Signed bias shows the main failure:
+    - event-denoise underpredicts stiffness more strongly than support `full_v2` in hard down-factor/noisy buckets.
+    - stratified val overall stiffness bias: support `-0.5732`, event-denoise `-0.6459`
+    - stratified test `stiffness_factor < 1` bias: support `-0.0770`, event-denoise `-0.1576`
+- Interpretation:
+  - The event-edge denoising head is anchored too strongly to a low noisy/rule stiffness source.
+  - It helps rest and sometimes helps stiffness-up buckets, but it worsens stiffness-down buckets by overshrinking/underpredicting.
+  - Stratified val is especially hard because observed/rule stiffness starts far below the oracle target; a residual head around noisy rule params cannot reliably recover.
+  - This is a target/source formulation problem, not a reason to add another generic tiny head.
+- Decision:
+  - Do not continue the current event-edge residual formulation.
+  - Do not promote event-denoise + node-rollout.
+  - Next implementation, if any, should change the event-edge target formulation before changing architecture: predict clean/current event-edge stiffness or a bounded clean-to-target factor, then feed that denoised source to rollout.
+
+### 24. Event-Edge Target-Formulation Ablation
+
+- Files created/modified:
+  - `train/train_step33_event_edge_target_formulation_smoke.py`
+  - `train/eval_step33_event_edge_target_formulation_smoke.py`
+  - `artifacts/step33_event_edge_target_formulation_smoke_clean/summary.json`
+  - `artifacts/step33_event_edge_target_formulation_smoke_noisy/summary.json`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/train_step33_event_edge_target_formulation_smoke.py train/eval_step33_event_edge_target_formulation_smoke.py`
+  - `python train/train_step33_event_edge_target_formulation_smoke.py --formulation residual_around_noisy_rule ...`
+  - `python train/train_step33_event_edge_target_formulation_smoke.py --formulation direct_clean_target ...`
+  - `python train/train_step33_event_edge_target_formulation_smoke.py --formulation denoise_from_clean_current_source ...`
+  - `python train/train_step33_event_edge_target_formulation_smoke.py --formulation sign_aware_residual ...`
+  - `python train/eval_step33_event_edge_target_formulation_smoke.py --data_path data/graph_event_step33_physics_like_smoke_test.pkl ...`
+  - `python train/eval_step33_event_edge_target_formulation_smoke.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl ...`
+- Main metrics/results:
+  - Noisy aggregate, with rollout and non-event changed-edge support held fixed:
+    - support `full_v2`: total `0.1297`, event-edge stiffness `0.3664`
+    - current joint event-denoise: total `0.1299`, event-edge stiffness `0.3773`
+    - `residual_around_noisy_rule`: total `0.1298`, event-edge stiffness `0.3702`
+    - `direct_clean_target`: total `0.1352`, event-edge stiffness `0.6556`
+    - `sign_aware_residual`: total `0.1312`, event-edge stiffness `0.4525`
+    - `denoise_from_clean_current_source`: total `0.1232`, event-edge stiffness `0.0085`
+    - oracle event-edge patch on support `full_v2`: total `0.1230`, event-edge stiffness `0.0000`
+    - `spring_neighbor_scope`: total `0.1125`
+  - Clean aggregate:
+    - support `full_v2`: total `0.0280`, event-edge stiffness `0.0513`
+    - `denoise_from_clean_current_source`: total `0.0271`, event-edge stiffness `0.0075`
+    - oracle event-edge patch on support `full_v2`: total `0.0270`
+  - Hard noisy bucket, `stiffness_factor < 1`:
+    - support `full_v2` stiffness MAE: `0.4787`, bias `-0.2495`
+    - current joint event-denoise stiffness MAE: `0.5228`, bias `-0.3292`
+    - `residual_around_noisy_rule`: `0.4971`, bias `-0.2809`
+    - `direct_clean_target`: `0.7094`, bias `0.3848`
+    - `sign_aware_residual`: `0.6980`, bias `-0.5049`
+    - `denoise_from_clean_current_source`: `0.0083`, bias `-0.0033`
+- Interpretation:
+  - Target/source formulation is the event-edge bottleneck.
+  - Residuals around noisy rule params and sign-aware residuals do not fix the down-factor stiffness bucket.
+  - Direct clean-target prediction from noisy inputs is unstable and worse overall.
+  - Using a clean-current source almost solves event-edge rest/stiffness and recovers nearly all oracle event-edge patch leverage.
+  - This is a diagnostic upper bound, not a deployable noisy-observation path, because it uses `clean_edge_features`.
+- Decision:
+  - Pause residual-around-noisy-rule, direct-clean-target, and sign-aware event-edge variants.
+  - Do not reconnect event-edge denoising to near-node rollout yet.
+  - Next smallest implementation should test whether the clean-current event-edge source itself can be estimated from noisy structured features.
+
+### 25. Event-Edge Clean-Current Source Estimator
+
+- Files created/modified:
+  - `train/train_step33_event_edge_clean_current_estimator.py`
+  - `train/eval_step33_event_edge_clean_current_estimator.py`
+  - `checkpoints/step33_event_edge_clean_current_estimator/best.pt`
+  - `artifacts/step33_event_edge_clean_current_estimator_clean/summary.json`
+  - `artifacts/step33_event_edge_clean_current_estimator_noisy/summary.json`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/train_step33_event_edge_clean_current_estimator.py train/eval_step33_event_edge_clean_current_estimator.py`
+  - `python train/train_step33_event_edge_clean_current_estimator.py --train_path data/graph_event_step33_physics_like_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --val_path data/graph_event_step33_physics_like_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --save_dir checkpoints/step33_event_edge_clean_current_estimator --epochs 24 --batch_size 64 --hidden_dim 40 --lr 0.002 --target_loss_weight 0.5 --device cpu --num_workers 0 --seed 0`
+  - `python train/eval_step33_event_edge_clean_current_estimator.py --data_path data/graph_event_step33_physics_like_smoke_test.pkl --checkpoint checkpoints/step33_event_edge_clean_current_estimator/best.pt --output_dir artifacts/step33_event_edge_clean_current_estimator_clean --batch_size 64 --device cpu --num_workers 0`
+  - `python train/eval_step33_event_edge_clean_current_estimator.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --checkpoint checkpoints/step33_event_edge_clean_current_estimator/best.pt --output_dir artifacts/step33_event_edge_clean_current_estimator_noisy --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Training:
+    - train samples: `340`
+    - val samples: `84`
+    - best epoch: `24`
+    - best val source stiffness MAE: `0.4405`
+    - best val event-edge stiffness MAE after retension: `0.4403`
+  - Clean test:
+    - support `full_v2`: total `0.0280`, event-edge stiffness `0.0513`
+    - clean-current estimator: total `0.0285`, event-edge stiffness `0.0861`
+    - `denoise_from_clean_current_source` upper bound: total `0.0271`, event-edge stiffness `0.0075`
+    - oracle event-edge patch: total `0.0270`
+  - Noisy test:
+    - support `full_v2`: total `0.1297`, event-edge stiffness `0.3664`
+    - current joint event-denoise: total `0.1299`, event-edge stiffness `0.3773`
+    - clean-current estimator: total `0.1299`, event-edge stiffness `0.3765`
+    - `denoise_from_clean_current_source` upper bound: total `0.1232`, event-edge stiffness `0.0085`
+    - oracle event-edge patch: total `0.1230`
+    - `spring_neighbor_scope`: total `0.1125`
+  - Noisy clean-current source quality:
+    - observed current source stiffness MAE: `0.4783`
+    - clean-current estimator source stiffness MAE: `0.3765`
+  - Hard noisy bucket, `stiffness_factor < 1`:
+    - support `full_v2` stiffness MAE: `0.4787`, bias `-0.2495`
+    - current joint event-denoise: `0.5228`, bias `-0.3292`
+    - clean-current estimator: `0.5089`, bias `-0.3026`
+    - upper bound: `0.0083`, bias `-0.0033`
+- Interpretation:
+  - The clean-current source is the right diagnostic lever, but the current noisy local features and tiny estimator do not recover it.
+  - The estimator improves noisy clean-current source stiffness versus raw observed current, but not enough to improve total changed error.
+  - It regresses clean sanity relative to support `full_v2`.
+  - It does not fix the hard `stiffness_factor < 1` bucket; it remains worse than support `full_v2`.
+- Decision:
+  - Do not promote the clean-current estimator.
+  - Do not reconnect it to near-node rollout.
+  - Pause event-edge denoising/source-estimation variants under the current local feature set.
+  - Future event-edge work would need a different observation/source redesign, not another tiny source estimator.
+
+### 26. Event-Edge Source Redesign Status Pass
+
+- Files created/modified:
+  - `docs/STEP33_SMOKE_PROTOCOL.md`
+  - `docs/STEP33_REWRITE_REDESIGN_MEMO.md`
+  - `docs/STEP33_EVENT_EDGE_SOURCE_REDESIGN_MEMO.md`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - none for training or eval
+  - documentation inspection and patching only
+- Main metrics/results recorded:
+  - `denoise_from_clean_current_source`: noisy total `0.1232`
+  - oracle event-edge patch on support `full_v2`: noisy total `0.1230`
+  - learned `clean_current_estimator`: noisy total `0.1299`
+  - support `full_v2`: noisy total `0.1297`
+  - learned estimator hard `stiffness_factor < 1` stiffness MAE: `0.5089`
+  - support `full_v2` hard `stiffness_factor < 1` stiffness MAE: `0.4787`
+- Interpretation:
+  - clean-current source quality remains a real event-edge lever
+  - the current learned estimator does not recover the lever and should not be reconnected to rollout
+  - `denoise_from_clean_current_source` remains an oracle-source upper bound, not a deployable noisy-observation solution
+- Decision:
+  - event-edge source-estimation implementation variants under the current local noisy feature set are paused
+  - the next meaningful event-edge move is an observability/source-design diagnostic, not another tiny source MLP
+
+## Current Best References
+
+- Current Step33 benchmark proposal:
+  - `docs/STEP33_SYNTHETIC_PHYSICS_LIKE_BENCHMARK_PROPOSAL.md`
+- Current Step33 smoke/status protocol:
+  - `docs/STEP33_SMOKE_PROTOCOL.md`
+- Rewrite redesign memo:
+  - `docs/STEP33_REWRITE_REDESIGN_MEMO.md`
+- Stronger propagation family memo:
+  - `docs/STEP33_STRONGER_PROPAGATION_FAMILY_MEMO.md`
+- Event-edge source redesign memo:
+  - `docs/STEP33_EVENT_EDGE_SOURCE_REDESIGN_MEMO.md`
+- Current temporary handoff report:
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Promoted learned rewrite reference:
+  - `checkpoints/step33_structured_propagation_v2_nearvel_seed1/best.pt`
+  - `checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt`
+  - `checkpoints/step33_structured_propagation_v2_nearvel_seed3/best.pt`
+- Latest bounded joint prototype, not yet retained:
+  - `checkpoints/step33_spring_retention_event_denoise_node_rollout/best.pt`
+  - `artifacts/step33_spring_retention_event_denoise_node_rollout_clean/summary.json`
+  - `artifacts/step33_spring_retention_event_denoise_node_rollout_noisy/summary.json`
+  - `artifacts/step33_spring_retention_event_denoise_node_rollout_stratified_val/summary.json`
+  - `artifacts/step33_spring_retention_event_denoise_node_rollout_stratified_test/summary.json`
+  - `artifacts/step33_event_edge_denoise_failure_breakdown/summary.json`
+  - `artifacts/step33_event_edge_denoise_failure_breakdown/event_edge_denoise_breakdown.csv`
+- Latest event-edge target-formulation diagnostic:
+  - `checkpoints/step33_event_edge_target_formulation_smoke/residual_around_noisy_rule/best.pt`
+  - `checkpoints/step33_event_edge_target_formulation_smoke/direct_clean_target/best.pt`
+  - `checkpoints/step33_event_edge_target_formulation_smoke/denoise_from_clean_current_source/best.pt`
+  - `checkpoints/step33_event_edge_target_formulation_smoke/sign_aware_residual/best.pt`
+  - `artifacts/step33_event_edge_target_formulation_smoke_clean/summary.json`
+  - `artifacts/step33_event_edge_target_formulation_smoke_noisy/summary.json`
+  - `artifacts/step33_event_edge_target_formulation_smoke_noisy/event_edge_target_formulation_bucket_summary.csv`
+- Latest event-edge clean-current estimator diagnostic, not retained:
+  - `checkpoints/step33_event_edge_clean_current_estimator/best.pt`
+  - `artifacts/step33_event_edge_clean_current_estimator_clean/summary.json`
+  - `artifacts/step33_event_edge_clean_current_estimator_noisy/summary.json`
+  - `artifacts/step33_event_edge_clean_current_estimator_noisy/event_edge_clean_current_estimator_bucket_summary.csv`
+  - `artifacts/step33_event_edge_clean_current_estimator_noisy/event_edge_clean_current_source_summary.csv`
+- Current active auxiliary smoke references:
+  - `checkpoints/step33_spring_retension_active_aux_smoke_bce/best.pt`
+  - `checkpoints/step33_spring_retension_active_aux_smoke_neg4/best.pt`
+  - `checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt`
+- Current selected active auxiliary reference:
+  - `checkpoints/step33_spring_retension_active_aux_smoke_neg8/best.pt` at threshold `0.50`
+- Latest comparison artifacts:
+  - `artifacts/step33_full_v2_vs_spring_neighbor_error_decomposition/summary.json`
+  - `artifacts/step33_full_v2_vs_spring_neighbor_error_decomposition/error_decomposition.csv`
+  - `artifacts/step33_full_v2_staged_assembly_diagnostic/summary.json`
+  - `artifacts/step33_full_v2_staged_assembly_diagnostic/assembly_summary.csv`
+  - `artifacts/step33_full_v2_aux_channel_diagnostic/summary.json`
+  - `artifacts/step33_full_v2_aux_channel_diagnostic/aux_channel_summary.csv`
+  - `artifacts/step33_spring_retension_active_aux_smoke_noisy/summary.json`
+  - `artifacts/step33_spring_retension_active_aux_smoke_noisy/active_aux_summary.csv`
+  - `artifacts/step33_spring_retension_active_aux_threshold_sweep/summary.json`
+  - `artifacts/step33_spring_retension_active_aux_threshold_sweep/threshold_sweep_selected_test.csv`
+  - `artifacts/step33_spring_retension_active_error_breakdown/summary.json`
+  - `artifacts/step33_spring_retension_active_error_breakdown/active_error_breakdown.csv`
+  - `artifacts/step33_spring_retension_contact_gated_active_policy/summary.json`
+  - `artifacts/step33_spring_retension_contact_gated_active_policy/contact_gated_policy_summary.csv`
+  - `artifacts/step33_spring_retension_contact_margin_sweep/summary.json`
+  - `artifacts/step33_spring_retension_contact_margin_sweep/contact_margin_selected.csv`
+  - `artifacts/step33_spring_retension_contact_margin_sweep_stratified_sanity/summary.json`
+  - `artifacts/step33_contact_gated_stratified_gap_decomposition/summary.json`
+  - `artifacts/step33_contact_gated_stratified_gap_decomposition/gap_component_summary.csv`
+  - `artifacts/step33_contact_gated_event_rule_patch_stratified/summary.json`
+  - `artifacts/step33_contact_gated_existing_event_cleanup_patch_stratified/summary.json`
+- Important retained baseline:
+  - `spring_neighbor_scope`
+- Important oracle reference:
+  - `oracle_scope`
+
+## Paused / Rejected Directions
+
+- Do not reopen parked Step22-31 micro-lines.
+- Do not run backend transfer.
+- Do not add rendered observation yet.
+- Do not switch to real data, CLEVRER directly, raw video/images, hypergraph, or LLM integration.
+- Do not continue tiny noisy `spring_retension` edge-head variants:
+  - event-edge-only cleanup
+  - all-changed-edge static cleanup
+  - local edge MLP variants
+  - residual/gate variants
+  - denoising-target-only variants
+  - propagation-biased edge-feature variants
+- Do not continue hop0/1 stiffness loss-weighting variants; they did not help enough.
+- Do not continue active-threshold tuning; threshold `0.50` was selected and did not close the gap.
+- Do not promote contact-gated active assembly globally; it improves original noisy test but fails the stratified noisy diagnostic test and regresses clean behavior.
+- Do not continue active/contact-only policy variants; stratified decomposition shows the remaining gap is event-edge stiffness and node rollout.
+- Do not continue deterministic event-edge retension rule patches; the rule worsened stratified test.
+- Do not reuse the existing event-edge cleanup head as the next path; it also worsened stratified test in the staged assembly.
+- Do not escalate `no_event_injection`; keep `full_v2` as the stable base.
+- Do not start a broad Step33 candidate phase yet.
+- Do not promote event-edge denoising plus near-node rollout yet; the single-run noisy gain is marginal and event-edge stiffness regressed.
+- Do not continue event-edge denoising plus node-rollout implementation variants until the event-edge denoising failure is decomposed.
+- Do not continue residual event-edge denoising anchored directly on noisy rule params; the failure breakdown shows systematic stiffness underprediction in down-factor/noisy buckets.
+- Do not continue direct noisy-input event-edge target variants from this tranche:
+  - `residual_around_noisy_rule`
+  - `direct_clean_target`
+  - `sign_aware_residual`
+- Do not treat `denoise_from_clean_current_source` as a deployable noisy model; it is a diagnostic upper bound that depends on oracle clean-current edge features.
+- Do not continue tiny event-edge clean-current source estimators under the current local feature set; the first bounded estimator did not recover the upper-bound gain and regressed the hard down-factor bucket.
+
+## Next Smallest Justified Action
+
+Run no implementation yet. The next planned Step33 action is an event-edge clean-current observability/source-design diagnostic, only if the line is resumed.
+
+- Scope:
+  - diagnostic design first
+  - `spring_retension` only
+  - no rendered observation
+  - no backend transfer
+- Content to record:
+  - compare which structured observation channels can reconstruct clean-current event-edge rest/stiffness
+  - keep node rollout fixed/report-only
+  - require improvement on hard `stiffness_factor < 1` source and target buckets
+  - if no feature subset approaches the clean-current upper bound, keep event-edge denoising paused
+  - do not reconnect event-edge denoising to near-node rollout before source observability is resolved
