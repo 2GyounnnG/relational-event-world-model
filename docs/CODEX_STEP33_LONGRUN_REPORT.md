@@ -13,15 +13,36 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - `checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt`
   - `checkpoints/step33_structured_propagation_v2_nearvel_seed3/best.pt`
 - Best trivial reference still relevant for total changed error: `spring_neighbor_scope`.
-- Current retained learned mean on noisy `spring_retension`: promoted `full_v2` at `0.1312` total changed-region error.
-- Latest source-held-out staged rewrite diagnostic: `0.1234` noisy total changed-region error, below promoted `full_v2`, with the gain coming mainly from changed-edge auxiliary assembly while event-edge stiffness remains worse because source recovery was deliberately held out.
+- Current retained full learned rewrite reference: promoted `full_v2` at `0.1312` mean noisy `spring_retension` total changed-region error.
+- Current retained staged rewrite diagnostic target: `source_held_out_full`, seed-checked across original noisy test, stratified noisy validation, and stratified noisy test.
+- `source_held_out_full` mean noisy total changed-region error:
+  - original noisy test: `0.1267`, beating promoted `full_v2` at `0.1312`
+  - stratified noisy validation: `0.1401`, slightly beating promoted `full_v2` at `0.1406`
+  - stratified noisy test: `0.1299`, beating promoted `full_v2` at `0.1351`
+- `source_held_out_full` also beats the reduced `aux_plus_non_event_params` row, but remains a diagnostic target rather than a candidate.
 - Latest bounded prototype: event-edge denoising plus near-node rollout, using promoted `full_v2` seed2 as fixed non-event changed-edge support, reached `0.1296` noisy total changed-region error in one run, but was not robust enough to promote.
 - Latest target-formulation diagnostic: `denoise_from_clean_current_source` nearly solved event-edge rest/stiffness in isolation and reached `0.1232` noisy total changed-region error with rollout fixed, close to the oracle event-edge patch at `0.1230`.
 - Latest clean-current observability diagnostic: nonparametric feature-bundle probes did not find a robust noisy structured source for clean-current event-edge stiffness. On noisy test, raw observed current was still the best non-oracle source (`0.4730` event-target stiffness MAE), while richer kNN bundles were worse; on noisy val, the noisy-event-edge-only kNN helped but did not transfer robustly.
 - `spring_neighbor_scope` on the same noisy test split: `0.1125` total changed-region error.
 - Key current finding: promoted `full_v2` already beats `spring_neighbor_scope` on non-event changed-edge stiffness, but loses total changed error because it does not assemble changed-edge auxiliary channels and near-node rollout as well as the oracle-copy baseline.
 - Latest auxiliary-channel finding: changed-edge `near_contact` is the largest single auxiliary lever; `spring_active` is second; `current_distance` alone is smaller. Recomputing distance/contact from predicted `full_v2` nodes helps but does not fully close the gap.
-- Current open question: whether the source-held-out staged target should become the next bounded Step33 rewrite subline, or whether its event-edge report-only weakness still requires target narrowing before continuation.
+- Current open question: paused by default after the bounded combined prototype; only an explicit seed-stability check of the exact combined row remains as a small optional run.
+- Latest gap decomposition: `source_held_out_full` loses to `spring_neighbor_scope` mainly through held-out event-edge stiffness plus near-node velocity. It already beats `spring_neighbor_scope` on aggregate changed-edge auxiliary channels and non-event changed-edge stiffness, so auxiliary-only or non-event-stiffness-only refinement is not the next lever.
+- Latest frozen-edge rollout isolation: when retained `source_held_out_full` edge predictions are frozen and only changed-node rollout can vary, rollout-only refinements produce no meaningful independent gain. Original noisy total stays around `0.1267`; stratified noisy total stays around `0.1299`. Endpoint velocity does not improve robustly.
+- Latest narrower-target prototype: changed-edge assembly-only training improved noisy auxiliary MAE versus promoted `full_v2` but failed against retained `source_held_out_full` and worsened total error. The target is too detached when node rollout is copied/report-only.
+- Latest source-separated scoring diagnostic: `source_held_out_full` is clearly better than promoted `full_v2` on the learnable rewrite-target score and close to `spring_neighbor_scope`; the remaining total-error gap is mostly the held-out event-edge source score.
+- Latest paired structured-source diagnostic: adding one independent noisy event-edge source view improves clean-current event-edge observability on every noisy split, including the hard `<1` stiffness bucket, but remains far from the clean-current/oracle upper bound.
+- Latest paired-source stability sanity: paired-source gains are stable on original noisy and stratified noisy test across three second-view seeds; stratified noisy validation remains bucket-sensitive to the second draw. A clean/noisy guard removes the clean sanity regression.
+- Latest multi-view source aggregation diagnostic: 5-view aggregation substantially strengthens and stabilizes event-edge source recovery. 5-view mean is best on stratified validation; 5-view trimmed mean is best on original noisy and stratified noisy test. Clean/noisy guarded 5-view rows preserve clean sanity.
+- Latest guarded 5-view source patch diagnostic: patching guarded 5-view event-edge source estimates into `source_held_out_full` materially improves total changed-region error on original noisy, stratified noisy validation, stratified noisy test, and clean sanity. The patch preserves all source-held-out learnable-target metrics because only event-edge rest/stiffness is changed.
+- Latest post-patch gap decomposition: after guarded 5-view source patching, event-edge residual is no longer the dominant blocker. Remaining positive gap to `spring_neighbor_scope` is mainly endpoint/one-hop/two-hop changed-node velocity plus `current_distance`; auxiliary aggregate and non-event stiffness remain strengths of source-held-out.
+- Latest source-patched rollout/current-distance reconnect result: stable small total-error gain over the guarded 5-view patched row, driven mostly by `current_distance`; rollout remains the main blocker against `spring_neighbor_scope` on stratified noisy test.
+- Latest near-node force-frame rollout diagnostic: local radial/tangential rollout improves endpoint, one-hop, and two-hop velocity metrics, but total changed-region error does not beat `source_patched_rollout_distance` because `current_distance` assembly is fixed.
+- Latest source/rollout composition diagnostic: composing `source_patched_rollout_distance` edge-side/current-distance assembly with force-frame rollout outputs adds constructively without training and produces the best diagnostic learned-style total so far on original noisy and stratified validation, but still trails `spring_neighbor_scope` on stratified noisy test.
+- Latest composed source+edge+force-rollout stability check: the composed row is stable across three force-frame seeds and consistently beats both parent learned rows, but it still trails `spring_neighbor_scope` on stratified noisy test (`0.1133` mean vs `0.1101`).
+- Latest bounded combined source+edge+force prototype: joint training around the same source-patched current-distance plus force-frame rollout structure gives only a tiny improvement over the composed row on noisy splits and still trails `spring_neighbor_scope` on stratified noisy test (`0.1131` vs `0.1101`).
+- Latest docs/status consolidation: `docs/STEP33_COMBINED_LINE_STATUS_MEMO.md` records the combined line as positive but not candidate-ready, and pauses further implementation by default.
+- Current open question: none for implementation unless an exact combined-row seed-stability check is intentionally requested.
 
 ## Session Goal
 
@@ -1094,6 +1115,995 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - Do not promote it as a candidate.
   - The next smallest justified action is a docs/status update recording `source_held_out_full` as retained diagnostic target, then a bounded refinement only if it preserves rollout and keeps event-edge source held out.
 
+### 33. Source-Held-Out Full Status Update
+
+- Files created/modified:
+  - `docs/STEP33_SMOKE_PROTOCOL.md`
+  - `docs/STEP33_REWRITE_REDESIGN_MEMO.md`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - no training
+  - no eval
+  - docs/status update only
+- Main results:
+  - `source_held_out_full` is now recorded as the retained staged rewrite diagnostic target.
+  - Promoted `structured_propagation_v2` with near-node-velocity weighting remains the best full learned rewrite family reference.
+  - Event-edge source recovery remains held out and unresolved.
+  - The line is explicitly not candidate-ready because clean sanity regresses and `spring_neighbor_scope` still wins noisy total changed-region error.
+- Interpretation:
+  - The retained target is useful because it is stable across original noisy test, stratified noisy validation, and stratified noisy test, and because it beats both promoted `full_v2` and reduced `aux_plus_non_event_params` on the noisy split checks.
+  - It should be used only as a staged diagnostic target under the current benchmark.
+- Decision:
+  - Continue future Step33 rewrite work from `source_held_out_full`, but do not reconnect event-edge source recovery yet and do not return to older tiny-family variants.
+
+### 34. Source-Held-Out Full Vs Spring Neighbor Decomposition
+
+- Files created/modified:
+  - `train/eval_step33_source_held_out_vs_spring_neighbor_decomposition.py`
+  - `artifacts/step33_source_held_out_vs_spring_neighbor_decomposition/summary.json`
+  - `artifacts/step33_source_held_out_vs_spring_neighbor_decomposition/error_decomposition.csv`
+  - `artifacts/step33_source_held_out_vs_spring_neighbor_decomposition/method_totals.csv`
+  - `artifacts/step33_source_held_out_vs_spring_neighbor_decomposition/top_gap_components.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_source_held_out_vs_spring_neighbor_decomposition.py`
+  - `python train/eval_step33_source_held_out_vs_spring_neighbor_decomposition.py --output_dir artifacts/step33_source_held_out_vs_spring_neighbor_decomposition --batch_size 64 --device cpu --num_workers 0`
+- Main results:
+  - Original noisy test:
+    - `source_held_out_full` mean total changed-region error: `0.1267`
+    - `spring_neighbor_scope`: `0.1125`
+    - gap: `0.0141`
+    - largest positive gap terms:
+      - event-edge stiffness contribution: `+0.0110` (`77.7%` of net gap)
+      - one-hop velocity: `+0.0034`
+      - endpoint velocity: `+0.0034`
+      - changed-edge current_distance: `+0.0029`
+      - event-edge rest: `+0.0022`
+    - offsetting source-held-out wins:
+      - changed-edge auxiliary total: `-0.0040`
+      - non-event changed-edge stiffness: `-0.0055`
+      - non-event changed-edge rest: `-0.0007`
+  - Stratified noisy test:
+    - `source_held_out_full` mean total changed-region error: `0.1299`
+    - `spring_neighbor_scope`: `0.1101`
+    - gap: `0.0198`
+    - largest positive gap terms:
+      - event-edge stiffness contribution: `+0.0115` (`58.4%` of net gap)
+      - one-hop velocity: `+0.0034`
+      - endpoint velocity: `+0.0033`
+      - changed-edge current_distance: `+0.0028`
+      - event-edge rest: `+0.0022`
+    - offsetting source-held-out wins:
+      - changed-edge auxiliary total: `-0.0033`
+      - non-event changed-edge stiffness: `-0.0013`
+      - non-event changed-edge rest: `-0.0006`
+  - Support geometry:
+    - original noisy spring-neighbor changed-node coverage: `0.8417`
+    - original noisy changed-edge coverage: `0.7612`
+    - stratified noisy changed-node coverage: `0.8706`
+    - stratified noisy changed-edge coverage: `0.7517`
+- Interpretation:
+  - The remaining gap is not primarily aggregate auxiliary assembly or non-event changed-edge stiffness; source-held-out is already better there.
+  - The stable blockers are held-out event-edge stiffness and near-node velocity, with current-distance assembly as a smaller secondary term.
+  - `spring_neighbor_scope` wins total error partly because it oracle-copies near event nodes and the event edge inside its heuristic support, not because it is uniformly better on every channel.
+- Decision:
+  - Do not refine auxiliary assembly or non-event stiffness alone next.
+  - The next useful target would need to address near-node rollout while keeping event-edge source held out, or pause until event-edge source representation is redesigned.
+
+### 35. Source-Held-Out Near-Node Rollout Refinement
+
+- Files created/modified:
+  - `train/train_step33_source_held_out_rollout_refine.py`
+  - `train/eval_step33_source_held_out_rollout_refine.py`
+  - `checkpoints/step33_source_held_out_rollout_refine_near_rollout_weighted/best.pt`
+  - `checkpoints/step33_source_held_out_rollout_refine_endpoint_plus_onehop_rollout_head/best.pt`
+  - `checkpoints/step33_source_held_out_rollout_refine_near_rollout_combined/best.pt`
+  - `artifacts/step33_source_held_out_rollout_refine_clean/summary.json`
+  - `artifacts/step33_source_held_out_rollout_refine_noisy/summary.json`
+  - `artifacts/step33_source_held_out_rollout_refine_stratified_noisy/summary.json`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/train_step33_source_held_out_rollout_refine.py train/eval_step33_source_held_out_rollout_refine.py`
+  - `python train/train_step33_source_held_out_rollout_refine.py --variant near_rollout_weighted ...`
+  - `python train/train_step33_source_held_out_rollout_refine.py --variant endpoint_plus_onehop_rollout_head ...`
+  - `python train/train_step33_source_held_out_rollout_refine.py --variant near_rollout_combined ...`
+  - `python train/eval_step33_source_held_out_rollout_refine.py --data_path data/graph_event_step33_physics_like_smoke_test.pkl --output_dir artifacts/step33_source_held_out_rollout_refine_clean --batch_size 64 --device cpu --num_workers 0`
+  - `python train/eval_step33_source_held_out_rollout_refine.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --output_dir artifacts/step33_source_held_out_rollout_refine_noisy --batch_size 64 --device cpu --num_workers 0`
+  - `python train/eval_step33_source_held_out_rollout_refine.py --data_path data/graph_event_step33_spring_retension_noisy_diag_test.pkl --output_dir artifacts/step33_source_held_out_rollout_refine_stratified_noisy --batch_size 64 --device cpu --num_workers 0`
+- Main results:
+  - Clean sanity:
+    - retained `source_held_out_full` mean: `0.0423`
+    - `near_rollout_weighted`: `0.0403`
+    - `endpoint_plus_onehop_rollout_head`: `0.0391`
+    - `near_rollout_combined`: `0.0388`
+    - clean event-edge stiffness remains held out/report-only at `0.6211`
+  - Original noisy test:
+    - retained `source_held_out_full` mean: `0.1267`
+    - `near_rollout_weighted`: `0.1213`
+    - `endpoint_plus_onehop_rollout_head`: `0.1246`
+    - `near_rollout_combined`: `0.1221`
+    - `spring_neighbor_scope`: `0.1125`
+  - Original noisy node velocity:
+    - retained `source_held_out_full` mean: `0.0471`
+    - `near_rollout_weighted`: `0.0498`, worse
+    - `endpoint_plus_onehop_rollout_head`: `0.0465`, slight improvement
+    - `near_rollout_combined`: `0.0475`, worse
+  - Stratified noisy test:
+    - retained `source_held_out_full` mean: `0.1299`
+    - `near_rollout_weighted`: `0.1269`
+    - `endpoint_plus_onehop_rollout_head`: `0.1285`
+    - `near_rollout_combined`: `0.1259`
+    - `spring_neighbor_scope`: `0.1101`
+  - Stratified noisy node velocity:
+    - retained `source_held_out_full` mean: `0.0475`
+    - `near_rollout_weighted`: `0.0509`, worse
+    - `endpoint_plus_onehop_rollout_head`: `0.0475`, roughly flat
+    - `near_rollout_combined`: `0.0479`, slightly worse
+- Interpretation:
+  - Total changed-region error improved modestly, especially for `near_rollout_combined` and `near_rollout_weighted`, and the improvement survives the stratified noisy test.
+  - However, the gain is not primarily from the intended near-node rollout channel. Endpoint/one-hop velocity does not improve consistently, and the strongest total rows benefit from edge-side fluctuations such as non-event stiffness and auxiliary/current-distance changes.
+  - Event-edge stiffness remains unchanged and held out, so the largest known gap term is still unresolved.
+- Decision:
+  - Treat near-node rollout weighting as a weak positive total-error signal, not as a solved rollout refinement.
+  - Do not continue by simply increasing rollout weights again.
+  - The next smallest useful action is a no-training decomposition of the rollout-refined rows to identify whether the total gain comes from edge-side drift or real node rollout before retaining any rollout-refined variant.
+
+### 36. Rollout-Refined Row Decomposition
+
+- Files created/modified:
+  - `train/eval_step33_source_held_out_rollout_refine_decomposition.py`
+  - `artifacts/step33_source_held_out_rollout_refine_decomposition/summary.json`
+  - `artifacts/step33_source_held_out_rollout_refine_decomposition/decomposition_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_source_held_out_rollout_refine_decomposition.py`
+  - `python train/eval_step33_source_held_out_rollout_refine_decomposition.py --output_dir artifacts/step33_source_held_out_rollout_refine_decomposition --batch_size 64 --device cpu --num_workers 0`
+- Main results:
+  - Original noisy test, `near_rollout_combined` vs retained `source_held_out_full`:
+    - total changed error delta: `-0.0046`
+    - node rollout contribution delta: `+0.0001`, essentially flat/worse
+    - non-event parameter contribution delta: `-0.0029`
+    - changed-edge auxiliary contribution delta: `-0.0018`
+    - event-edge report-only contribution delta: `0.0000`
+  - Stratified noisy test, `near_rollout_combined` vs retained `source_held_out_full`:
+    - total changed error delta: `-0.0040`
+    - node rollout contribution delta: `+0.0001`, essentially flat/worse
+    - non-event parameter contribution delta: `-0.0028`
+    - changed-edge auxiliary contribution delta: `-0.0013`
+    - event-edge report-only contribution delta: `0.0000`
+  - Original noisy test, `endpoint_plus_onehop_rollout_head`:
+    - total changed error delta: `-0.0021`
+    - node rollout contribution delta: `-0.0001`
+    - this is the cleanest genuine rollout gain, but it is tiny
+  - Stratified noisy test, `endpoint_plus_onehop_rollout_head`:
+    - total changed error delta: `-0.0014`
+    - node rollout contribution delta: `+0.0001`, essentially flat
+  - `near_rollout_weighted` improves total error on noisy splits but worsens node rollout contribution on both.
+- Interpretation:
+  - The rollout-refinement total-error gains are mostly edge-side drift, especially non-event stiffness and auxiliary/current-distance movement.
+  - Endpoint/one-hop velocity is not improving in a meaningful contribution-weighted way.
+  - The only row with a small original-test rollout gain does not preserve that rollout gain on stratified noisy test.
+- Decision:
+  - Do not retain a rollout-refined variant yet.
+  - Pause simple rollout-loss weighting refinements.
+  - The next Step33 rewrite move should not be another weight tweak; it should either isolate node rollout with edge predictions frozen, or pause implementation until event-edge source/target redesign is ready.
+
+### 37. Frozen-Edge Node-Rollout Isolation
+
+- Files created/modified:
+  - `train/train_step33_frozen_edge_rollout_isolation.py`
+  - `train/eval_step33_frozen_edge_rollout_isolation.py`
+  - `checkpoints/step33_frozen_edge_rollout_isolation_frozen_edge_endpoint_onehop_rollout/best.pt`
+  - `checkpoints/step33_frozen_edge_rollout_isolation_frozen_edge_near_rollout_weighted/best.pt`
+  - `checkpoints/step33_frozen_edge_rollout_isolation_frozen_edge_rollout_combined/best.pt`
+  - `artifacts/step33_frozen_edge_rollout_isolation/summary.json`
+  - `artifacts/step33_frozen_edge_rollout_isolation/frozen_edge_rollout_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/train_step33_frozen_edge_rollout_isolation.py train/eval_step33_frozen_edge_rollout_isolation.py`
+  - `python train/train_step33_frozen_edge_rollout_isolation.py --variant frozen_edge_endpoint_onehop_rollout ...`
+  - `python train/train_step33_frozen_edge_rollout_isolation.py --variant frozen_edge_near_rollout_weighted ...`
+  - `python train/train_step33_frozen_edge_rollout_isolation.py --variant frozen_edge_rollout_combined ...`
+  - `python train/eval_step33_frozen_edge_rollout_isolation.py --output_dir artifacts/step33_frozen_edge_rollout_isolation --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Eval policy: retained `source_held_out_full` edge predictions are frozen from seed checkpoints; rollout variants can change nodes only.
+  - Original noisy:
+    - `frozen_edge_rollout_base_mean`: total `0.1267`, changed-node velocity `0.0471`, endpoint velocity `0.0498`, one-hop velocity `0.0476`.
+    - `frozen_edge_endpoint_onehop_rollout`: total `0.1267`, changed-node velocity `0.0470`, endpoint velocity `0.0510`, one-hop velocity `0.0476`.
+    - `frozen_edge_near_rollout_weighted`: total `0.1267`, changed-node velocity `0.0475`, endpoint velocity `0.0521`, one-hop velocity `0.0465`.
+    - `frozen_edge_rollout_combined`: total `0.1267`, changed-node velocity `0.0475`, endpoint velocity `0.0513`, one-hop velocity `0.0469`.
+  - Stratified noisy:
+    - `frozen_edge_rollout_base_mean`: total `0.1299`, changed-node velocity `0.0475`, endpoint velocity `0.0483`, one-hop velocity `0.0496`.
+    - `frozen_edge_endpoint_onehop_rollout`: total `0.1299`, changed-node velocity `0.0475`, endpoint velocity `0.0503`, one-hop velocity `0.0490`.
+    - `frozen_edge_near_rollout_weighted`: total `0.1300`, changed-node velocity `0.0480`, endpoint velocity `0.0510`, one-hop velocity `0.0482`.
+    - `frozen_edge_rollout_combined`: total `0.1300`, changed-node velocity `0.0481`, endpoint velocity `0.0500`, one-hop velocity `0.0481`.
+  - Clean sanity:
+    - Base mean total `0.0423`; rollout variants remain `0.0423-0.0426`, with no meaningful improvement.
+- Interpretation:
+  - Freezing the edge-side assembly removes the edge drift that previously made rollout refinements look mildly positive.
+  - Node-only rollout has at most tiny, inconsistent headroom under the current representation.
+  - Endpoint velocity, one of the intended targets, generally worsens or stays flat.
+  - The remaining gap to `spring_neighbor_scope` is not addressable by another simple rollout weighting/refinement pass.
+- Decision:
+  - Do not continue frozen-edge rollout-only refinements.
+  - Do not retain any of the frozen-edge rollout variants.
+  - The Step33 source-held-out implementation line has reached another pause point; the next move should be source/target redesign planning, not more small rollout or edge tweaks.
+
+### 38. Narrower Changed-Edge Assembly Target Prototype
+
+- Files created/modified:
+  - `models/step33_narrow_target_edge_assembly_model.py`
+  - `train/train_step33_narrow_target_edge_assembly.py`
+  - `train/eval_step33_narrow_target_edge_assembly.py`
+  - `checkpoints/step33_narrow_target_edge_assembly/best.pt`
+  - `artifacts/step33_narrow_target_edge_assembly_clean/summary.json`
+  - `artifacts/step33_narrow_target_edge_assembly_clean/narrow_target_edge_assembly_summary.csv`
+  - `artifacts/step33_narrow_target_edge_assembly_noisy/summary.json`
+  - `artifacts/step33_narrow_target_edge_assembly_noisy/narrow_target_edge_assembly_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile models/step33_narrow_target_edge_assembly_model.py train/train_step33_narrow_target_edge_assembly.py train/eval_step33_narrow_target_edge_assembly.py`
+  - `python train/train_step33_narrow_target_edge_assembly.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_smoke_val.pkl --save_dir checkpoints/step33_narrow_target_edge_assembly --epochs 24 --batch_size 64 --hidden_dim 40 --message_steps 2 --lr 0.002 --device cpu --num_workers 0 --seed 0`
+  - `python train/eval_step33_narrow_target_edge_assembly.py --checkpoint checkpoints/step33_narrow_target_edge_assembly/best.pt --output_clean artifacts/step33_narrow_target_edge_assembly_clean --output_noisy artifacts/step33_narrow_target_edge_assembly_noisy --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Best checkpoint: epoch `21`.
+  - Validation at best checkpoint:
+    - total changed error `0.0965`
+    - auxiliary MAE `0.0376`
+    - non-event stiffness MAE `0.4355`
+    - event-edge stiffness report-only `1.1784`
+    - changed-node velocity report-only `0.0612`
+  - Clean sanity:
+    - narrow target total `0.0458`
+    - retained `source_held_out_full` total `0.0423`
+    - promoted `full_v2` total `0.0281`
+    - narrow auxiliary MAE `0.0375`, worse than retained source-held-out at `0.0348`
+    - narrow non-event stiffness `0.0368`, better than retained source-held-out at `0.0633`, but total is worse because rollout/event-edge are copied/report-only
+  - Original noisy:
+    - narrow target total `0.1409`
+    - retained `source_held_out_full` total `0.1267`
+    - promoted `full_v2` total `0.1312`
+    - `spring_neighbor_scope` total `0.1125`
+    - narrow auxiliary MAE `0.0450`, better than promoted `full_v2` at `0.0802`, but worse than retained source-held-out at `0.0381`
+    - narrow non-event stiffness `0.8694`, worse than retained source-held-out at `0.8082` and promoted `full_v2` at `0.7973`
+    - narrow changed-node velocity `0.0699`, much worse than retained source-held-out at `0.0471`
+- Interpretation:
+  - The narrower changed-edge assembly target is cleaner conceptually, but not more learnable than retained `source_held_out_full`.
+  - It improves auxiliary assembly versus promoted `full_v2`, but retained source-held-out already does that better.
+  - Copying/reporting node rollout makes the row too detached from the actual Step33 rewrite metric; total error regresses sharply.
+  - The target should not replace `source_held_out_full`.
+- Decision:
+  - Do not retain `narrow_target_edge_assembly`.
+  - Keep `source_held_out_full` as the retained staged diagnostic reference.
+  - Pause implementation again; the next move should be planning, not a narrower edge-only target or another rollout-only target.
+
+### 39. Target / Source Boundary Redesign Memo
+
+- Files created/modified:
+  - `docs/STEP33_TARGET_SOURCE_BOUNDARY_REDESIGN_MEMO.md`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - none
+- Main result:
+  - The memo redraws the Step33 rewrite boundary:
+    - source problem: event-edge clean-current rest/stiffness and hard down-factor source recovery
+    - rewrite target problem: changed-edge auxiliary assembly, non-event changed-edge params, and changed-node rollout as a staged target
+    - report-only unresolved channel: event-edge rest/stiffness under current noisy source
+  - It keeps `source_held_out_full` as the retained staged diagnostic target.
+  - It rejects replacing `source_held_out_full` with the changed-edge-only target.
+- Decision:
+  - Next Step33 action should be a no-training source-separated staged scoring diagnostic using existing checkpoints, not another learned prototype.
+
+### 40. Source-Separated Staged Scoring Diagnostic
+
+- Files created/modified:
+  - `train/eval_step33_source_separated_staged_scoring.py`
+  - `artifacts/step33_source_separated_staged_scoring/summary.json`
+  - `artifacts/step33_source_separated_staged_scoring/source_separated_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_source_separated_staged_scoring.py`
+  - `python train/eval_step33_source_separated_staged_scoring.py --output_dir artifacts/step33_source_separated_staged_scoring --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Original noisy:
+    - `source_held_out_full`: total `0.1267`, learnable score `0.1147`, learnable contribution `0.1108`, held-out source contribution `0.0159`
+    - promoted `full_v2`: total `0.1312`, learnable score `0.1289`, learnable contribution `0.1245`, held-out source contribution `0.0067`
+    - `spring_neighbor_scope`: total `0.1125`, learnable score `0.1137`, learnable contribution `0.1098`, held-out source contribution `0.0027`
+    - source-held-out vs spring gap: total `0.0141`, learnable contribution `0.0010`, held-out source contribution `0.0131`
+  - Stratified noisy validation:
+    - `source_held_out_full`: total `0.1401`, learnable score `0.1142`, learnable contribution `0.1103`, held-out source contribution `0.0298`
+    - promoted `full_v2`: total `0.1406`, learnable score `0.1301`, learnable contribution `0.1257`, held-out source contribution `0.0150`
+    - `spring_neighbor_scope`: total `0.1239`, learnable score `0.1111`, learnable contribution `0.1073`, held-out source contribution `0.0166`
+    - source-held-out vs spring gap: total `0.0162`, learnable contribution `0.0030`, held-out source contribution `0.0132`
+  - Stratified noisy test:
+    - `source_held_out_full`: total `0.1299`, learnable score `0.1175`, learnable contribution `0.1135`, held-out source contribution `0.0164`
+    - promoted `full_v2`: total `0.1351`, learnable score `0.1336`, learnable contribution `0.1291`, held-out source contribution `0.0060`
+    - `spring_neighbor_scope`: total `0.1101`, learnable score `0.1112`, learnable contribution `0.1074`, held-out source contribution `0.0027`
+    - source-held-out vs spring gap: total `0.0198`, learnable contribution `0.0061`, held-out source contribution `0.0137`
+  - Changed-edge-only contrast:
+    - worse than `source_held_out_full` on noisy learnable score and total across original and stratified noisy splits.
+- Interpretation:
+  - `source_held_out_full` is genuinely strong on the learnable staged rewrite target.
+  - It clearly beats promoted `full_v2` on the learnable score across noisy splits.
+  - It is close to `spring_neighbor_scope` on the learnable score; the remaining total-error gap is mostly event-edge source recovery.
+  - The changed-edge-only target remains rejected.
+- Decision:
+  - Keep `source_held_out_full` as the retained staged diagnostic target under a source-separated scoring regime.
+  - The next meaningful implementation should not refine the current learned target again; it should address event-edge source/observation redesign, or keep event-edge source explicitly held out in a narrowed benchmark/reporting protocol.
+
+### 41. Source Redesign Decision Memo
+
+- Files created/modified:
+  - `docs/STEP33_SOURCE_REDESIGN_DECISION_MEMO.md`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - none
+- Main result:
+  - The memo chooses to proceed to event-edge source/observation redesign, but only as a bounded diagnostic.
+  - It explicitly rejects another tiny source MLP, kNN local estimator, residual event-edge denoising head, rollout refinement, or rewrite-target tweak.
+  - It requires a planning-first source redesign prototype specification before any code or training.
+- Decision:
+  - Next Step33 action should be a source-redesign prototype specification memo that defines one controlled event-edge source diagnostic and success criteria for the hard `< 1` stiffness bucket.
+
+### 42. Event-Edge Source Redesign Prototype Spec
+
+- Files created/modified:
+  - `docs/STEP33_EVENT_EDGE_SOURCE_REDESIGN_PROTOTYPE_SPEC.md`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - none
+- Main result:
+  - The spec chooses exactly one next prototype: a paired structured-source observation diagnostic for `spring_retension` event-edge rest/stiffness.
+  - The prototype would add one independently noised structured source view for the event edge, estimate clean-current rest/stiffness from the paired noisy observations, and report post-retension target quality.
+  - Clean-current source remains a supervision/evaluation target and oracle comparison row only, not an input.
+- Decision:
+  - This paired structured-source diagnostic is worth implementing next.
+  - Do not reconnect event-edge denoising to rollout until source quality improves robustly, especially in the hard `stiffness_factor < 1` bucket.
+
+### 43. Paired Structured-Source Observation Diagnostic
+
+- Files created/modified:
+  - `train/eval_step33_event_edge_paired_source_diagnostic.py`
+  - `artifacts/step33_event_edge_paired_source_diagnostic/summary.json`
+  - `artifacts/step33_event_edge_paired_source_diagnostic/observability_summary.csv`
+  - `artifacts/step33_event_edge_paired_source_diagnostic/source_quality_summary.csv`
+  - `artifacts/step33_event_edge_paired_source_diagnostic/target_quality_summary.csv`
+  - `artifacts/step33_event_edge_paired_source_diagnostic/bucket_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python train/eval_step33_event_edge_paired_source_diagnostic.py --device cpu`
+- Main metrics/results:
+  - Original noisy test:
+    - observed-current retension target stiffness MAE: `0.4730`
+    - paired structured source target stiffness MAE: `0.2481`
+    - `support_full_v2` target stiffness MAE: `0.3677`
+    - `spring_neighbor_scope` target stiffness MAE: `0.1445`
+    - clean-current source upper bound / oracle patch: approximately `0.0000`
+    - `<1` bucket improved from `0.7168` to `0.2469`
+    - held-out event-edge source contribution improved from `0.00860` to `0.00447`
+  - Stratified noisy validation:
+    - observed-current target stiffness MAE: `1.2492`
+    - paired structured source target stiffness MAE: `0.5351`
+    - `spring_neighbor_scope` target stiffness MAE: `0.9428`
+    - `<1` bucket improved from `2.1008` to `0.2912`
+    - held-out event-edge source contribution improved from `0.02207` to `0.00950`
+  - Stratified noisy test:
+    - observed-current target stiffness MAE: `0.4377`
+    - paired structured source target stiffness MAE: `0.2324`
+    - `support_full_v2` target stiffness MAE: `0.3284`
+    - `spring_neighbor_scope` target stiffness MAE: `0.1445`
+    - `<1` bucket improved from `0.5812` to `0.1920`
+    - held-out event-edge source contribution improved from `0.00799` to `0.00421`
+- Interpretation:
+  - A paired independently noised structured source view is a real observability gain over the single observed-current event-edge source.
+  - The hard `<1` stiffness bucket is materially improved on original noisy, stratified noisy validation, and stratified noisy test.
+  - The paired source still does not reach `spring_neighbor_scope` on target stiffness in original/stratified test, and remains far from `denoise_from_clean_current_source` / oracle.
+  - Clean sanity regresses relative to clean observed-current because the diagnostic deliberately adds synthetic second-view noise even when the first observation is clean.
+- Decision:
+  - Retain paired structured-source observation as a positive source-redesign diagnostic.
+  - Do not reconnect event-edge source recovery to rollout yet.
+  - Next work should either validate this source protocol across paired-view seeds/noise policies or formalize a stricter source redesign plan before implementation resumes.
+
+### 44. Paired-Source Stability / Protocol Sanity Pass
+
+- Files created/modified:
+  - `train/eval_step33_event_edge_paired_source_stability.py`
+  - `artifacts/step33_event_edge_paired_source_stability/summary.json`
+  - `artifacts/step33_event_edge_paired_source_stability/stability_summary.csv`
+  - `artifacts/step33_event_edge_paired_source_stability/per_seed_or_view_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python train/eval_step33_event_edge_paired_source_stability.py --device cpu`
+- Main metrics/results:
+  - Second-view seeds evaluated: `7331`, `19011`, `40009`.
+  - Original noisy test paired-source target stiffness MAE:
+    - mean `0.2555`, range `0.0385`
+    - observed-current retension: `0.4730`
+    - `<1` bucket mean `0.2538`, range `0.0133`, versus observed-current `0.7168`
+    - held-out source contribution mean `0.00457`, range `0.00067`, versus observed-current `0.00860`
+  - Stratified noisy test paired-source target stiffness MAE:
+    - mean `0.2244`, range `0.0227`
+    - observed-current retension: `0.4377`
+    - `<1` bucket mean `0.1927`, range `0.0219`, versus observed-current `0.5812`
+    - held-out source contribution mean `0.00404`, range `0.00043`, versus observed-current `0.00799`
+  - Stratified noisy validation paired-source target stiffness MAE:
+    - mean `0.4810`, range `0.0940`, versus observed-current `1.2492`
+    - `<1` bucket mean `0.6473`, range `0.5864`, versus observed-current `2.1008`
+    - `>=1` bucket mean `0.3786`, range `0.4714`, versus observed-current `0.7252`
+  - Clean sanity:
+    - unguarded paired-source target stiffness MAE mean `0.1441`
+    - clean/noisy guard target stiffness MAE `~0.0000`, matching observed-current clean behavior
+- Interpretation:
+  - The paired-source protocol is stable enough to count as a positive source-side signal on original noisy and stratified noisy test.
+  - The hard `<1` bucket remains improved across all tested noisy settings.
+  - Stratified noisy validation shows the current single-extra-view protocol is still draw-sensitive by bucket, so one additional noisy view is not yet a candidate-ready source protocol.
+  - The clean/noisy guard is necessary and effective; paired denoising should not be applied to clean structured observations.
+- Decision:
+  - Retain paired structured-source observation as the first source redesign signal that is both positive and mostly stable.
+  - Do not reconnect to rollout yet.
+  - Next source-side work should improve protocol robustness, most likely by formalizing multi-view aggregation or a repeated-pair diagnostic, before any learned rewrite reconnection.
+
+### 45. Multi-View Source Aggregation Diagnostic
+
+- Files created/modified:
+  - `train/eval_step33_event_edge_multiview_source_diagnostic.py`
+  - `artifacts/step33_event_edge_multiview_source_diagnostic/summary.json`
+  - `artifacts/step33_event_edge_multiview_source_diagnostic/multiview_summary.csv`
+  - `artifacts/step33_event_edge_multiview_source_diagnostic/bucket_summary.csv`
+  - `artifacts/step33_event_edge_multiview_source_diagnostic/per_draw_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python train/eval_step33_event_edge_multiview_source_diagnostic.py --device cpu`
+- Main metrics/results:
+  - Original noisy test:
+    - observed-current target stiffness MAE: `0.4730`
+    - 2-view median mean: `0.2543`, range `0.0663`
+    - 5-view mean: `0.1724`, range `0.0146`
+    - 5-view trimmed mean: `0.1674`, range `0.0278`
+    - `spring_neighbor_scope`: `0.1445`
+    - 5-view trimmed mean held-out contribution: `0.00299`, close to `spring_neighbor_scope` at `0.00272`
+    - `<1` bucket: 5-view mean `0.1658`; 5-view trimmed mean `0.1768`; `spring_neighbor_scope` `0.3571`
+  - Stratified noisy validation:
+    - observed-current target stiffness MAE: `1.2492`
+    - 2-view mean: `0.5312`, range `0.4734`
+    - 2-view median: `0.2546`, range `0.0550`
+    - 5-view mean: `0.1668`, range `0.0294`
+    - 5-view trimmed mean: `0.1920`, range `0.0236`
+    - `spring_neighbor_scope`: `0.9428`
+    - `<1` bucket: 5-view mean `0.1521`; 5-view trimmed mean `0.1917`; `spring_neighbor_scope` `1.7478`
+  - Stratified noisy test:
+    - observed-current target stiffness MAE: `0.4377`
+    - 2-view mean: `0.2267`, range `0.0151`
+    - 5-view mean: `0.1365`, range `0.0320`
+    - 5-view trimmed mean: `0.1348`, range `0.0399`
+    - `spring_neighbor_scope`: `0.1445`
+    - 5-view trimmed mean held-out contribution: `0.00244`, slightly better than `spring_neighbor_scope` at `0.00273`
+    - `<1` bucket: 5-view trimmed mean `0.1145`; `spring_neighbor_scope` `0.3794`
+  - Clean sanity:
+    - guarded 5-view mean / median / trimmed mean target stiffness MAE: `~0.0000`
+    - clean/noisy guard removes clean regression completely.
+- Interpretation:
+  - Multi-view aggregation is materially better than the 2-view paired-source protocol.
+  - 5-view mean is the strongest overall validation row and is stable; 5-view trimmed mean is strongest on original noisy and stratified noisy test.
+  - The hard `<1` bucket is no longer the main source blocker under 5-view aggregation; it is consistently better than `spring_neighbor_scope`.
+  - Remaining weakness is mostly `>=1` target stiffness, where `spring_neighbor_scope` can be perfect on original/stratified test because of its oracle-copy scope behavior.
+  - This is still a source-only protocol diagnostic, not a learned rewrite model.
+- Decision:
+  - Treat guarded 5-view source aggregation as the current best event-edge source redesign signal.
+  - Do not reconnect to rollout immediately.
+  - Next diagnostic should patch guarded 5-view mean and guarded 5-view trimmed mean into the source-separated staged scoring / source-held-out assembly frame to measure total-error impact before any learned rollout reconnection.
+
+### 46. Guarded 5-View Source Patch Staged-Scoring Diagnostic
+
+- Files created/modified:
+  - `train/eval_step33_source_held_out_multiview_patch.py`
+  - `artifacts/step33_source_held_out_multiview_patch/summary.json`
+  - `artifacts/step33_source_held_out_multiview_patch/patch_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python train/eval_step33_source_held_out_multiview_patch.py --device cpu`
+- Main metrics/results:
+  - Original noisy test:
+    - `source_held_out_full`: total `0.1267`, event stiffness `0.7929`
+    - `+ guarded 5-view mean`: total `0.1137`, event stiffness `0.1645`
+    - `+ guarded 5-view trimmed_mean`: total `0.1135`, event stiffness `0.1521`
+    - oracle event-edge patch on source-held-out: total `0.1108`
+    - `spring_neighbor_scope`: total `0.1125`, event stiffness `0.1445`
+  - Stratified noisy validation:
+    - `source_held_out_full`: total `0.1401`, event stiffness `1.6071`
+    - `+ guarded 5-view mean`: total `0.1131`, event stiffness `0.1562`
+    - `+ guarded 5-view trimmed_mean`: total `0.1137`, event stiffness `0.1899`
+    - oracle event-edge patch on source-held-out: total `0.1103`
+    - `spring_neighbor_scope`: total `0.1239`, event stiffness `0.9428`
+  - Stratified noisy test:
+    - `source_held_out_full`: total `0.1299`, event stiffness `0.8234`
+    - `+ guarded 5-view mean`: total `0.1160`, event stiffness `0.1408`
+    - `+ guarded 5-view trimmed_mean`: total `0.1158`, event stiffness `0.1316`
+    - oracle event-edge patch on source-held-out: total `0.1135`
+    - `spring_neighbor_scope`: total `0.1101`, event stiffness `0.1445`
+  - Clean sanity:
+    - `source_held_out_full`: total `0.0423`, event stiffness `0.6211`
+    - guarded 5-view mean / trimmed mean: total `0.0296`, event stiffness `~0.0000`
+    - clean/noisy guard preserves the clean source path.
+  - Learnable-target sanity:
+    - auxiliary-channel MAE, non-event stiffness MAE, node velocity MAE, endpoint velocity MAE, and one-hop velocity MAE are identical between `source_held_out_full` and both guarded 5-view patch rows.
+- Interpretation:
+  - The multi-view source redesign transfers directly into staged total-error gains.
+  - Most of the event-edge oracle-patch headroom is recovered by guarded 5-view mean / trimmed mean.
+  - The patch beats `spring_neighbor_scope` on stratified noisy validation and nearly matches it on original noisy / stratified noisy test, while preserving source-held-out strengths on auxiliary channels and non-event stiffness.
+  - Remaining gap to `spring_neighbor_scope` is now mostly node rollout and unchanged-region behavior rather than event-edge source recovery.
+- Decision:
+  - Treat guarded 5-view source patch as the best current source-side diagnostic row.
+  - It is strong enough to justify a later source+rollout reconnection prototype, but the immediate next diagnostic should decompose the post-patch gap before training anything.
+
+### 47. Post-Patch Gap Decomposition
+
+- Files created/modified:
+  - `train/eval_step33_post_patch_gap_decomposition.py`
+  - `artifacts/step33_post_patch_gap_decomposition/summary.json`
+  - `artifacts/step33_post_patch_gap_decomposition/decomposition_summary.csv`
+  - `artifacts/step33_post_patch_gap_decomposition/method_totals.csv`
+  - `artifacts/step33_post_patch_gap_decomposition/top_gap_components.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python train/eval_step33_post_patch_gap_decomposition.py --device cpu`
+- Main metrics/results:
+  - Original noisy test:
+    - guarded 5-view trimmed total: `0.1135`
+    - `spring_neighbor_scope`: `0.1125`
+    - oracle event-edge patch on source-held-out: `0.1108`
+    - largest positive gaps versus `spring_neighbor_scope`:
+      - one-hop node velocity contribution `+0.00338`
+      - endpoint node velocity `+0.00336`
+      - changed-edge `current_distance` `+0.00294`
+      - two-hop-plus node velocity `+0.00180`
+    - source-held-out strengths versus `spring_neighbor_scope`:
+      - auxiliary total contribution `-0.00398`
+      - non-event stiffness contribution `-0.00546`
+      - event-edge rest contribution `-0.00015`
+  - Stratified noisy validation:
+    - guarded 5-view mean total: `0.1131`
+    - guarded 5-view trimmed total: `0.1137`
+    - `spring_neighbor_scope`: `0.1239`
+    - patched source-held-out beats `spring_neighbor_scope` overall.
+    - remaining positive component gaps still appear in one-hop velocity, endpoint velocity, `current_distance`, and two-hop-plus velocity, but are more than offset by event-edge source and edge-side wins.
+  - Stratified noisy test:
+    - guarded 5-view trimmed total: `0.1158`
+    - `spring_neighbor_scope`: `0.1101`
+    - oracle event-edge patch on source-held-out: `0.1135`
+    - largest positive gaps versus `spring_neighbor_scope`:
+      - one-hop node velocity contribution `+0.00342`
+      - endpoint node velocity `+0.00327`
+      - changed-edge `current_distance` `+0.00276`
+      - two-hop-plus node velocity `+0.00209`
+    - source-held-out strengths versus `spring_neighbor_scope`:
+      - auxiliary total contribution `-0.00335`
+      - non-event stiffness contribution `-0.00129`
+      - event-edge stiffness contribution `-0.00022`
+  - Clean sanity:
+    - guarded 5-view patched total: `0.0296`
+    - `spring_neighbor_scope`: `0.0060`
+    - remaining clean gap is mostly non-event stiffness, node velocity, and auxiliary/current-distance terms.
+- Interpretation:
+  - Guarded 5-view source patch removes event-edge source recovery as the main blocker.
+  - The remaining noisy gap is stable across original noisy and stratified noisy test: node rollout velocity first, changed-edge `current_distance` second, smaller position/contact residuals after that.
+  - Auxiliary aggregate and non-event changed-edge stiffness are not the next refinement target; they are already better than `spring_neighbor_scope` after the patch.
+  - On stratified validation, patched source-held-out beats `spring_neighbor_scope`, confirming the source patch is not merely an original-test artifact.
+- Decision:
+  - The next implementation target, if Step33 continues, should be a bounded source+near-node-rollout/current-distance reconnection prototype using guarded 5-view event-edge source.
+  - Do not return to event-edge source-only work, non-event stiffness, or auxiliary aggregate refinement as the main target.
+
+### 48. Guarded 5-View Source + Near-Node Rollout / Current-Distance Reconnection
+
+- Files created/modified:
+  - `models/step33_source_patched_rollout_distance_model.py`
+  - `train/train_step33_source_patched_rollout_distance.py`
+  - `train/eval_step33_source_patched_rollout_distance.py`
+  - `checkpoints/step33_source_patched_rollout_distance/best.pt`
+  - `artifacts/step33_source_patched_rollout_distance_noisy/summary.json`
+  - `artifacts/step33_source_patched_rollout_distance_noisy/source_patched_rollout_distance_summary.csv`
+- Commands run:
+  - `python -m py_compile models/step33_source_patched_rollout_distance_model.py train/train_step33_source_patched_rollout_distance.py train/eval_step33_source_patched_rollout_distance.py`
+  - `python train/train_step33_source_patched_rollout_distance.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_smoke_val.pkl --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --save_dir checkpoints/step33_source_patched_rollout_distance --epochs 20 --batch_size 64 --seed 0 --device auto`
+  - `python train/eval_step33_source_patched_rollout_distance.py --checkpoint checkpoints/step33_source_patched_rollout_distance/best.pt --output_dir artifacts/step33_source_patched_rollout_distance_noisy --batch_size 64 --device auto`
+- Training summary:
+  - Best epoch: `20`
+  - Best mixed clean/noisy validation total changed error: `0.0727`
+  - Validation node velocity MAE: `0.0414`
+- Main metrics:
+  - Clean test total:
+    - guarded 5-view patched source-held-out: `0.0296`
+    - source-patched rollout/current-distance: `0.0291`
+    - spring_neighbor_scope: `0.0060`
+  - Original noisy total:
+    - source_held_out_full: `0.1267`
+    - guarded 5-view patched source-held-out: `0.1129`
+    - source-patched rollout/current-distance: `0.1116`
+    - spring_neighbor_scope: `0.1125`
+  - Stratified noisy validation total:
+    - guarded 5-view patched source-held-out: `0.1136`
+    - source-patched rollout/current-distance: `0.1149`
+    - spring_neighbor_scope: `0.1239`
+  - Stratified noisy test total:
+    - guarded 5-view patched source-held-out: `0.1161`
+    - source-patched rollout/current-distance: `0.1148`
+    - spring_neighbor_scope: `0.1101`
+- Interpretation:
+  - The reconnection prototype gives a small real signal, mostly from `current_distance` and small near-node velocity improvements.
+  - `current_distance` improves consistently:
+    - original noisy `0.0317 -> 0.0239`
+    - stratified noisy test `0.0303 -> 0.0231`
+  - Node velocity improves modestly:
+    - original noisy `0.0471 -> 0.0458`
+    - stratified noisy test `0.0475 -> 0.0463`
+  - Event-edge source quality is not consistently as strong as the standalone guarded 5-view reference because the refiner uses a single fixed source-held-out seed and one sampled multiview draw; event stiffness is therefore a remaining evaluation sensitivity, not a solved target.
+  - Oracle near-node rollout plus oracle `current_distance` on top of this row still has large headroom:
+    - original noisy `0.1116 -> 0.1007`
+    - stratified noisy test `0.1148 -> 0.1041`
+- Decision:
+  - Keep this as a weak positive reconnection diagnostic.
+  - Do not treat it as candidate-ready: the gain is small, stratified test still trails `spring_neighbor_scope`, and near-node rollout remains far weaker than the spring-neighbor baseline.
+  - The next smallest useful action is a no-training decomposition/stability pass for this row, especially separating true rollout/current-distance gains from event-source draw variance and single-seed base effects.
+
+### 49. Source-Patched Rollout/Current-Distance Stability And Decomposition
+
+- Files created/modified:
+  - `train/eval_step33_source_patched_rollout_distance_decomposition.py`
+  - `artifacts/step33_source_patched_rollout_distance_decomposition/summary.json`
+  - `artifacts/step33_source_patched_rollout_distance_decomposition/decomposition_summary.csv`
+  - `artifacts/step33_source_patched_rollout_distance_decomposition/attribution_summary.csv`
+  - `artifacts/step33_source_patched_rollout_distance_decomposition/per_seed_or_source_summary.csv`
+- Commands run:
+  - `python -m py_compile train/eval_step33_source_patched_rollout_distance_decomposition.py`
+  - `python train/eval_step33_source_patched_rollout_distance_decomposition.py --checkpoint checkpoints/step33_source_patched_rollout_distance/best.pt --output_dir artifacts/step33_source_patched_rollout_distance_decomposition --batch_size 64 --device auto`
+- Main matched-source attribution:
+  - Original noisy:
+    - matched guarded 5-view trimmed: `0.1124`
+    - source-patched rollout/current-distance: `0.1110`
+    - spring_neighbor_scope: `0.1125`
+  - Stratified noisy validation:
+    - matched guarded 5-view trimmed: `0.1155`
+    - source-patched rollout/current-distance: `0.1141`
+    - spring_neighbor_scope: `0.1239`
+  - Stratified noisy test:
+    - matched guarded 5-view trimmed: `0.1151`
+    - source-patched rollout/current-distance: `0.1138`
+    - spring_neighbor_scope: `0.1101`
+  - Clean sanity:
+    - matched guarded 5-view trimmed: `0.0302`
+    - source-patched rollout/current-distance: `0.0291`
+    - spring_neighbor_scope: `0.0060`
+- Source-draw sensitivity:
+  - Original noisy:
+    - guarded range: `0.1120-0.1127`
+    - refined range: `0.1106-0.1113`
+  - Stratified noisy validation:
+    - guarded range: `0.1152-0.1158`
+    - refined range: `0.1138-0.1144`
+  - Stratified noisy test:
+    - guarded range: `0.1148-0.1157`
+    - refined range: `0.1136-0.1145`
+- Component attribution versus matched guarded patch:
+  - The total gain is stable at about `0.0012-0.0014`.
+  - Most of the gain is `current_distance`:
+    - original noisy contribution delta: `-0.00088`
+    - stratified noisy validation: `-0.00095`
+    - stratified noisy test: `-0.00079`
+  - Endpoint velocity contributes a smaller stable gain:
+    - original noisy: `-0.00027`
+    - stratified noisy validation: `-0.00022`
+    - stratified noisy test: `-0.00022`
+  - One-hop velocity contributes little:
+    - original noisy: `-0.00011`
+    - stratified noisy validation: `-0.00004`
+    - stratified noisy test: `-0.00019`
+  - Event-edge source contribution is identical in the matched attribution, so the gain is not source-draw luck.
+- Remaining gap to `spring_neighbor_scope` after refinement:
+  - Original noisy total is slightly better than `spring_neighbor_scope` (`-0.0015`), but this is because edge-side strengths offset poor rollout.
+  - Stratified noisy test still loses by `+0.0037`.
+  - Dominant stratified-test positive gaps versus spring are:
+    - endpoint velocity contribution: `+0.00304`
+    - one-hop velocity contribution: `+0.00332`
+    - two-hop+ velocity contribution: `+0.00217`
+    - `current_distance` contribution: `+0.00190`
+  - Offsetting strengths remain:
+    - aggregate auxiliary contribution: `-0.00376`
+    - non-event stiffness contribution: `-0.00236`
+    - event-edge stiffness contribution: `-0.00045`
+- Interpretation:
+  - The reconnect gain is real and stable across source draws.
+  - It is mostly a `current_distance` assembly improvement, not a meaningful rollout breakthrough.
+  - Near-node rollout remains the main reason `spring_neighbor_scope` wins on stratified noisy test.
+  - The oracle near-node rollout + oracle `current_distance` reference still shows sizable headroom, but the learned rollout portion is weak.
+- Decision:
+  - Retain `source_patched_rollout_distance` as a positive diagnostic row, not a candidate-ready family.
+  - Do not run another generic rollout-weight/refinement variant; the independent rollout signal is still too small.
+  - The next smallest justified action is a planning/status pass or a narrowly scoped current-distance/source-assembly memo; further implementation should require a new rollout representation or target design, not another small loss-weight tweak.
+
+### 50. Near-Node Rollout Redesign Planning Memo
+
+- Files created/modified:
+  - `docs/STEP33_SMOKE_PROTOCOL.md`
+  - `docs/STEP33_REWRITE_REDESIGN_MEMO.md`
+  - `docs/STEP33_NEAR_NODE_ROLLOUT_REDESIGN_MEMO.md`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Main status summary:
+  - `source_patched_rollout_distance` is retained as a positive diagnostic reference.
+  - Its gain is stable across source draws and original/stratified noisy checks.
+  - The gain is small and mostly comes from changed-edge `current_distance`, not from a rollout breakthrough.
+  - Endpoint and one-hop velocity improve only slightly.
+  - Stratified noisy test still trails `spring_neighbor_scope` because endpoint, one-hop, and two-hop+ velocity remain weak.
+  - Generic rollout weighting and tiny rollout-head variants under the current representation should stop.
+  - Future implementation requires a near-node rollout representation/target redesign.
+- Memo decision:
+  - If implementation resumes, run exactly one bounded near-node force-frame rollout diagnostic.
+  - Keep the Step33 benchmark fixed, `spring_retension` only, guarded 5-view source fixed, source-held-out edge-side assembly fixed, and outside support copied.
+  - Predict near-node rollout in a local radial/tangential or force-frame representation instead of another raw node-delta residual head.
+- Decision:
+  - Planning/status consolidation is complete.
+  - Do not start another generic rollout smoke before a representation-level rollout design is explicitly requested.
+
+### 51. Near-Node Force-Frame Rollout Diagnostic
+
+- Files created/modified:
+  - `models/step33_near_node_force_frame_model.py`
+  - `train/train_step33_near_node_force_frame_rollout.py`
+  - `train/eval_step33_near_node_force_frame_rollout.py`
+  - `checkpoints/step33_near_node_force_frame_rollout/best.pt`
+  - `artifacts/step33_near_node_force_frame_rollout/summary.json`
+  - `artifacts/step33_near_node_force_frame_rollout/force_frame_rollout_summary.csv`
+- Commands run:
+  - `python -m py_compile models/step33_near_node_force_frame_model.py train/train_step33_near_node_force_frame_rollout.py train/eval_step33_near_node_force_frame_rollout.py`
+  - `python train/train_step33_near_node_force_frame_rollout.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_smoke_val.pkl --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --save_dir checkpoints/step33_near_node_force_frame_rollout --epochs 20 --batch_size 64 --seed 0 --device auto`
+  - `python train/eval_step33_near_node_force_frame_rollout.py --checkpoint checkpoints/step33_near_node_force_frame_rollout/best.pt --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --source_patched_checkpoint checkpoints/step33_source_patched_rollout_distance/best.pt --output_dir artifacts/step33_near_node_force_frame_rollout --batch_size 64 --device auto`
+- Training summary:
+  - Best epoch: `20`
+  - Validation changed-region error: `0.0728`
+  - Validation node velocity MAE: `0.0378`
+  - The prototype predicts changed-node rollout in a local event-centered radial/tangential frame, converts back to world-frame node updates, keeps guarded 5-view event-edge source fixed, and keeps source-held-out edge-side assembly fixed.
+- Main metrics:
+  - Clean test total:
+    - guarded 5-view patched source-held-out: `0.0302`
+    - source-patched rollout/current-distance: `0.0291`
+    - force-frame rollout: `0.0289`
+    - spring_neighbor_scope: `0.0060`
+  - Original noisy total:
+    - source_held_out_full: `0.1254`
+    - guarded 5-view patched source-held-out: `0.1124`
+    - source-patched rollout/current-distance: `0.1110`
+    - force-frame rollout: `0.1113`
+    - spring_neighbor_scope: `0.1125`
+  - Stratified noisy validation total:
+    - guarded 5-view patched source-held-out: `0.1155`
+    - source-patched rollout/current-distance: `0.1141`
+    - force-frame rollout: `0.1146`
+    - spring_neighbor_scope: `0.1239`
+  - Stratified noisy test total:
+    - guarded 5-view patched source-held-out: `0.1151`
+    - source-patched rollout/current-distance: `0.1138`
+    - force-frame rollout: `0.1141`
+    - spring_neighbor_scope: `0.1101`
+- Rollout-specific metrics:
+  - Original noisy velocity MAE:
+    - source-patched endpoint/one-hop/two-hop+: `0.0500 / 0.0466 / 0.0410`
+    - force-frame endpoint/one-hop/two-hop+: `0.0481 / 0.0411 / 0.0386`
+  - Stratified noisy test velocity MAE:
+    - source-patched endpoint/one-hop/two-hop+: `0.0494 / 0.0483 / 0.0428`
+    - force-frame endpoint/one-hop/two-hop+: `0.0491 / 0.0435 / 0.0394`
+  - Clean velocity MAE:
+    - source-patched endpoint/one-hop/two-hop+: `0.0438 / 0.0441 / 0.0372`
+    - force-frame endpoint/one-hop/two-hop+: `0.0407 / 0.0355 / 0.0337`
+- Interpretation:
+  - Force-frame rollout is a real representation-level improvement for changed-node velocity, especially one-hop and two-hop+ velocity.
+  - The total-error gain is limited because this run intentionally fixed changed-edge `current_distance` at the guarded source-held-out value; `source_patched_rollout_distance` still wins total on original noisy and stratified noisy test through its current-distance improvement.
+  - Force-frame rollout beats `spring_neighbor_scope` on original noisy total and stratified noisy validation total, but still trails `spring_neighbor_scope` on stratified noisy test.
+  - The row is positive for rollout representation, but not candidate-ready and not a replacement for `source_patched_rollout_distance`.
+- Decision:
+  - Retain force-frame rollout as a positive diagnostic signal for near-node rollout representation.
+  - Do not promote it as the Step33 rewrite family: total changed-region error is not materially better than the retained source-patched rollout/current-distance row.
+  - The next smallest justified action is a no-training composition diagnostic that combines force-frame node rollout outputs with the `source_patched_rollout_distance` current-distance edge assembly to test complementarity before training another combined model.
+
+### 52. No-Training Source-Patched Edge Assembly + Force-Frame Rollout Composition
+
+- Files created/modified:
+  - `train/eval_step33_source_rollout_composition_diagnostic.py`
+  - `artifacts/step33_source_rollout_composition_diagnostic/summary.json`
+  - `artifacts/step33_source_rollout_composition_diagnostic/composition_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_source_rollout_composition_diagnostic.py`
+  - `python train/eval_step33_source_rollout_composition_diagnostic.py --force_checkpoint checkpoints/step33_near_node_force_frame_rollout/best.pt --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --source_patched_checkpoint checkpoints/step33_source_patched_rollout_distance/best.pt --output_dir artifacts/step33_source_rollout_composition_diagnostic --batch_size 64 --device auto`
+- Composition policy:
+  - event-edge source: guarded 5-view trimmed source patch
+  - edge-side/current-distance assembly: `source_patched_rollout_distance`
+  - node rollout: `near_node_force_frame_rollout`
+  - no weights updated and no new model trained
+- Main metrics:
+  - Clean test total:
+    - source-patched rollout/current-distance: `0.0291`
+    - force-frame rollout: `0.0289`
+    - composed row: `0.0280`
+    - spring_neighbor_scope: `0.0060`
+  - Original noisy total:
+    - guarded 5-view patch: `0.1124`
+    - source-patched rollout/current-distance: `0.1110`
+    - force-frame rollout: `0.1113`
+    - composed row: `0.1104`
+    - spring_neighbor_scope: `0.1125`
+  - Stratified noisy validation total:
+    - guarded 5-view patch: `0.1155`
+    - source-patched rollout/current-distance: `0.1141`
+    - force-frame rollout: `0.1146`
+    - composed row: `0.1136`
+    - spring_neighbor_scope: `0.1239`
+  - Stratified noisy test total:
+    - guarded 5-view patch: `0.1151`
+    - source-patched rollout/current-distance: `0.1138`
+    - force-frame rollout: `0.1141`
+    - composed row: `0.1133`
+    - spring_neighbor_scope: `0.1101`
+- Key component metrics:
+  - Original noisy:
+    - composed current_distance MAE: `0.0238`, matching source-patched edge assembly
+    - composed changed-node velocity MAE: `0.0430`, matching force-frame rollout
+    - composed endpoint/one-hop/two-hop+ velocity: `0.0481 / 0.0411 / 0.0386`
+  - Stratified noisy test:
+    - composed current_distance MAE: `0.0229`, matching source-patched edge assembly
+    - composed changed-node velocity MAE: `0.0437`, matching force-frame rollout
+    - composed endpoint/one-hop/two-hop+ velocity: `0.0491 / 0.0435 / 0.0394`
+- Interpretation:
+  - The edge-side/current-distance gains and force-frame rollout gains add constructively.
+  - The composed row beats both parents on clean, original noisy, stratified noisy validation, and stratified noisy test.
+  - The composed row beats `spring_neighbor_scope` on original noisy and stratified noisy validation, but still trails it on stratified noisy test (`0.1133` vs `0.1101`).
+  - The remaining stratified-test gap is still mostly rollout/preservation-like behavior; source, non-event stiffness, and aggregate auxiliary are not the immediate blockers.
+- Decision:
+  - Retain the composed row as the best no-training diagnostic assembly so far.
+  - It justifies one bounded combined prototype only if the next run keeps the same source-patched edge assembly and force-frame rollout representation, rather than inventing a new family.
+  - Before broadening or candidate promotion, the safer next action is a small seed/source-draw stability check or one bounded trained combined model using this exact composition as the target structure.
+
+### 53. Composed Source+Edge+Force-Rollout Stability Check
+
+- Files created/modified:
+  - `train/eval_step33_source_edge_force_rollout_stability.py`
+  - `checkpoints/step33_near_node_force_frame_rollout_seed1/best.pt`
+  - `checkpoints/step33_near_node_force_frame_rollout_seed2/best.pt`
+  - `checkpoints/step33_near_node_force_frame_rollout_seed3/best.pt`
+  - `artifacts/step33_source_edge_force_rollout_stability/summary.json`
+  - `artifacts/step33_source_edge_force_rollout_stability/per_seed_summary.csv`
+  - `artifacts/step33_source_edge_force_rollout_stability/mean_range_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_source_edge_force_rollout_stability.py`
+  - `python train/train_step33_near_node_force_frame_rollout.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_smoke_val.pkl --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --save_dir checkpoints/step33_near_node_force_frame_rollout_seed1 --epochs 20 --batch_size 64 --seed 1 --device auto`
+  - `python train/train_step33_near_node_force_frame_rollout.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_smoke_val.pkl --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --save_dir checkpoints/step33_near_node_force_frame_rollout_seed2 --epochs 20 --batch_size 64 --seed 2 --device auto`
+  - `python train/train_step33_near_node_force_frame_rollout.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_smoke_val.pkl --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --save_dir checkpoints/step33_near_node_force_frame_rollout_seed3 --epochs 20 --batch_size 64 --seed 3 --device auto`
+  - `python train/eval_step33_source_edge_force_rollout_stability.py --force_checkpoint checkpoints/step33_near_node_force_frame_rollout_seed1/best.pt --force_checkpoint checkpoints/step33_near_node_force_frame_rollout_seed2/best.pt --force_checkpoint checkpoints/step33_near_node_force_frame_rollout_seed3/best.pt --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --source_patched_checkpoint checkpoints/step33_source_patched_rollout_distance/best.pt --output_dir artifacts/step33_source_edge_force_rollout_stability --batch_size 64 --device auto`
+- Per-seed validation summary:
+  - seed 1 best epoch: `19`, validation total `0.0732`, node velocity `0.0400`
+  - seed 2 best epoch: `19`, validation total `0.0726`, node velocity `0.0368`
+  - seed 3 best epoch: `19`, validation total `0.0730`, node velocity `0.0386`
+- Per-seed noisy total changed-region error:
+  - Original noisy:
+    - seed 1 composed: `0.1103`
+    - seed 2 composed: `0.1102`
+    - seed 3 composed: `0.1105`
+    - source-patched parent: `0.1110`
+    - spring_neighbor_scope: `0.1125`
+  - Stratified noisy validation:
+    - seed 1 composed: `0.1138`
+    - seed 2 composed: `0.1135`
+    - seed 3 composed: `0.1138`
+    - source-patched parent: `0.1141`
+    - spring_neighbor_scope: `0.1239`
+  - Stratified noisy test:
+    - seed 1 composed: `0.1134`
+    - seed 2 composed: `0.1131`
+    - seed 3 composed: `0.1134`
+    - source-patched parent: `0.1138`
+    - spring_neighbor_scope: `0.1101`
+- Mean/range:
+  - Clean composed total mean/range: `0.0281 / 0.0007`
+  - Original noisy composed total mean/range: `0.1103 / 0.0003`
+  - Stratified noisy validation composed total mean/range: `0.1137 / 0.0003`
+  - Stratified noisy test composed total mean/range: `0.1133 / 0.0003`
+  - Stratified noisy test composed changed-node velocity mean/range: `0.0436 / 0.0017`
+- Interpretation:
+  - The composed row is stable across force-frame seeds.
+  - It consistently beats the `source_patched_rollout_distance` parent on original noisy, stratified noisy validation, stratified noisy test, and clean sanity.
+  - It consistently beats the force-frame-only parent because it keeps the stronger source-patched `current_distance` edge assembly.
+  - It beats `spring_neighbor_scope` on original noisy and stratified noisy validation, but consistently trails `spring_neighbor_scope` on stratified noisy test.
+  - The remaining stratified-test gap is still not source-draw noise or force-frame seed noise; it is persistent rollout/current-distance/metric-geometry headroom.
+- Decision:
+  - Retain composed source+edge+force-rollout as the best current Step33 diagnostic learned-style row.
+  - Do not call it candidate-ready: stratified noisy test still trails `spring_neighbor_scope`.
+  - The next smallest action should be docs/status consolidation or exactly one bounded combined prototype around this same structure; do not broaden the family.
+
+### 54. Bounded Combined Source+Edge+Force Prototype
+
+- Files created/modified:
+  - `models/step33_combined_source_edge_force_model.py`
+  - `train/train_step33_combined_source_edge_force.py`
+  - `train/eval_step33_combined_source_edge_force.py`
+  - `checkpoints/step33_combined_source_edge_force/best.pt`
+  - `artifacts/step33_combined_source_edge_force/summary.json`
+  - `artifacts/step33_combined_source_edge_force/combined_source_edge_force_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile models/step33_combined_source_edge_force_model.py train/train_step33_combined_source_edge_force.py train/eval_step33_combined_source_edge_force.py`
+  - `python train/train_step33_combined_source_edge_force.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_smoke_val.pkl --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --save_dir checkpoints/step33_combined_source_edge_force --epochs 20 --batch_size 64 --seed 0 --device auto`
+  - `python train/eval_step33_combined_source_edge_force.py --checkpoint checkpoints/step33_combined_source_edge_force/best.pt --source_checkpoint checkpoints/step33_source_held_out_rewrite_seed2/best.pt --source_patched_checkpoint checkpoints/step33_source_patched_rollout_distance/best.pt --force_checkpoint checkpoints/step33_near_node_force_frame_rollout_seed2/best.pt --full_v2_checkpoint checkpoints/step33_structured_propagation_v2_nearvel_seed2/best.pt --output_dir artifacts/step33_combined_source_edge_force --batch_size 64 --device auto`
+- Training summary:
+  - Best epoch: `20`
+  - Validation total changed-region error: `0.0718`
+  - Validation changed-node velocity MAE: `0.0377`
+  - The model jointly trains the force-frame node rollout residual and the source-patched changed-edge `current_distance` residual while keeping guarded 5-view event-edge source and source-held-out support fixed.
+- Main metrics:
+  - Clean test total:
+    - composed source+edge+force rollout: `0.0277`
+    - combined source+edge+force: `0.0279`
+    - source-patched rollout/current-distance: `0.0291`
+    - spring_neighbor_scope: `0.0060`
+  - Original noisy total:
+    - promoted full_v2: `0.1297`
+    - source_held_out_full: `0.1254`
+    - composed source+edge+force rollout: `0.1102`
+    - combined source+edge+force: `0.1100`
+    - source-patched rollout/current-distance: `0.1110`
+    - spring_neighbor_scope: `0.1125`
+  - Stratified noisy validation total:
+    - promoted full_v2: `0.1410`
+    - source_held_out_full: `0.1424`
+    - composed source+edge+force rollout: `0.1135`
+    - combined source+edge+force: `0.1134`
+    - source-patched rollout/current-distance: `0.1141`
+    - spring_neighbor_scope: `0.1239`
+  - Stratified noisy test total:
+    - promoted full_v2: `0.1334`
+    - source_held_out_full: `0.1293`
+    - composed source+edge+force rollout: `0.1131`
+    - combined source+edge+force: `0.1131`
+    - source-patched rollout/current-distance: `0.1138`
+    - spring_neighbor_scope: `0.1101`
+- Component notes:
+  - Original noisy:
+    - combined current_distance MAE improves over composed: `0.0238 -> 0.0229`
+    - combined two-hop velocity improves over composed: `0.0393 -> 0.0364`
+    - endpoint/one-hop velocity slightly regress versus composed: `0.0445/0.0414 -> 0.0446/0.0417`
+  - Stratified noisy test:
+    - combined current_distance MAE improves over composed: `0.0229 -> 0.0222`
+    - combined two-hop velocity improves over composed: `0.0390 -> 0.0366`
+    - endpoint/one-hop velocity regress versus composed: `0.0469/0.0425 -> 0.0489/0.0431`
+- Interpretation:
+  - The combined prototype is a small positive over `source_patched_rollout_distance` and roughly ties or narrowly improves the retained composed row on noisy totals.
+  - The gain is not material enough to change the main conclusion: stratified noisy test remains behind `spring_neighbor_scope`.
+  - Joint training improved `current_distance` and two-hop velocity, but did not solve endpoint/one-hop velocity, which remains the most visible learned-vs-spring gap.
+  - Clean sanity is stable, but not improved over the no-training composed row.
+- Decision:
+  - Retain `combined_source_edge_force` as a bounded positive diagnostic, not a candidate-ready family.
+  - Do not continue by adding another small loss tweak or residual head; the remaining gap is not one more tiny variant away.
+  - The next smallest justified action is docs/status consolidation and a pause/redesign decision for Step33 rewrite, unless explicitly choosing a seed stability check for this exact combined row.
+
+### 55. Combined Line Status Consolidation
+
+- Files created/modified:
+  - `docs/STEP33_SMOKE_PROTOCOL.md`
+  - `docs/STEP33_REWRITE_REDESIGN_MEMO.md`
+  - `docs/STEP33_COMBINED_LINE_STATUS_MEMO.md`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - none; docs/status pass only
+- Main status:
+  - The combined source+edge+force rollout line is a bounded positive result.
+  - It improves over `source_patched_rollout_distance`.
+  - It roughly ties or very slightly improves the retained no-training composed row on noisy totals.
+  - It is still not candidate-ready because stratified noisy test trails `spring_neighbor_scope` (`0.1131` vs `0.1101`).
+  - Further tiny residual, loss-weight, event-rule, active/contact, or source-estimator variants are paused.
+  - Broad Step33 rewrite candidate training is not justified from this result.
+- Decision:
+  - Pause Step33 rewrite implementation by default.
+  - Preserve `composed_source_edge_force_rollout` and `combined_source_edge_force` as the best current diagnostic learned-style references.
+  - The only remaining small justified run is an explicit seed-stability check of the exact `combined_source_edge_force` row; otherwise the next action should be planning/redesign, not implementation.
+
 ## Current Best References
 
 - Current Step33 benchmark proposal:
@@ -1106,6 +2116,22 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - `docs/STEP33_STRONGER_PROPAGATION_FAMILY_MEMO.md`
 - Event-edge source redesign memo:
   - `docs/STEP33_EVENT_EDGE_SOURCE_REDESIGN_MEMO.md`
+- Rewrite pause and redesign next-steps memo:
+  - `docs/STEP33_REWRITE_PAUSE_AND_REDESIGN_NEXT_STEPS.md`
+- Near-node rollout redesign memo:
+  - `docs/STEP33_NEAR_NODE_ROLLOUT_REDESIGN_MEMO.md`
+- Target/source boundary redesign memo:
+  - `docs/STEP33_TARGET_SOURCE_BOUNDARY_REDESIGN_MEMO.md`
+- Source redesign decision memo:
+  - `docs/STEP33_SOURCE_REDESIGN_DECISION_MEMO.md`
+- Event-edge source redesign prototype spec:
+  - `docs/STEP33_EVENT_EDGE_SOURCE_REDESIGN_PROTOTYPE_SPEC.md`
+- Combined line status memo:
+  - `docs/STEP33_COMBINED_LINE_STATUS_MEMO.md`
+- Source-separated staged scoring diagnostic:
+  - `train/eval_step33_source_separated_staged_scoring.py`
+  - `artifacts/step33_source_separated_staged_scoring/summary.json`
+  - `artifacts/step33_source_separated_staged_scoring/source_separated_summary.csv`
 - Current temporary handoff report:
   - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
 - Promoted learned rewrite reference:
@@ -1140,7 +2166,7 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - `artifacts/step33_event_edge_observability_diagnostic/observability_summary.csv`
   - `artifacts/step33_event_edge_observability_diagnostic/observability_bucket_summary.csv`
   - `artifacts/step33_event_edge_observability_diagnostic_k1/summary.json`
-- Latest source-held-out staged rewrite diagnostic, not retained:
+- Source-held-out staged rewrite diagnostic support artifacts:
   - `docs/STEP33_NEXT_SOURCE_OR_TARGET_DECISION_MEMO.md`
   - `checkpoints/step33_source_held_out_rewrite_diagnostic/best.pt`
   - `artifacts/step33_source_held_out_rewrite_diagnostic_clean/summary.json`
@@ -1160,6 +2186,18 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - `artifacts/step33_source_held_out_full_seed_stability/summary.json`
   - `artifacts/step33_source_held_out_full_seed_stability/per_seed_summary.csv`
   - `artifacts/step33_source_held_out_full_seed_stability/mean_range_summary.csv`
+- Frozen-edge node-rollout isolation diagnostic:
+  - `checkpoints/step33_frozen_edge_rollout_isolation_frozen_edge_endpoint_onehop_rollout/best.pt`
+  - `checkpoints/step33_frozen_edge_rollout_isolation_frozen_edge_near_rollout_weighted/best.pt`
+  - `checkpoints/step33_frozen_edge_rollout_isolation_frozen_edge_rollout_combined/best.pt`
+  - `artifacts/step33_frozen_edge_rollout_isolation/summary.json`
+  - `artifacts/step33_frozen_edge_rollout_isolation/frozen_edge_rollout_summary.csv`
+- Narrow changed-edge assembly target diagnostic, not retained:
+  - `checkpoints/step33_narrow_target_edge_assembly/best.pt`
+  - `artifacts/step33_narrow_target_edge_assembly_clean/summary.json`
+  - `artifacts/step33_narrow_target_edge_assembly_clean/narrow_target_edge_assembly_summary.csv`
+  - `artifacts/step33_narrow_target_edge_assembly_noisy/summary.json`
+  - `artifacts/step33_narrow_target_edge_assembly_noisy/narrow_target_edge_assembly_summary.csv`
 - Current active auxiliary smoke references:
   - `checkpoints/step33_spring_retension_active_aux_smoke_bce/best.pt`
   - `checkpoints/step33_spring_retension_active_aux_smoke_neg4/best.pt`
@@ -1192,6 +2230,72 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - `spring_neighbor_scope`
 - Important oracle reference:
   - `oracle_scope`
+- Paired source redesign diagnostic:
+  - `train/eval_step33_event_edge_paired_source_diagnostic.py`
+  - `artifacts/step33_event_edge_paired_source_diagnostic/summary.json`
+  - `artifacts/step33_event_edge_paired_source_diagnostic/source_quality_summary.csv`
+  - `artifacts/step33_event_edge_paired_source_diagnostic/target_quality_summary.csv`
+  - `artifacts/step33_event_edge_paired_source_diagnostic/bucket_summary.csv`
+- Paired source stability/protocol sanity:
+  - `train/eval_step33_event_edge_paired_source_stability.py`
+  - `artifacts/step33_event_edge_paired_source_stability/summary.json`
+  - `artifacts/step33_event_edge_paired_source_stability/stability_summary.csv`
+  - `artifacts/step33_event_edge_paired_source_stability/per_seed_or_view_summary.csv`
+- Multi-view source aggregation diagnostic:
+  - `train/eval_step33_event_edge_multiview_source_diagnostic.py`
+  - `artifacts/step33_event_edge_multiview_source_diagnostic/summary.json`
+  - `artifacts/step33_event_edge_multiview_source_diagnostic/multiview_summary.csv`
+  - `artifacts/step33_event_edge_multiview_source_diagnostic/bucket_summary.csv`
+  - `artifacts/step33_event_edge_multiview_source_diagnostic/per_draw_summary.csv`
+- Guarded 5-view source patch staged scoring:
+  - `train/eval_step33_source_held_out_multiview_patch.py`
+  - `artifacts/step33_source_held_out_multiview_patch/summary.json`
+  - `artifacts/step33_source_held_out_multiview_patch/patch_summary.csv`
+- Post-patch gap decomposition:
+  - `train/eval_step33_post_patch_gap_decomposition.py`
+  - `artifacts/step33_post_patch_gap_decomposition/summary.json`
+  - `artifacts/step33_post_patch_gap_decomposition/decomposition_summary.csv`
+  - `artifacts/step33_post_patch_gap_decomposition/method_totals.csv`
+  - `artifacts/step33_post_patch_gap_decomposition/top_gap_components.csv`
+- Source-patched rollout/current-distance reconnection:
+  - `models/step33_source_patched_rollout_distance_model.py`
+  - `train/train_step33_source_patched_rollout_distance.py`
+  - `train/eval_step33_source_patched_rollout_distance.py`
+  - `checkpoints/step33_source_patched_rollout_distance/best.pt`
+  - `artifacts/step33_source_patched_rollout_distance_noisy/summary.json`
+  - `artifacts/step33_source_patched_rollout_distance_noisy/source_patched_rollout_distance_summary.csv`
+- Source-patched rollout/current-distance decomposition:
+  - `train/eval_step33_source_patched_rollout_distance_decomposition.py`
+  - `artifacts/step33_source_patched_rollout_distance_decomposition/summary.json`
+  - `artifacts/step33_source_patched_rollout_distance_decomposition/decomposition_summary.csv`
+  - `artifacts/step33_source_patched_rollout_distance_decomposition/attribution_summary.csv`
+  - `artifacts/step33_source_patched_rollout_distance_decomposition/per_seed_or_source_summary.csv`
+- Near-node force-frame rollout diagnostic:
+  - `models/step33_near_node_force_frame_model.py`
+  - `train/train_step33_near_node_force_frame_rollout.py`
+  - `train/eval_step33_near_node_force_frame_rollout.py`
+  - `checkpoints/step33_near_node_force_frame_rollout/best.pt`
+  - `artifacts/step33_near_node_force_frame_rollout/summary.json`
+  - `artifacts/step33_near_node_force_frame_rollout/force_frame_rollout_summary.csv`
+- Source/rollout no-training composition diagnostic:
+  - `train/eval_step33_source_rollout_composition_diagnostic.py`
+  - `artifacts/step33_source_rollout_composition_diagnostic/summary.json`
+  - `artifacts/step33_source_rollout_composition_diagnostic/composition_summary.csv`
+- Composed source+edge+force-rollout stability check:
+  - `train/eval_step33_source_edge_force_rollout_stability.py`
+  - `checkpoints/step33_near_node_force_frame_rollout_seed1/best.pt`
+  - `checkpoints/step33_near_node_force_frame_rollout_seed2/best.pt`
+  - `checkpoints/step33_near_node_force_frame_rollout_seed3/best.pt`
+  - `artifacts/step33_source_edge_force_rollout_stability/summary.json`
+  - `artifacts/step33_source_edge_force_rollout_stability/per_seed_summary.csv`
+  - `artifacts/step33_source_edge_force_rollout_stability/mean_range_summary.csv`
+- Bounded combined source+edge+force prototype:
+  - `models/step33_combined_source_edge_force_model.py`
+  - `train/train_step33_combined_source_edge_force.py`
+  - `train/eval_step33_combined_source_edge_force.py`
+  - `checkpoints/step33_combined_source_edge_force/best.pt`
+  - `artifacts/step33_combined_source_edge_force/summary.json`
+  - `artifacts/step33_combined_source_edge_force/combined_source_edge_force_summary.csv`
 
 ## Paused / Rejected Directions
 
@@ -1225,18 +2329,28 @@ This is a temporary handoff report for the current long Step33 session only. It 
 - Do not continue tiny event-edge clean-current source estimators under the current local feature set; the first bounded estimator did not recover the upper-bound gain and regressed the hard down-factor bucket.
 - Do not continue event-edge source recovery under the current noisy structured feature bundles by adding another small estimator or nearest-feature variant; the observability probe did not show a robust local source signal.
 - Do not reconnect event-edge denoising to near-node rollout until the event-edge source representation is redesigned or the rewrite target is narrowed to avoid requiring an unobservable clean-current source.
+- Do not narrow the retained staged target back to `aux_plus_non_event_params`; the reduced row is less stable than `source_held_out_full` and loses too much rollout.
+- Do not continue frozen-edge rollout-only refinements; with retained source-held-out edge predictions fixed, node-only rollout changes do not produce meaningful independent gains.
+- Do not replace `source_held_out_full` with the changed-edge-assembly-only target; it regresses total error and does not improve the primary bundle over retained source-held-out.
+- Do not continue generic rollout weighting or tiny rollout-head tweaks under the same representation; the source-patched reconnect gain was mostly `current_distance`, not rollout.
+- Do not promote force-frame rollout by itself; it improves rollout metrics but does not beat the retained source-patched rollout/current-distance row on total changed-region error.
+- Do not promote the no-training composed row as candidate-ready; it still trails `spring_neighbor_scope` on stratified noisy test.
+- Do not treat the composed-row gap as seed noise; the three-seed stability check shows the remaining stratified-test deficit is stable.
+- Do not treat the bounded combined prototype as candidate-ready; it gives only a tiny noisy total gain and still trails `spring_neighbor_scope` on stratified noisy test.
 
 ## Next Smallest Justified Action
 
-Run a docs/status update next. The next planned Step33 action is to record `source_held_out_full` as the retained staged rewrite diagnostic target.
+Pause further implementation unless explicitly seed-checking the exact combined row.
 
 - Scope:
-  - docs/status only
+  - source-patched edge/current-distance assembly
+  - force-frame near-node rollout representation
   - `spring_retension` rewrite line only
-  - no training, eval, rendered observation, backend transfer, benchmark broadening, or Step22-31 reopening
-- Content to record:
-  - `source_held_out_full` is stable enough to retain as a diagnostic target, not a candidate
-  - it beats promoted `full_v2` on mean total changed-region error across original noisy test, stratified noisy val, and stratified noisy test
-  - it still regresses clean sanity and remains behind `spring_neighbor_scope`
-  - keep event-edge rest/stiffness report-only and copied from observation
-  - future refinement must preserve rollout and source-held-out assembly, not narrow back to `aux_plus_non_event_params`
+  - no rendered observation, backend transfer, benchmark broadening, broad candidate training, or Step22-31 reopening
+- Guardrails:
+  - use `docs/STEP33_NEAR_NODE_ROLLOUT_REDESIGN_MEMO.md` as the planning source of truth
+  - keep `source_patched_rollout_distance`, force-frame rollout, and the composed row as diagnostic references, not candidate-ready families
+  - keep guarded 5-view event-edge source fixed
+  - if running more, seed-check only the exact bounded combined source-patched force-frame/current-distance structure
+  - do not add another small residual, loss-weight, event-rule, active/contact, or source-estimator variant
+  - prioritize stratified noisy test total changed-region error, endpoint/one-hop/two-hop velocity, and changed-edge `current_distance`

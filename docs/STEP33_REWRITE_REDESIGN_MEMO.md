@@ -501,3 +501,133 @@ The bounded learned `clean_current_estimator` did not recover the lever:
 - clean sanity also regressed slightly: clean total `0.0285` versus support `full_v2` at `0.0280`
 
 This pauses the current event-edge source-estimation implementation line. The clean-current source upper bound remains scientifically important, but the current noisy local feature set plus tiny source MLP is not sufficient. Future event-edge work must begin with a stronger source/observation redesign, not another small estimator, residual head, sign-aware head, or rule-shaped patch.
+
+## Post-Memo Source-Held-Out Staged Target Result
+
+The source-held-out staged rewrite line has now been seed-checked and is the retained diagnostic target for the current Step33 rewrite line.
+
+`source_held_out_full` deliberately holds event-edge rest/stiffness source recovery out of the learned target. It treats those channels as report-only, while preserving the staged rewrite pieces that remain learnable under the current noisy structured representation:
+
+- changed-edge auxiliary assembly
+- non-event changed-edge parameter correction
+- changed-node rollout
+- outside-support copy by construction
+
+The seed stability check showed:
+
+- original noisy test mean total changed-region error:
+  - `source_held_out_full`: `0.1267`
+  - promoted `full_v2`: `0.1312`
+  - `aux_plus_non_event_params`: `0.1319`
+- stratified noisy validation mean total changed-region error:
+  - `source_held_out_full`: `0.1401`
+  - promoted `full_v2`: `0.1406`
+  - `aux_plus_non_event_params`: `0.1450`
+- stratified noisy test mean total changed-region error:
+  - `source_held_out_full`: `0.1299`
+  - promoted `full_v2`: `0.1351`
+  - `aux_plus_non_event_params`: `0.1346`
+
+Interpretation:
+
+- `source_held_out_full` is stable enough to retain as the next staged rewrite diagnostic target under the current benchmark
+- the retained target is not a candidate-ready rewrite family
+- clean sanity regresses versus promoted `full_v2`, because event-edge source recovery remains intentionally held out and unresolved
+- `spring_neighbor_scope` still wins noisy total changed-region error
+- future Step33 rewrite refinement should preserve rollout and source-held-out assembly rather than narrowing back to `aux_plus_non_event_params`
+- event-edge source recovery should not be reconnected until the source representation is redesigned or the target is explicitly narrowed around that unresolved channel
+
+## Post-Memo Frozen-Edge Rollout Isolation Result
+
+The frozen-edge rollout isolation diagnostic is now complete and is a negative/near-flat result.
+
+In this diagnostic, retained `source_held_out_full` edge predictions were frozen and only changed-node rollout was allowed to vary. The result did not produce a meaningful independent rollout gain:
+
+- original noisy total changed-region error stayed around `0.1267`
+- stratified noisy total changed-region error stayed around `0.1299`
+- endpoint velocity often worsened rather than improving
+- one-hop or two-hop velocity moved slightly in some rows, but not enough to materially change total error
+- earlier rollout-refinement gains were therefore mostly edge-side drift, not true rollout improvement
+
+Current decision:
+
+- keep promoted `structured_propagation_v2` with near-node-velocity weighting as the best full learned rewrite reference
+- keep `source_held_out_full` as the retained staged rewrite diagnostic target
+- pause the current implementation line
+- do not continue rollout-weighting, rollout-only isolation, tiny edge/source estimators, active/contact/event-rule variants, or event-edge reconnection under the current representation
+- the next meaningful Step33 rewrite step is source/target redesign planning
+
+## Post-Memo Source-Patched Rollout/Distance Result
+
+The event-edge source line later found a real source-side redesign signal: guarded 5-view structured source aggregation. Patching this source into `source_held_out_full` made event-edge source recovery no longer the dominant noisy `spring_retension` blocker.
+
+A bounded reconnect prototype, `source_patched_rollout_distance`, then held the guarded 5-view event source fixed and refined only:
+
+- near-node rollout
+- changed-edge `current_distance`
+
+The result is a positive diagnostic row but not a candidate-ready family:
+
+- original noisy matched-source total:
+  - guarded 5-view patched source-held-out: `0.1124`
+  - `source_patched_rollout_distance`: `0.1110`
+  - `spring_neighbor_scope`: `0.1125`
+- stratified noisy validation matched-source total:
+  - guarded 5-view patched source-held-out: `0.1155`
+  - `source_patched_rollout_distance`: `0.1141`
+  - `spring_neighbor_scope`: `0.1239`
+- stratified noisy test matched-source total:
+  - guarded 5-view patched source-held-out: `0.1151`
+  - `source_patched_rollout_distance`: `0.1138`
+  - `spring_neighbor_scope`: `0.1101`
+
+The matched-source decomposition shows that the gain is stable across source draws and is not mainly event-source variance. It is mostly changed-edge `current_distance` assembly:
+
+- original noisy `current_distance` contribution improvement: about `0.00088`
+- stratified noisy validation: about `0.00095`
+- stratified noisy test: about `0.00079`
+
+Endpoint and one-hop velocity improve only slightly. On stratified noisy test the remaining gap to `spring_neighbor_scope` is still dominated by endpoint, one-hop, and two-hop+ velocity, with a smaller `current_distance` gap.
+
+Decision:
+
+- retain `source_patched_rollout_distance` as a positive diagnostic reference
+- do not promote it as candidate-ready
+- do not continue generic rollout weighting or tiny rollout residual heads under the same representation
+- any future implementation should begin from a near-node rollout representation/target redesign, or from a deliberately narrower `current_distance` assembly target
+
+## Post-Memo Combined Source+Edge+Force Line Status
+
+The near-node rollout redesign path produced two useful follow-ups:
+
+- `composed_source_edge_force_rollout`, a no-training composition of guarded 5-view event-edge source, source-patched edge/current_distance assembly, and force-frame rollout
+- `combined_source_edge_force`, a bounded trained prototype around that same structure
+
+This line is meaningful because it cleanly combines the two stable levers found after the source patch:
+
+- source-patched changed-edge `current_distance` assembly
+- force-frame near-node rollout representation
+
+The composed row is stable across force-frame seeds and consistently beats the parent rows. The trained combined prototype is also positive relative to `source_patched_rollout_distance`, but the gain over the composed row is tiny:
+
+- original noisy total:
+  - composed source+edge+force rollout: `0.1102`
+  - combined source+edge+force: `0.1100`
+  - `spring_neighbor_scope`: `0.1125`
+- stratified noisy validation total:
+  - composed source+edge+force rollout: `0.1135`
+  - combined source+edge+force: `0.1134`
+  - `spring_neighbor_scope`: `0.1239`
+- stratified noisy test total:
+  - composed source+edge+force rollout: `0.1131`
+  - combined source+edge+force: `0.1131`
+  - `spring_neighbor_scope`: `0.1101`
+
+Current decision:
+
+- keep the composed row and the bounded combined prototype as positive diagnostic references
+- do not promote either row to candidate-ready status
+- pause the current implementation line by default
+- do not continue with more tiny residual heads, loss weights, event-rule patches, active/contact variants, or source-estimator variants
+- do not escalate to broad Step33 rewrite candidate training
+- if one more small run is intentionally requested, it should be only a seed-stability check of the exact `combined_source_edge_force` row

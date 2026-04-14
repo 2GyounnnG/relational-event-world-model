@@ -243,6 +243,81 @@ Current retained interpretation:
 - further Step33 rewrite work should not continue via small event-edge residual/source-estimator/kNN-style variants
 - future event-edge work requires either a source/observation redesign or a narrower rewrite target
 
+### Retained Staged Rewrite Diagnostic Target
+
+The source-held-out staged rewrite line is now the retained diagnostic target for the current Step33 rewrite work:
+
+- `source_held_out_full` keeps event-edge rest/stiffness recovery held out and report-only
+- it trains/evaluates the staged combination of changed-edge auxiliary assembly, non-event changed-edge parameter correction, and node rollout
+- seed stability showed that `source_held_out_full` beats promoted `full_v2` mean total changed-region error on original noisy test, stratified noisy validation, and stratified noisy test
+- it also beats the reduced `aux_plus_non_event_params` row; dropping rollout is too costly
+- promoted `structured_propagation_v2` with near-node-velocity weighting remains the best full learned rewrite family reference
+- `source_held_out_full` is not candidate-ready: clean sanity regresses, event-edge source recovery remains unresolved, and `spring_neighbor_scope` still wins noisy total changed-region error
+- future Step33 rewrite refinement should start from this source-held-out staged target, not from older tiny edge-head, active/contact, event-rule, or event-edge source-estimator variants
+
+Reference artifacts:
+
+- `artifacts/step33_source_held_out_full_seed_stability/summary.json`
+- `artifacts/step33_source_held_out_full_seed_stability/per_seed_summary.csv`
+- `artifacts/step33_source_held_out_full_seed_stability/mean_range_summary.csv`
+- `checkpoints/step33_source_held_out_rewrite_seed1/best.pt`
+- `checkpoints/step33_source_held_out_rewrite_seed2/best.pt`
+- `checkpoints/step33_source_held_out_rewrite_seed3/best.pt`
+
+### Current Rewrite Pause
+
+The frozen-edge rollout isolation diagnostic is now complete and pauses the current Step33 implementation line:
+
+- retained `source_held_out_full` edge predictions were frozen and only changed-node rollout was allowed to vary
+- rollout-only refinement did not materially improve total changed-region error on original noisy or stratified noisy `spring_retension`
+- endpoint velocity often worsened, and earlier apparent rollout gains were mostly coupled to edge-side drift
+- promoted `structured_propagation_v2` with near-node-velocity weighting remains the best full learned rewrite family reference
+- `source_held_out_full` remains the retained staged rewrite diagnostic target, but it is still not candidate-ready
+- event-edge source recovery remains unresolved and should not be reconnected under the current representation
+- do not continue rollout weighting, rollout-only isolation, tiny edge/source estimators, active/contact/event-rule variants, or candidate-phase training from this line
+- the next Step33 rewrite move should be a source/target redesign planning step, not another small smoke variant
+
+### Source-Patched Rollout/Distance Consolidation
+
+The guarded 5-view source patch was reconnected to a bounded near-node rollout plus `current_distance` refiner. This produced a real but small positive diagnostic row:
+
+- `source_patched_rollout_distance` improves over the matched guarded 5-view patched source-held-out row on original noisy test, stratified noisy validation, stratified noisy test, and clean sanity
+- matched-source attribution shows the gain is stable across source draws and is not explained by event-source variance
+- the gain is mostly changed-edge `current_distance` assembly, with only minor endpoint and one-hop velocity improvement
+- on original noisy test, the row narrowly beats `spring_neighbor_scope`, but mainly because edge-side strengths offset weak rollout
+- on stratified noisy test, it still trails `spring_neighbor_scope`; the remaining gap is dominated by endpoint, one-hop, and two-hop+ velocity plus residual `current_distance`
+- `source_patched_rollout_distance` is retained as a positive diagnostic reference only, not a candidate-ready family
+- do not continue generic rollout weighting or tiny rollout-head tweaks under the same representation
+- any further implementation requires a near-node rollout representation/target redesign, not another small loss-weight or residual-head variant
+
+Reference artifacts:
+
+- `checkpoints/step33_source_patched_rollout_distance/best.pt`
+- `artifacts/step33_source_patched_rollout_distance_noisy/summary.json`
+- `artifacts/step33_source_patched_rollout_distance_decomposition/summary.json`
+- `artifacts/step33_source_patched_rollout_distance_decomposition/decomposition_summary.csv`
+
+## Current Combined-Line Pause Status
+
+The bounded source+edge+force rollout line is now complete enough to pause implementation.
+
+- `composed_source_edge_force_rollout` is the best no-training diagnostic assembly: guarded 5-view source, source-patched edge/current_distance assembly, and force-frame rollout
+- the composed row is stable across force-frame seeds and beats its parent rows on clean sanity, original noisy test, stratified noisy validation, and stratified noisy test
+- `combined_source_edge_force` is a bounded positive trained prototype around the same structure and improves over `source_patched_rollout_distance`
+- the trained combined prototype roughly ties or only very slightly improves the retained composed row on noisy totals
+- neither row is candidate-ready: stratified noisy test still trails `spring_neighbor_scope` (`0.1131` vs `0.1101`)
+- do not open more tiny residual, loss-weight, event-rule, active/contact, or source-estimator variants from this line
+- do not escalate Step33 rewrite to broad candidate training from this result
+- default next step is implementation pause plus documentation/status consolidation; the only remaining small run would be an explicit seed-stability check of the exact combined row
+
+Reference artifacts:
+
+- `checkpoints/step33_combined_source_edge_force/best.pt`
+- `artifacts/step33_combined_source_edge_force/summary.json`
+- `artifacts/step33_combined_source_edge_force/combined_source_edge_force_summary.csv`
+- `artifacts/step33_source_edge_force_rollout_stability/summary.json`
+- `artifacts/step33_source_edge_force_rollout_stability/mean_range_summary.csv`
+
 ---
 
 ## Commands
