@@ -40,9 +40,9 @@ This is a temporary handoff report for the current long Step33 session only. It 
 - Latest near-node force-frame rollout diagnostic: local radial/tangential rollout improves endpoint, one-hop, and two-hop velocity metrics, but total changed-region error does not beat `source_patched_rollout_distance` because `current_distance` assembly is fixed.
 - Latest source/rollout composition diagnostic: composing `source_patched_rollout_distance` edge-side/current-distance assembly with force-frame rollout outputs adds constructively without training and produces the best diagnostic learned-style total so far on original noisy and stratified validation, but still trails `spring_neighbor_scope` on stratified noisy test.
 - Latest composed source+edge+force-rollout stability check: the composed row is stable across three force-frame seeds and consistently beats both parent learned rows, but it still trails `spring_neighbor_scope` on stratified noisy test (`0.1133` mean vs `0.1101`).
-- Latest bounded combined source+edge+force prototype: joint training around the same source-patched current-distance plus force-frame rollout structure gives only a tiny improvement over the composed row on noisy splits and still trails `spring_neighbor_scope` on stratified noisy test (`0.1131` vs `0.1101`).
-- Latest docs/status consolidation: `docs/STEP33_COMBINED_LINE_STATUS_MEMO.md` records the combined line as positive but not candidate-ready, and pauses further implementation by default.
-- Current open question: none for implementation unless an exact combined-row seed-stability check is intentionally requested.
+- Latest bounded combined source+edge+force prototype: joint training around the same source-patched current-distance plus force-frame rollout structure is stable across three seeds and consistently beats `source_patched_rollout_distance`, but it does not beat the no-training composed row and still trails `spring_neighbor_scope` on stratified noisy test (`0.1134` mean vs `0.1101`).
+- Latest final docs/status consolidation: `docs/STEP33_COMBINED_LINE_STATUS_MEMO.md` now records the completed three-seed combined stability check, retains `composed_source_edge_force_rollout` as the best diagnostic assembly reference, keeps `combined_source_edge_force` only as a stable positive trained diagnostic row, and fully pauses the current implementation line.
+- Current open question: none for implementation; the exact combined-row seed-stability check is complete and supports a full pause of small Step33 rewrite runs.
 
 ## Session Goal
 
@@ -2104,6 +2104,87 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - Preserve `composed_source_edge_force_rollout` and `combined_source_edge_force` as the best current diagnostic learned-style references.
   - The only remaining small justified run is an explicit seed-stability check of the exact `combined_source_edge_force` row; otherwise the next action should be planning/redesign, not implementation.
 
+### 56. Combined Source+Edge+Force 3-Seed Stability Check
+
+- Files created/modified:
+  - `train/eval_step33_combined_source_edge_force_stability.py`
+  - `checkpoints/step33_combined_source_edge_force_seed1/best.pt`
+  - `checkpoints/step33_combined_source_edge_force_seed2/best.pt`
+  - `checkpoints/step33_combined_source_edge_force_seed3/best.pt`
+  - `artifacts/step33_combined_source_edge_force_stability/summary.json`
+  - `artifacts/step33_combined_source_edge_force_stability/per_seed_summary.csv`
+  - `artifacts/step33_combined_source_edge_force_stability/mean_range_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_combined_source_edge_force_stability.py`
+  - `python train/train_step33_combined_source_edge_force.py ... --save_dir checkpoints/step33_combined_source_edge_force_seed1 --seed 1`
+  - `python train/train_step33_combined_source_edge_force.py ... --save_dir checkpoints/step33_combined_source_edge_force_seed2 --seed 2`
+  - `python train/train_step33_combined_source_edge_force.py ... --save_dir checkpoints/step33_combined_source_edge_force_seed3 --seed 3`
+  - `python train/eval_step33_combined_source_edge_force_stability.py --combined_checkpoint checkpoints/step33_combined_source_edge_force_seed1/best.pt --combined_checkpoint checkpoints/step33_combined_source_edge_force_seed2/best.pt --combined_checkpoint checkpoints/step33_combined_source_edge_force_seed3/best.pt ...`
+- Training summary:
+  - Seed 1: best epoch `19`, validation total `0.0724`, validation changed-node velocity `0.0396`.
+  - Seed 2: best epoch `20`, validation total `0.0719`, validation changed-node velocity `0.0373`.
+  - Seed 3: best epoch `20`, validation total `0.0720`, validation changed-node velocity `0.0381`.
+- Mean total changed-region error:
+  - Clean sanity:
+    - combined source+edge+force: `0.0281` mean, `0.0005` range
+    - composed source+edge+force rollout: `0.0277`
+    - source-patched rollout/current-distance: `0.0291`
+    - spring_neighbor_scope: `0.0060`
+  - Original noisy test:
+    - combined source+edge+force: `0.1105` mean, `0.0002` range
+    - composed source+edge+force rollout: `0.1102`
+    - source-patched rollout/current-distance: `0.1110`
+    - spring_neighbor_scope: `0.1125`
+  - Stratified noisy validation:
+    - combined source+edge+force: `0.1137` mean, `0.0002` range
+    - composed source+edge+force rollout: `0.1135`
+    - source-patched rollout/current-distance: `0.1141`
+    - spring_neighbor_scope: `0.1239`
+  - Stratified noisy test:
+    - combined source+edge+force: `0.1134` mean, `0.0004` range
+    - composed source+edge+force rollout: `0.1131`
+    - source-patched rollout/current-distance: `0.1138`
+    - spring_neighbor_scope: `0.1101`
+- Component notes:
+  - The combined row consistently beats `source_patched_rollout_distance` on all noisy splits and clean sanity.
+  - The combined row does not consistently beat the no-training composed row; composed remains slightly better on clean, original noisy, stratified noisy validation, and stratified noisy test.
+  - Stratified noisy test rollout remains the blocker:
+    - combined changed-node velocity mean: `0.0437`
+    - composed changed-node velocity: `0.0426`
+    - spring_neighbor_scope changed-node velocity: `0.0047`
+  - Event/source and non-event edge metrics are stable by construction, while small current-distance movement does not close the spring-neighbor gap.
+- Interpretation:
+  - `combined_source_edge_force` is stable across seeds, so the result is not seed noise.
+  - Stability cuts both ways: the remaining stratified-test gap to `spring_neighbor_scope` is also stable.
+  - The exact combined row is a positive diagnostic over `source_patched_rollout_distance`, but it is not better than the retained no-training composed diagnostic row.
+- Decision:
+  - Pause fully: no further small Step33 implementation runs are justified on this line.
+  - Retain `composed_source_edge_force_rollout` as the best current diagnostic assembly and `combined_source_edge_force` as a stable positive trained diagnostic, not as a candidate-ready family.
+  - The next smallest justified action is docs/status consolidation or a larger redesign decision, not another residual, loss-weight, source-estimator, event-rule, active/contact, or rollout-head tweak.
+
+### 57. Final Combined-Line Docs/Status Consolidation
+
+- Files created/modified:
+  - `docs/STEP33_SMOKE_PROTOCOL.md`
+  - `docs/STEP33_COMBINED_LINE_STATUS_MEMO.md`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - none; docs/status pass only
+- Main status:
+  - `composed_source_edge_force_rollout` remains the retained best diagnostic assembly reference.
+  - `combined_source_edge_force` is a stable positive trained diagnostic row, not seed noise.
+  - The combined row consistently beats `source_patched_rollout_distance`, but it does not beat the retained no-training composed row.
+  - Stratified noisy test still trails `spring_neighbor_scope`: combined `0.1134` mean, composed `0.1131`, spring_neighbor_scope `0.1101`.
+  - Neither row is candidate-ready.
+  - No more small residual, loss-weight, source, rollout, event-rule, active/contact, or `current_distance` variants should be opened on this line.
+- Interpretation:
+  - The stability check removed the last small uncertainty. The combined row is real, but it is not the next promotion point.
+  - The remaining gap is structural enough that another local tweak would mostly recycle the same evidence.
+- Decision:
+  - Pause the current Step33 implementation line fully.
+  - Preserve the current best references and resume only from a new redesign decision.
+
 ## Current Best References
 
 - Current Step33 benchmark proposal:
@@ -2296,6 +2377,14 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - `checkpoints/step33_combined_source_edge_force/best.pt`
   - `artifacts/step33_combined_source_edge_force/summary.json`
   - `artifacts/step33_combined_source_edge_force/combined_source_edge_force_summary.csv`
+- Combined source+edge+force seed stability check:
+  - `train/eval_step33_combined_source_edge_force_stability.py`
+  - `checkpoints/step33_combined_source_edge_force_seed1/best.pt`
+  - `checkpoints/step33_combined_source_edge_force_seed2/best.pt`
+  - `checkpoints/step33_combined_source_edge_force_seed3/best.pt`
+  - `artifacts/step33_combined_source_edge_force_stability/summary.json`
+  - `artifacts/step33_combined_source_edge_force_stability/per_seed_summary.csv`
+  - `artifacts/step33_combined_source_edge_force_stability/mean_range_summary.csv`
 
 ## Paused / Rejected Directions
 
@@ -2337,10 +2426,11 @@ This is a temporary handoff report for the current long Step33 session only. It 
 - Do not promote the no-training composed row as candidate-ready; it still trails `spring_neighbor_scope` on stratified noisy test.
 - Do not treat the composed-row gap as seed noise; the three-seed stability check shows the remaining stratified-test deficit is stable.
 - Do not treat the bounded combined prototype as candidate-ready; it gives only a tiny noisy total gain and still trails `spring_neighbor_scope` on stratified noisy test.
+- Do not continue the combined source+edge+force line with another small run; the three-seed check is stable but does not beat the no-training composed row or close the stratified-test gap.
 
 ## Next Smallest Justified Action
 
-Pause further implementation unless explicitly seed-checking the exact combined row.
+Pause further implementation.
 
 - Scope:
   - source-patched edge/current-distance assembly
@@ -2351,6 +2441,6 @@ Pause further implementation unless explicitly seed-checking the exact combined 
   - use `docs/STEP33_NEAR_NODE_ROLLOUT_REDESIGN_MEMO.md` as the planning source of truth
   - keep `source_patched_rollout_distance`, force-frame rollout, and the composed row as diagnostic references, not candidate-ready families
   - keep guarded 5-view event-edge source fixed
-  - if running more, seed-check only the exact bounded combined source-patched force-frame/current-distance structure
+  - the exact bounded combined source-patched force-frame/current-distance structure has now been seed-checked
   - do not add another small residual, loss-weight, event-rule, active/contact, or source-estimator variant
   - prioritize stratified noisy test total changed-region error, endpoint/one-hop/two-hop velocity, and changed-edge `current_distance`

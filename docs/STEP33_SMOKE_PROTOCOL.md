@@ -299,24 +299,30 @@ Reference artifacts:
 
 ## Current Combined-Line Pause Status
 
-The bounded source+edge+force rollout line is now complete enough to pause implementation.
+The bounded source+edge+force rollout line is now fully paused after the exact combined-row seed stability check.
 
 - `composed_source_edge_force_rollout` is the best no-training diagnostic assembly: guarded 5-view source, source-patched edge/current_distance assembly, and force-frame rollout
 - the composed row is stable across force-frame seeds and beats its parent rows on clean sanity, original noisy test, stratified noisy validation, and stratified noisy test
 - `combined_source_edge_force` is a bounded positive trained prototype around the same structure and improves over `source_patched_rollout_distance`
-- the trained combined prototype roughly ties or only very slightly improves the retained composed row on noisy totals
-- neither row is candidate-ready: stratified noisy test still trails `spring_neighbor_scope` (`0.1131` vs `0.1101`)
+- the three-seed combined stability check confirms the trained row is real and stable, not seed noise
+- the trained combined row does not beat the retained no-training composed row: stratified noisy test is `0.1134` mean for combined versus `0.1131` for composed
+- neither row is candidate-ready: stratified noisy test still trails `spring_neighbor_scope` (`0.1134` combined mean / `0.1131` composed versus `0.1101`)
 - do not open more tiny residual, loss-weight, event-rule, active/contact, or source-estimator variants from this line
 - do not escalate Step33 rewrite to broad candidate training from this result
-- default next step is implementation pause plus documentation/status consolidation; the only remaining small run would be an explicit seed-stability check of the exact combined row
+- future Step33 rewrite work must begin from a new redesign decision, not another local variant on this implementation line
 
 Reference artifacts:
 
 - `checkpoints/step33_combined_source_edge_force/best.pt`
+- `checkpoints/step33_combined_source_edge_force_seed1/best.pt`
+- `checkpoints/step33_combined_source_edge_force_seed2/best.pt`
+- `checkpoints/step33_combined_source_edge_force_seed3/best.pt`
 - `artifacts/step33_combined_source_edge_force/summary.json`
 - `artifacts/step33_combined_source_edge_force/combined_source_edge_force_summary.csv`
 - `artifacts/step33_source_edge_force_rollout_stability/summary.json`
 - `artifacts/step33_source_edge_force_rollout_stability/mean_range_summary.csv`
+- `artifacts/step33_combined_source_edge_force_stability/summary.json`
+- `artifacts/step33_combined_source_edge_force_stability/mean_range_summary.csv`
 
 ---
 

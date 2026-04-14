@@ -8,8 +8,9 @@ Step33 benchmark health and proposal-side learned signal remain intact. The curr
 - `source_held_out_full` remains the retained staged diagnostic target
 - guarded 5-view event-edge source patch remains the retained source-side redesign reference
 - `source_patched_rollout_distance` remains the retained positive reconnect reference for changed-edge `current_distance`
-- `composed_source_edge_force_rollout` is the best no-training diagnostic assembly
-- `combined_source_edge_force` is the latest bounded trained prototype around that same assembly
+- `composed_source_edge_force_rollout` is the retained best diagnostic assembly reference
+- `combined_source_edge_force` is a stable positive trained diagnostic row around that same assembly
+- neither row is candidate-ready, and the implementation line is now paused
 
 ## Why The Combined Line Matters
 
@@ -20,18 +21,20 @@ The combined line is meaningful because it is not another free-form tiny residua
 
 The no-training composed row showed that these two levers add constructively. The seed stability check showed that the composed row beats its parent rows across clean sanity, original noisy test, stratified noisy validation, and stratified noisy test.
 
-The bounded trained `combined_source_edge_force` prototype then confirmed that the same structure can be trained end to end without losing the established edge-side strengths. It improves over `source_patched_rollout_distance` and roughly ties or slightly improves the retained composed row on noisy totals.
+The bounded trained `combined_source_edge_force` prototype then confirmed that the same structure can be trained end to end without losing the established edge-side strengths. It improves over `source_patched_rollout_distance`.
+
+The exact three-seed stability check confirms that this trained row is real and stable, not seed noise. It also resolves the previous ambiguity: the trained combined row does **not** beat the retained no-training composed row. The composed row remains the best diagnostic assembly reference.
 
 ## Why It Is Not Candidate-Ready
 
 The remaining blocker is still visible on the harder split. On stratified noisy test:
 
-- `combined_source_edge_force`: `0.1131`
+- `combined_source_edge_force` three-seed mean: `0.1134`
 - retained composed row: `0.1131`
 - `source_patched_rollout_distance`: `0.1138`
 - `spring_neighbor_scope`: `0.1101`
 
-The combined prototype improves `current_distance` and some two-hop velocity behavior, but endpoint and one-hop rollout are not solved. The row is stronger than the older learned variants, but it still depends on oracle support, guarded multiview source diagnostics, and a staged benchmark-specific assembly. It should remain a diagnostic row, not a candidate phase entry.
+The combined prototype improves over its source-patched parent, but endpoint and one-hop rollout are not solved and the stratified-test gap to `spring_neighbor_scope` remains stable. The row is stronger than the older learned variants, but it still depends on oracle support, guarded multiview source diagnostics, and a staged benchmark-specific assembly. It should remain a diagnostic row, not a candidate phase entry.
 
 ## Why More Small Variants Are Low Value
 
@@ -46,15 +49,20 @@ This session has already exhausted the obvious small implementation knobs:
 - rollout-only weighting and frozen-edge rollout isolation
 - changed-edge-only target narrowing
 
-The combined prototype was the one bounded implementation justified by the stable no-training composition. Its gain is real but small. Another small residual, loss weight, event-rule, or source-estimator variant would not address the persistent stratified-test rollout gap.
+The combined prototype was the one bounded implementation justified by the stable no-training composition. Its gain over `source_patched_rollout_distance` is real but small, and it does not beat the composed row. Another small residual, loss weight, event-rule, source-estimator, rollout-head, or `current_distance` tweak would not address the persistent stratified-test rollout gap.
 
-## Optional Remaining Small Run
+## Final Seed-Stability Check
 
-The only small implementation run that remains defensible is a seed-stability check of the exact `combined_source_edge_force` row.
+The only small implementation run that remained defensible was a seed-stability check of the exact `combined_source_edge_force` row. That check is complete.
 
-That check would answer whether the tiny trained gain over the composed row is stable. It should not alter the architecture, source protocol, event family, benchmark, support assumptions, or loss surface beyond seed repetition.
+Results:
 
-If that stability check is not explicitly requested, the implementation line should pause here.
+- clean sanity: combined `0.0281` mean / `0.0005` range, composed `0.0277`
+- original noisy test: combined `0.1105` mean / `0.0002` range, composed `0.1102`
+- stratified noisy validation: combined `0.1137` mean / `0.0002` range, composed `0.1135`
+- stratified noisy test: combined `0.1134` mean / `0.0004` range, composed `0.1131`, `spring_neighbor_scope` `0.1101`
+
+The result is stable, but it does not promote the trained combined row over the composed diagnostic assembly. It also does not close the harder stratified-test gap.
 
 ## Default Recommendation
 
@@ -70,4 +78,4 @@ Preserve these rows as references:
 - `spring_neighbor_scope`
 - `oracle_scope`
 
-Do not escalate to broad candidate training. Do not open more tiny variants. Future Step33 rewrite work should resume only with a clearer redesign of near-node rollout or a deliberate seed-stability check of the exact combined row.
+Do not escalate to broad candidate training. Do not open more tiny variants. Future Step33 rewrite work should resume only from a new redesign decision, not from another local residual, loss-weight, source, rollout, or `current_distance` variant on this line.
