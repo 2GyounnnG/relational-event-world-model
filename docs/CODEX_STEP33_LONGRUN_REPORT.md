@@ -14,13 +14,14 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - `checkpoints/step33_structured_propagation_v2_nearvel_seed3/best.pt`
 - Best trivial reference still relevant for total changed error: `spring_neighbor_scope`.
 - Current retained learned mean on noisy `spring_retension`: promoted `full_v2` at `0.1312` total changed-region error.
+- Latest source-held-out staged rewrite diagnostic: `0.1234` noisy total changed-region error, below promoted `full_v2`, with the gain coming mainly from changed-edge auxiliary assembly while event-edge stiffness remains worse because source recovery was deliberately held out.
 - Latest bounded prototype: event-edge denoising plus near-node rollout, using promoted `full_v2` seed2 as fixed non-event changed-edge support, reached `0.1296` noisy total changed-region error in one run, but was not robust enough to promote.
 - Latest target-formulation diagnostic: `denoise_from_clean_current_source` nearly solved event-edge rest/stiffness in isolation and reached `0.1232` noisy total changed-region error with rollout fixed, close to the oracle event-edge patch at `0.1230`.
-- Latest clean-current estimator diagnostic: a tiny noisy-feature estimator improved noisy clean-current source stiffness from `0.4783` to `0.3765`, but did not improve event-edge target or total changed-region error over support `full_v2`.
+- Latest clean-current observability diagnostic: nonparametric feature-bundle probes did not find a robust noisy structured source for clean-current event-edge stiffness. On noisy test, raw observed current was still the best non-oracle source (`0.4730` event-target stiffness MAE), while richer kNN bundles were worse; on noisy val, the noisy-event-edge-only kNN helped but did not transfer robustly.
 - `spring_neighbor_scope` on the same noisy test split: `0.1125` total changed-region error.
 - Key current finding: promoted `full_v2` already beats `spring_neighbor_scope` on non-event changed-edge stiffness, but loses total changed error because it does not assemble changed-edge auxiliary channels and near-node rollout as well as the oracle-copy baseline.
 - Latest auxiliary-channel finding: changed-edge `near_contact` is the largest single auxiliary lever; `spring_active` is second; `current_distance` alone is smaller. Recomputing distance/contact from predicted `full_v2` nodes helps but does not fully close the gap.
-- Current open question: whether a future event-edge observability/source-design diagnostic can show that clean-current event-edge stiffness is recoverable from structured noisy observation at all.
+- Current open question: whether the source-held-out staged target should become the next bounded Step33 rewrite subline, or whether its event-edge report-only weakness still requires target narrowing before continuation.
 
 ## Session Goal
 
@@ -809,6 +810,290 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - event-edge source-estimation implementation variants under the current local noisy feature set are paused
   - the next meaningful event-edge move is an observability/source-design diagnostic, not another tiny source MLP
 
+### 27. Event-Edge Clean-Current Observability Diagnostic
+
+- Files created/modified:
+  - `train/eval_step33_event_edge_observability_diagnostic.py`
+  - `artifacts/step33_event_edge_observability_diagnostic/summary.json`
+  - `artifacts/step33_event_edge_observability_diagnostic/observability_summary.csv`
+  - `artifacts/step33_event_edge_observability_diagnostic/observability_bucket_summary.csv`
+  - `artifacts/step33_event_edge_observability_diagnostic_k1/summary.json`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_event_edge_observability_diagnostic.py`
+  - `python train/eval_step33_event_edge_observability_diagnostic.py --output_dir artifacts/step33_event_edge_observability_diagnostic --k 5`
+  - `python train/eval_step33_event_edge_observability_diagnostic.py --output_dir artifacts/step33_event_edge_observability_diagnostic_k1 --k 1`
+  - `python train/eval_step33_event_edge_observability_diagnostic.py --output_dir artifacts/step33_event_edge_observability_diagnostic --k 5`
+- Main metrics/results:
+  - No new model was trained. The diagnostic used analytic/raw baselines plus kNN source probes over existing clean/noisy `spring_retension` data.
+  - Noisy test event-target stiffness MAE:
+    - raw observed current baseline: `0.4730`
+    - kNN noisy event-edge only: `0.8199`
+    - kNN endpoint state: `1.6100`
+    - kNN local structure: `1.6578`
+    - kNN changed support: `1.6809`
+    - kNN local physics summaries: `1.5669`
+    - clean-current upper bound: `~0.0000`
+  - Noisy val event-target stiffness MAE:
+    - raw observed current baseline: `1.2140`
+    - kNN noisy event-edge only: `0.7235`
+    - richer kNN bundles: `1.2772` to `1.3846`
+    - clean-current upper bound: `~0.0000`
+  - Noisy test hard bucket, `stiffness_factor < 1`, event-target stiffness MAE:
+    - raw observed current baseline: `0.7168`, bias `-0.5376`
+    - kNN noisy event-edge only: `0.7957`, bias `-0.1233`
+    - richer kNN bundles: `1.5400` to `1.8072`
+    - clean-current upper bound: `~0.0000`
+  - Noisy test `stiffness_factor >= 1`, event-target stiffness MAE:
+    - raw observed current baseline: `0.3071`
+    - kNN noisy event-edge only: `0.8364`
+    - richer kNN bundles: `1.4035` to `1.6896`
+    - clean-current upper bound: `~0.0000`
+- Interpretation:
+  - The clean-current event-edge source remains a strong oracle upper bound, but it is not robustly observable from the current noisy structured feature bundles.
+  - Endpoint state, local structure, changed-support context, and local physics summaries did not give a reliable marginal source signal under the simple nonparametric probe.
+  - The hard `< 1` bucket remains a real blocker: raw observed current is biased downward, but local nearest-feature probes do not recover the oracle source.
+  - The val/test behavior is inconsistent: noisy-event-edge-only kNN helps on val but fails on noisy test, so the signal is not stable enough to justify another small estimator.
+- Decision:
+  - Keep event-edge source-estimation paused under the current noisy structured representation.
+  - Do not reconnect event-edge denoising to near-node rollout yet.
+  - The next meaningful Step33 move is documentation/status consolidation and a source/observation redesign decision, not another tiny source MLP or kNN-style local feature variant.
+
+### 28. Event-Edge Observability Status Consolidation
+
+- Files created/modified:
+  - `docs/STEP33_SMOKE_PROTOCOL.md`
+  - `docs/STEP33_EVENT_EDGE_SOURCE_REDESIGN_MEMO.md`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - none for training or eval
+  - documentation inspection and patching only
+- Main metrics/results recorded:
+  - raw observed-current event-target stiffness MAE on noisy test: `0.4730`
+  - kNN noisy-event-edge-only event-target stiffness MAE on noisy test: `0.8199`
+  - richer local kNN feature bundles on noisy test: `1.5669` to `1.6809`
+  - hard `stiffness_factor < 1` observed-current event-target stiffness MAE: `0.7168`
+  - hard `stiffness_factor < 1` kNN noisy-event-edge-only event-target stiffness MAE: `0.7957`
+  - richer local kNN feature bundles in the hard bucket: `1.5400` to `1.8072`
+- Interpretation:
+  - The observability diagnostic is now recorded as a negative source-design result.
+  - The current noisy structured feature bundles do not robustly expose clean-current event-edge stiffness.
+  - The clean-current upper bound remains useful as an oracle ceiling, but not as a deployable source path.
+- Decision:
+  - Keep event-edge source-estimation paused.
+  - Do not continue with another small source MLP or kNN-style local estimator under the current representation.
+  - Do not reconnect event-edge denoising to near-node rollout until the source/observation representation changes or the rewrite target is narrowed.
+
+### 29. Source-Held-Out Staged Rewrite Target Diagnostic
+
+- Files created/modified:
+  - `docs/STEP33_NEXT_SOURCE_OR_TARGET_DECISION_MEMO.md`
+  - `models/step33_source_held_out_rewrite_model.py`
+  - `train/train_step33_source_held_out_rewrite_diagnostic.py`
+  - `train/eval_step33_source_held_out_rewrite_diagnostic.py`
+  - `checkpoints/step33_source_held_out_rewrite_diagnostic/best.pt`
+  - `artifacts/step33_source_held_out_rewrite_diagnostic_clean/summary.json`
+  - `artifacts/step33_source_held_out_rewrite_diagnostic_noisy/summary.json`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile models/step33_source_held_out_rewrite_model.py train/train_step33_source_held_out_rewrite_diagnostic.py train/eval_step33_source_held_out_rewrite_diagnostic.py`
+  - `python train/train_step33_source_held_out_rewrite_diagnostic.py --train_path data/graph_event_step33_physics_like_noisy_smoke_train.pkl --extra_train_path data/graph_event_step33_physics_like_smoke_train.pkl --val_path data/graph_event_step33_physics_like_noisy_smoke_val.pkl --extra_val_path data/graph_event_step33_physics_like_smoke_val.pkl --save_dir checkpoints/step33_source_held_out_rewrite_diagnostic --epochs 24 --batch_size 64 --hidden_dim 40 --message_steps 2 --lr 0.002 --device cpu --num_workers 0 --seed 0`
+  - `python train/eval_step33_source_held_out_rewrite_diagnostic.py --data_path data/graph_event_step33_physics_like_smoke_test.pkl --checkpoint checkpoints/step33_source_held_out_rewrite_diagnostic/best.pt --output_dir artifacts/step33_source_held_out_rewrite_diagnostic_clean --batch_size 64 --device cpu --num_workers 0`
+  - `python train/eval_step33_source_held_out_rewrite_diagnostic.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --checkpoint checkpoints/step33_source_held_out_rewrite_diagnostic/best.pt --output_dir artifacts/step33_source_held_out_rewrite_diagnostic_noisy --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Training:
+    - train samples: `340`
+    - val samples: `84`
+    - best epoch: `23`
+    - best val total changed-region error: `0.0915`
+    - event-edge rest/stiffness were copied from observation and report-only, not optimized
+  - Clean test:
+    - source-held-out total changed-region error: `0.0374`
+    - promoted `full_v2`: `0.0281`
+    - `spring_neighbor_scope`: `0.0060`
+    - event-edge stiffness report-only: `0.6211`, worse than promoted `full_v2` at `0.0337`
+    - changed-edge auxiliary MAE: `0.0329`, slightly better than promoted `full_v2` at `0.0368`
+  - Noisy test:
+    - source-held-out total changed-region error: `0.1234`
+    - promoted `full_v2`: `0.1312`
+    - `spring_neighbor_scope`: `0.1125`
+    - `oracle_scope`: `0.0000`
+    - event-edge stiffness report-only: `0.7929`, worse than promoted `full_v2` at `0.3677`
+    - non-event changed-edge stiffness: `0.7839`, slightly better than promoted `full_v2` at `0.7973`
+    - changed-node velocity: `0.0474`, slightly better than promoted `full_v2` at `0.0480`
+    - endpoint velocity: `0.0517`, slightly worse than promoted `full_v2` at `0.0513`
+    - one-hop velocity: `0.0473`, slightly better than promoted `full_v2` at `0.0476`
+    - changed-edge auxiliary MAE: `0.0357`, much better than promoted `full_v2` at `0.0802` and better than `spring_neighbor_scope` at `0.0494`
+- Interpretation:
+  - Holding out event-edge source recovery produced a meaningful noisy total-error improvement over promoted `full_v2`.
+  - The improvement is not from solving event-edge clean-current stiffness; that metric worsened by design because event-edge rest/stiffness were copied from the noisy observation.
+  - The useful signal is changed-edge auxiliary assembly, especially active/contact-like channels, with small secondary gains on non-event stiffness and one-hop velocity.
+  - Clean sanity regressed versus promoted `full_v2`, so this is not candidate-ready.
+- Decision:
+  - Treat source-held-out staging as a positive diagnostic subtarget, not a retained candidate.
+  - Continue Step33 rewrite under the current benchmark only if the next step isolates auxiliary assembly and near-node rollout while keeping event-edge source recovery explicitly report-only.
+  - Do not resume event-edge source estimators or reconnect event-edge denoising yet.
+
+### 30. Source-Held-Out Staged-Target Ablation
+
+- Files created/modified:
+  - `train/eval_step33_source_held_out_rewrite_ablation.py`
+  - `artifacts/step33_source_held_out_rewrite_ablation_clean/summary.json`
+  - `artifacts/step33_source_held_out_rewrite_ablation_clean/source_held_out_ablation_summary.csv`
+  - `artifacts/step33_source_held_out_rewrite_ablation_noisy/summary.json`
+  - `artifacts/step33_source_held_out_rewrite_ablation_noisy/source_held_out_ablation_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_source_held_out_rewrite_ablation.py`
+  - `python train/eval_step33_source_held_out_rewrite_ablation.py --data_path data/graph_event_step33_physics_like_smoke_test.pkl --checkpoint checkpoints/step33_source_held_out_rewrite_diagnostic/best.pt --output_dir artifacts/step33_source_held_out_rewrite_ablation_clean --batch_size 64 --device cpu --num_workers 0`
+  - `python train/eval_step33_source_held_out_rewrite_ablation.py --data_path data/graph_event_step33_physics_like_noisy_smoke_test.pkl --checkpoint checkpoints/step33_source_held_out_rewrite_diagnostic/best.pt --output_dir artifacts/step33_source_held_out_rewrite_ablation_noisy --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - No new model was trained. This ablated assembly components from `checkpoints/step33_source_held_out_rewrite_diagnostic/best.pt`.
+  - Noisy total changed-region error:
+    - source-held-out full: `0.1234`
+    - aux only: `0.1636`
+    - non-event param only: `0.1441`
+    - node rollout only: `0.1740`
+    - aux plus rollout: `0.1584`
+    - aux plus non-event params: `0.1285`
+    - non-event params plus rollout: `0.1389`
+    - promoted `full_v2`: `0.1312`
+    - `spring_neighbor_scope`: `0.1125`
+  - Noisy changed-edge auxiliary MAE:
+    - source-held-out full: `0.0357`
+    - aux-only and aux-combined rows: `0.0357`
+    - rows without aux: `0.0802`
+    - `spring_neighbor_scope`: `0.0494`
+  - Noisy non-event changed-edge stiffness:
+    - source-held-out full: `0.7839`
+    - rows with non-event params: `0.7839`
+    - rows without non-event params: `1.1153`
+    - promoted `full_v2`: `0.7973`
+    - `spring_neighbor_scope`: `0.8631`
+  - Noisy node velocity:
+    - source-held-out full: `0.0474`
+    - rows with rollout: `0.0474`
+    - rows without rollout: `0.0699`
+    - promoted `full_v2`: `0.0480`
+    - `spring_neighbor_scope`: `0.0057`
+- Interpretation:
+  - The source-held-out gain is not carried by auxiliary assembly alone.
+  - The best partial row is `aux_plus_non_event_params` at `0.1285`, which beats promoted `full_v2` but remains behind the full source-held-out row.
+  - Node rollout alone is weak, but removing rollout from `aux_plus_non_event_params` costs only about `0.0052`; rollout is the smallest incremental lever inside this checkpoint.
+  - Auxiliary assembly and non-event params are complementary. Auxiliary improves a large chunk, while non-event params prevent the no-param rows from collapsing.
+  - Event-edge stiffness remains poor in every ablation row by design because source recovery is held out.
+- Decision:
+  - Continue Step33 rewrite only as a source-held-out staged target, not by reviving event-edge denoising.
+  - The next smallest justified target is an auxiliary-plus-non-event-param refinement or stability check, with node rollout kept secondary/report-only.
+  - Do not refine node rollout first; it is not the dominant lever in this held-out formulation.
+
+### 31. Aux Plus Non-Event Params Stability Check
+
+- Files created/modified:
+  - `train/eval_step33_source_held_out_aux_non_event_stability.py`
+  - `artifacts/step33_source_held_out_aux_non_event_stability/summary.json`
+  - `artifacts/step33_source_held_out_aux_non_event_stability/stability_summary.csv`
+  - `artifacts/step33_source_held_out_aux_non_event_stability/stability_deltas.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python -m py_compile train/eval_step33_source_held_out_aux_non_event_stability.py`
+  - `python train/eval_step33_source_held_out_aux_non_event_stability.py --output_dir artifacts/step33_source_held_out_aux_non_event_stability --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - No new model was trained. This evaluated `source_held_out_full`, `aux_plus_non_event_params`, promoted `full_v2` mean plus seed rows, `spring_neighbor_scope`, and `oracle_scope`.
+  - Original noisy test total changed-region error:
+    - `aux_plus_non_event_params`: `0.1285`
+    - promoted `full_v2` mean: `0.1312`
+    - `source_held_out_full`: `0.1234`
+    - `spring_neighbor_scope`: `0.1125`
+  - Stratified noisy val total changed-region error:
+    - `aux_plus_non_event_params`: `0.1466`
+    - promoted `full_v2` mean: `0.1406`
+    - `source_held_out_full`: `0.1417`
+    - `spring_neighbor_scope`: `0.1239`
+  - Stratified noisy test total changed-region error:
+    - `aux_plus_non_event_params`: `0.1313`
+    - promoted `full_v2` mean: `0.1351`
+    - `source_held_out_full`: `0.1269`
+    - `spring_neighbor_scope`: `0.1101`
+  - `aux_plus_non_event_params` consistently improved changed-edge auxiliary MAE versus promoted `full_v2`:
+    - original noisy test: `0.0357` vs `0.0802`
+    - stratified noisy val: `0.0398` vs `0.0834`
+    - stratified noisy test: `0.0397` vs `0.0830`
+  - But the row loses node velocity badly versus promoted `full_v2`:
+    - original noisy test: `0.0699` vs `0.0480`
+    - stratified noisy val: `0.0648` vs `0.0443`
+    - stratified noisy test: `0.0685` vs `0.0482`
+- Interpretation:
+  - `aux_plus_non_event_params` is not stable enough to become the retained next subtarget by itself.
+  - The auxiliary signal is robust, but dropping rollout is too costly on stratified val and keeps the row behind `source_held_out_full`.
+  - The full source-held-out row remains the stronger staged-target diagnostic on all three evaluated splits, but it is still behind `spring_neighbor_scope` and still has held-out event-edge stiffness weakness.
+- Decision:
+  - Do not retain `aux_plus_non_event_params` as the next Step33 subtarget.
+  - Keep the auxiliary improvement as a real component signal, but do not remove rollout from the source-held-out target.
+  - The next smallest justified Step33 action is a source-held-out full-row seed stability check before any refinement or promotion.
+
+### 32. Source-Held-Out Full Seed Stability Check
+
+- Files created/modified:
+  - `train/eval_step33_source_held_out_full_seed_stability.py`
+  - `checkpoints/step33_source_held_out_rewrite_seed1/best.pt`
+  - `checkpoints/step33_source_held_out_rewrite_seed2/best.pt`
+  - `checkpoints/step33_source_held_out_rewrite_seed3/best.pt`
+  - `artifacts/step33_source_held_out_full_seed_stability/summary.json`
+  - `artifacts/step33_source_held_out_full_seed_stability/per_seed_summary.csv`
+  - `artifacts/step33_source_held_out_full_seed_stability/mean_range_summary.csv`
+  - `docs/CODEX_STEP33_LONGRUN_REPORT.md`
+- Commands run:
+  - `python train/train_step33_source_held_out_rewrite_diagnostic.py ... --save_dir checkpoints/step33_source_held_out_rewrite_seed1 --seed 1`
+  - `python train/train_step33_source_held_out_rewrite_diagnostic.py ... --save_dir checkpoints/step33_source_held_out_rewrite_seed2 --seed 2`
+  - `python train/train_step33_source_held_out_rewrite_diagnostic.py ... --save_dir checkpoints/step33_source_held_out_rewrite_seed3 --seed 3`
+  - `python -m py_compile train/eval_step33_source_held_out_full_seed_stability.py`
+  - `python train/eval_step33_source_held_out_full_seed_stability.py --output_dir artifacts/step33_source_held_out_full_seed_stability --batch_size 64 --device cpu --num_workers 0`
+- Main metrics/results:
+  - Source-held-out full best epochs:
+    - seed 1: `23`
+    - seed 2: `24`
+    - seed 3: `22`
+  - Mean total changed-region error:
+    - clean test:
+      - source-held-out full: `0.0423` range `0.0400-0.0440`
+      - promoted `full_v2`: `0.0281` range `0.0276-0.0287`
+    - original noisy test:
+      - source-held-out full: `0.1267` range `0.1238-0.1307`
+      - promoted `full_v2`: `0.1312` range `0.1297-0.1328`
+      - reduced `aux_plus_non_event_params`: `0.1319`
+    - stratified noisy val:
+      - source-held-out full: `0.1401` range `0.1370-0.1424`
+      - promoted `full_v2`: `0.1406` range `0.1402-0.1410`
+      - reduced `aux_plus_non_event_params`: `0.1450`
+    - stratified noisy test:
+      - source-held-out full: `0.1299` range `0.1278-0.1326`
+      - promoted `full_v2`: `0.1351` range `0.1334-0.1366`
+      - reduced `aux_plus_non_event_params`: `0.1346`
+  - Component means on noisy splits:
+    - source-held-out full consistently improves auxiliary MAE versus promoted `full_v2`:
+      - original noisy test: `0.0381` vs `0.0802`
+      - stratified noisy val: `0.0397` vs `0.0834`
+      - stratified noisy test: `0.0410` vs `0.0830`
+    - source-held-out full preserves rollout better than reduced `aux_plus_non_event_params`:
+      - original noisy test node velocity: `0.0471` vs `0.0699`
+      - stratified noisy val: `0.0435` vs `0.0648`
+      - stratified noisy test: `0.0475` vs `0.0685`
+    - event-edge stiffness remains report-only and poor:
+      - original noisy test: `0.7929`
+      - stratified noisy val: `1.6071`
+      - stratified noisy test: `0.8234`
+- Interpretation:
+  - Source-held-out full is stable enough to retain as the next staged rewrite diagnostic target on noisy structured `spring_retension`.
+  - It beats promoted `full_v2` on mean total changed-region error across all three noisy split checks.
+  - It also consistently beats the reduced `aux_plus_non_event_params` row, confirming that rollout should remain in the staged target even if auxiliary assembly is the main component gain.
+  - It is not candidate-ready: clean sanity regresses, event-edge stiffness remains intentionally unsolved, and `spring_neighbor_scope` is still ahead on noisy total error.
+- Decision:
+  - Retain `source_held_out_full` as the current best Step33 staged rewrite diagnostic target under the existing benchmark.
+  - Do not pause Step33 rewrite entirely; this line has a stable diagnostic gain.
+  - Do not promote it as a candidate.
+  - The next smallest justified action is a docs/status update recording `source_held_out_full` as retained diagnostic target, then a bounded refinement only if it preserves rollout and keeps event-edge source held out.
+
 ## Current Best References
 
 - Current Step33 benchmark proposal:
@@ -849,6 +1134,32 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - `artifacts/step33_event_edge_clean_current_estimator_noisy/summary.json`
   - `artifacts/step33_event_edge_clean_current_estimator_noisy/event_edge_clean_current_estimator_bucket_summary.csv`
   - `artifacts/step33_event_edge_clean_current_estimator_noisy/event_edge_clean_current_source_summary.csv`
+- Latest event-edge observability/source-design diagnostic:
+  - `train/eval_step33_event_edge_observability_diagnostic.py`
+  - `artifacts/step33_event_edge_observability_diagnostic/summary.json`
+  - `artifacts/step33_event_edge_observability_diagnostic/observability_summary.csv`
+  - `artifacts/step33_event_edge_observability_diagnostic/observability_bucket_summary.csv`
+  - `artifacts/step33_event_edge_observability_diagnostic_k1/summary.json`
+- Latest source-held-out staged rewrite diagnostic, not retained:
+  - `docs/STEP33_NEXT_SOURCE_OR_TARGET_DECISION_MEMO.md`
+  - `checkpoints/step33_source_held_out_rewrite_diagnostic/best.pt`
+  - `artifacts/step33_source_held_out_rewrite_diagnostic_clean/summary.json`
+  - `artifacts/step33_source_held_out_rewrite_diagnostic_clean/source_held_out_summary.csv`
+  - `artifacts/step33_source_held_out_rewrite_diagnostic_noisy/summary.json`
+  - `artifacts/step33_source_held_out_rewrite_diagnostic_noisy/source_held_out_summary.csv`
+  - `artifacts/step33_source_held_out_rewrite_ablation_clean/summary.json`
+  - `artifacts/step33_source_held_out_rewrite_ablation_noisy/summary.json`
+  - `artifacts/step33_source_held_out_rewrite_ablation_noisy/source_held_out_ablation_summary.csv`
+  - `artifacts/step33_source_held_out_aux_non_event_stability/summary.json`
+  - `artifacts/step33_source_held_out_aux_non_event_stability/stability_summary.csv`
+  - `artifacts/step33_source_held_out_aux_non_event_stability/stability_deltas.csv`
+- Retained source-held-out staged diagnostic reference:
+  - `checkpoints/step33_source_held_out_rewrite_seed1/best.pt`
+  - `checkpoints/step33_source_held_out_rewrite_seed2/best.pt`
+  - `checkpoints/step33_source_held_out_rewrite_seed3/best.pt`
+  - `artifacts/step33_source_held_out_full_seed_stability/summary.json`
+  - `artifacts/step33_source_held_out_full_seed_stability/per_seed_summary.csv`
+  - `artifacts/step33_source_held_out_full_seed_stability/mean_range_summary.csv`
 - Current active auxiliary smoke references:
   - `checkpoints/step33_spring_retension_active_aux_smoke_bce/best.pt`
   - `checkpoints/step33_spring_retension_active_aux_smoke_neg4/best.pt`
@@ -912,19 +1223,20 @@ This is a temporary handoff report for the current long Step33 session only. It 
   - `sign_aware_residual`
 - Do not treat `denoise_from_clean_current_source` as a deployable noisy model; it is a diagnostic upper bound that depends on oracle clean-current edge features.
 - Do not continue tiny event-edge clean-current source estimators under the current local feature set; the first bounded estimator did not recover the upper-bound gain and regressed the hard down-factor bucket.
+- Do not continue event-edge source recovery under the current noisy structured feature bundles by adding another small estimator or nearest-feature variant; the observability probe did not show a robust local source signal.
+- Do not reconnect event-edge denoising to near-node rollout until the event-edge source representation is redesigned or the rewrite target is narrowed to avoid requiring an unobservable clean-current source.
 
 ## Next Smallest Justified Action
 
-Run no implementation yet. The next planned Step33 action is an event-edge clean-current observability/source-design diagnostic, only if the line is resumed.
+Run a docs/status update next. The next planned Step33 action is to record `source_held_out_full` as the retained staged rewrite diagnostic target.
 
 - Scope:
-  - diagnostic design first
-  - `spring_retension` only
-  - no rendered observation
-  - no backend transfer
+  - docs/status only
+  - `spring_retension` rewrite line only
+  - no training, eval, rendered observation, backend transfer, benchmark broadening, or Step22-31 reopening
 - Content to record:
-  - compare which structured observation channels can reconstruct clean-current event-edge rest/stiffness
-  - keep node rollout fixed/report-only
-  - require improvement on hard `stiffness_factor < 1` source and target buckets
-  - if no feature subset approaches the clean-current upper bound, keep event-edge denoising paused
-  - do not reconnect event-edge denoising to near-node rollout before source observability is resolved
+  - `source_held_out_full` is stable enough to retain as a diagnostic target, not a candidate
+  - it beats promoted `full_v2` on mean total changed-region error across original noisy test, stratified noisy val, and stratified noisy test
+  - it still regresses clean sanity and remains behind `spring_neighbor_scope`
+  - keep event-edge rest/stiffness report-only and copied from observation
+  - future refinement must preserve rollout and source-held-out assembly, not narrow back to `aux_plus_non_event_params`

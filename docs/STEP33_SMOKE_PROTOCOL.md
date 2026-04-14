@@ -219,13 +219,29 @@ The event-edge source-estimation line is now also paused under the current local
 - `denoise_from_clean_current_source` should be treated as an oracle-source upper bound, not a deployable noisy-observation solution
 - future event-edge work requires a stronger source/observation redesign, not another tiny source MLP
 
+The follow-up no-training observability/source-design diagnostic confirmed that pause:
+
+- the clean-current upper bound remains real, but current noisy structured feature bundles do not robustly recover that source
+- on noisy `spring_retension` test, the raw observed-current baseline remained stronger than the tested kNN feature-bundle probes:
+  - observed-current event-target stiffness MAE: `0.4730`
+  - kNN noisy-event-edge-only event-target stiffness MAE: `0.8199`
+  - richer kNN local feature bundles: `1.5669` to `1.6809`
+- the hard `stiffness_factor < 1` bucket remains the blocker:
+  - observed-current event-target stiffness MAE: `0.7168`
+  - kNN noisy-event-edge-only event-target stiffness MAE: `0.7957`
+  - richer kNN local feature bundles: `1.5400` to `1.8072`
+- noisy val showed a partial kNN noisy-event-edge-only improvement, but that signal did not transfer robustly to noisy test
+- endpoint state, local structure, changed-support context, and local physics summaries did not provide a stable recoverable clean-current source signal
+- event-edge denoising should not be reconnected to near-node rollout under the current representation
+
 Current retained interpretation:
 
 - Step33 benchmark substrate remains healthy
 - proposal-side learned signal remains viable
 - promoted `structured_propagation_v2` with near-node-velocity weighting remains the current best learned rewrite family
 - the current event-edge source-estimation implementation line is paused
-- further Step33 rewrite work should not continue via small event-edge residual/source-estimator variants
+- further Step33 rewrite work should not continue via small event-edge residual/source-estimator/kNN-style variants
+- future event-edge work requires either a source/observation redesign or a narrower rewrite target
 
 ---
 
